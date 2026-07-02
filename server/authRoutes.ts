@@ -1,5 +1,4 @@
 import express from 'express';
-import passport from 'passport';
 import { eq } from 'drizzle-orm';
 import rateLimit from 'express-rate-limit';
 import { db } from './db';
@@ -7,10 +6,7 @@ import * as schema from './schema';
 import * as auth from './auth';
 import jwt from 'jsonwebtoken';
 import { blocklistToken } from './redis';
-import { configurePassport, isGitHubOAuthConfigured } from './passport';
 import { recordCoachEvent } from './lib/coachEvents';
-
-configurePassport();
 
 const router = express.Router();
 
@@ -423,30 +419,6 @@ router.post('/change-password', auth.requireAuth, async (req, res) => {
     console.error('[auth/change-password]', err);
     res.status(500).json({ error: 'Failed to update password' });
   }
-});
-
-router.get('/github', (req, res, next) => {
-  if (!isGitHubOAuthConfigured()) {
-    return res.status(503).json({ error: 'GitHub OAuth not configured' });
-  }
-  passport.authenticate('github', { session: false, scope: ['user:email'] })(req, res, next);
-});
-
-router.get('/github/callback', (req, res, next) => {
-  if (!isGitHubOAuthConfigured()) {
-    return res.status(503).json({ error: 'GitHub OAuth not configured' });
-  }
-  const frontend = (process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/$/, '');
-  passport.authenticate('github', { session: false, failureRedirect: `${frontend}/auth?error=github` })(req, res, next);
-}, (req, res) => {
-  const user = (req as any).user as { userId: number; email: string; name: string; role: auth.UserRole };
-  const token = auth.signToken({ userId: user.userId, email: user.email, name: user.name, role: user.role });
-  const frontend = (process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/$/, '');
-  const data = encodeURIComponent(JSON.stringify({
-    token,
-    user: { id: user.userId, email: user.email, name: user.name, role: user.role },
-  }));
-  res.redirect(`${frontend}/auth/callback?data=${data}`);
 });
 
 export default router;
