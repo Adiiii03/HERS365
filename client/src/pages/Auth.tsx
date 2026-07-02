@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
-import { Mail, Lock, User, ArrowRight, Eye, EyeOff, ArrowUpRight } from 'lucide-react';
+import { Mail, Lock, User, ArrowRight, Eye, EyeOff, ArrowUpRight, ShieldCheck, Users } from 'lucide-react';
 import { GoogleLogin } from '@react-oauth/google';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { apiFetch } from '../lib/api';
-import { athleteAvatar } from '../lib/avatar';
 import { DemoLoginButton } from '../components/DemoLoginButton';
 import { Capacitor } from '@capacitor/core';
 
@@ -155,8 +154,8 @@ export const Auth = () => {
   const [email,    setEmail]    = useState('');
   const [password, setPassword] = useState('');
   // New signup-only fields. DOB is required for athletes so the backend can
-  // enforce COPPA and parent-gate rules. Parent email is optional and kicks
-  // off a parent-link invite if provided.
+  // enforce COPPA and parent-gate rules. Parent email is required for athletes
+  // under 18 (it's who coach contact gets routed through); 18+ may omit it.
   const [role,        setRole]        = useState<SignupRole>(
     (searchParams.get('role') as SignupRole | null) === 'parent' ? 'parent' : 'athlete',
   );
@@ -182,6 +181,10 @@ export const Auth = () => {
       const ageYears = (Date.now() - new Date(dob).getTime()) / (1000 * 60 * 60 * 24 * 365.25);
       if (Number.isNaN(ageYears) || ageYears < 13) {
         setError('Athletes must be at least 13. A parent can set up a managed account.');
+        return;
+      }
+      if (ageYears < 18 && !parentEmail.trim()) {
+        setError('A parent or guardian email is required for athletes under 18.');
         return;
       }
     }
@@ -322,50 +325,42 @@ export const Auth = () => {
               textTransform: 'uppercase', lineHeight: 0.9, letterSpacing: 'var(--tracking-display)', margin: 0,
             }}
           >
-            Your game.<br />Their offer.<br />
-            <span style={{ color: FLAME }}>Your future.</span>
+            Her game.<br />Her people.<br />
+            <span style={{ color: FLAME }}>Her space.</span>
           </div>
 
           <p style={{ color: MUTED, fontSize: '1.05rem', lineHeight: 1.65, margin: '26px 0 0', maxWidth: 360 }}>
-            The recruiting platform built from the ground up for girls flag football.
+            The community built for girls flag football. Safe by design, parent approved, and moderated by real people.
           </p>
 
-          {/* Proof row */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 34 }}>
-            <div style={{ display: 'flex' }}>
-              {['Ava King', 'Maya Cruz', 'Zoe Bell', 'Tia Ford'].map((n, i) => (
-                <span
-                  key={n}
-                  aria-hidden
-                  style={{
-                    width: 34, height: 34, borderRadius: '50%',
-                    border: `2px solid ${PANEL}`, marginLeft: i ? -10 : 0,
-                    backgroundImage: `url("${athleteAvatar(n)}")`,
-                    backgroundSize: 'cover', backgroundPosition: 'center', display: 'block', flexShrink: 0,
-                  }}
-                />
-              ))}
-            </div>
-            <span style={{ color: MUTED, fontSize: '.88rem', lineHeight: 1.45 }}>
-              Join <b style={{ color: TEXT }}>4,200+</b> athletes<br />already on the grid
+          {/* Trust line — honest, no invented numbers */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 11, marginTop: 34 }}>
+            <ShieldCheck size={20} aria-hidden style={{ color: FLAME, flexShrink: 0 }} />
+            <span style={{ color: MUTED, fontSize: '.9rem', lineHeight: 1.45 }}>
+              Parent approved. Human moderated.
             </span>
           </div>
         </motion.div>
 
-        {/* Stats */}
+        {/* Trust signals */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.28 }}
           style={{
-            display: 'grid', gridTemplateColumns: 'repeat(3,auto)', gap: 40,
+            display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 22,
             position: 'relative', zIndex: 1, paddingTop: 28, borderTop: `1px solid ${LINE}`,
           }}
         >
-          {[{ n: '4.2K', l: 'Athletes Ranked' }, { n: '380+', l: 'Coaches Scouting' }, { n: '1.1K', l: 'Offers Made' }].map(s => (
-            <div key={s.l}>
-              <div style={{ fontFamily: DISP, fontWeight: 900, fontSize: '2rem', color: TEXT, lineHeight: 1 }}>{s.n}</div>
-              <div style={{ fontSize: '.64rem', fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase', color: MUTED_2, marginTop: 7 }}>{s.l}</div>
+          {[
+            { Icon: ShieldCheck, l: 'Parent approved', s: 'Coach contact is gated through a guardian' },
+            { Icon: Users,       l: 'Human moderated', s: 'Real people keep the community safe' },
+            { Icon: Lock,        l: 'Under 18 safe',   s: 'Built to protect younger athletes' },
+          ].map(({ Icon, l, s }) => (
+            <div key={l}>
+              <Icon size={18} aria-hidden style={{ color: FLAME, marginBottom: 9 }} />
+              <div style={{ fontFamily: DISP, fontWeight: 800, fontSize: '.72rem', letterSpacing: '.14em', textTransform: 'uppercase', color: TEXT, lineHeight: 1.1 }}>{l}</div>
+              <div style={{ fontSize: '.72rem', color: MUTED_2, marginTop: 6, lineHeight: 1.4 }}>{s}</div>
             </div>
           ))}
         </motion.div>
@@ -408,35 +403,28 @@ export const Auth = () => {
               transition={{ duration: 0.22 }}
             >
               <h1 style={{ fontFamily: DISP, fontWeight: 900, fontSize: 'clamp(2.4rem,5vw,3rem)', textTransform: 'uppercase', lineHeight: 0.92, margin: '0 0 10px', letterSpacing: 'var(--tracking-display)' }}>
-                {isLogin ? 'Welcome back.' : 'Join the elite.'}
+                {isLogin
+                  ? 'Welcome back.'
+                  : role === 'parent' ? 'Set up her safe space.' : 'Join the community.'}
               </h1>
               <p style={{ color: MUTED, fontSize: '0.98rem', margin: '0 0 32px', lineHeight: 1.5 }}>
-                {isLogin ? 'Sign in to your recruiting dashboard.' : 'Create your profile and get in front of college coaches.'}
+                {isLogin
+                  ? 'Sign back in to your community.'
+                  : role === 'parent'
+                    ? "Create and oversee your daughter's account. Coach contact is gated through you."
+                    : 'Build your profile and connect with your flag football community, safely.'}
               </p>
             </motion.div>
           </AnimatePresence>
 
-          {/* Mobile social proof */}
+          {/* Mobile trust line — honest, no invented numbers */}
           <div
             className="flex lg:hidden"
-            style={{ alignItems: 'center', gap: 11, marginBottom: 26 }}
+            style={{ alignItems: 'center', gap: 9, marginBottom: 26 }}
           >
-            <div style={{ display: 'flex' }}>
-              {['Ava King', 'Maya Cruz', 'Zoe Bell', 'Tia Ford'].map((n, i) => (
-                <span
-                  key={n}
-                  aria-hidden
-                  style={{
-                    width: 28, height: 28, borderRadius: '50%',
-                    border: `2px solid ${INK}`, marginLeft: i ? -9 : 0,
-                    backgroundImage: `url("${athleteAvatar(n)}")`,
-                    backgroundSize: 'cover', backgroundPosition: 'center', display: 'block', flexShrink: 0,
-                  }}
-                />
-              ))}
-            </div>
+            <ShieldCheck size={17} aria-hidden style={{ color: FLAME, flexShrink: 0 }} />
             <span style={{ color: MUTED, fontSize: '.8rem', lineHeight: 1.4 }}>
-              Join <b style={{ color: TEXT }}>4,200+</b> athletes already on the grid
+              Parent approved. Human moderated.
             </span>
           </div>
 
@@ -547,7 +535,7 @@ export const Auth = () => {
                   </div>
                   <Field
                     id="auth-parent-email"
-                    label="Parent / Guardian Email (optional)"
+                    label="Parent / Guardian Email"
                     type="email"
                     icon={Mail}
                     value={parentEmail}
@@ -555,7 +543,7 @@ export const Auth = () => {
                     autoComplete="email"
                   />
                   <p style={{ color: MUTED_2, fontSize: '.68rem', margin: '-8px 4px 16px', fontFamily: BODY }}>
-                    We'll send them a link to oversee coach contact and approve messages.
+                    Required for athletes under 18. We'll send them a link to approve coach contact and oversee messages.
                   </p>
                 </motion.div>
               )}
@@ -620,7 +608,7 @@ export const Auth = () => {
             >
               {loading
                 ? <><span className="auth-spinner" aria-hidden /> {isLogin ? 'Signing in…' : 'Creating account…'}</>
-                : <>{isLogin ? 'Enter the Grid' : 'Claim Your Spot'}<ArrowRight size={16} /></>
+                : <>{isLogin ? 'Sign In' : 'Create my account'}<ArrowRight size={16} /></>
               }
             </button>
 
