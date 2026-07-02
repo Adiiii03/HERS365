@@ -9,7 +9,7 @@ export type DemoRole = 'player' | 'coach';
 // reach a prod demo path even if these creds are visible in the bundle.
 const DEMO_CREDS: Record<DemoRole, { email: string; password: string }> = {
   player: { email: 'maya@hers365.com', password: 'hers365' },
-  coach:  { email: 'coach@hers365.com', password: 'hers365coach' },
+  coach:  { email: 'coach@hers365.com', password: 'hers365' },
 };
 
 // Pure gate, fail-closed, POSITIVE non-prod assertion (mirrors server).
