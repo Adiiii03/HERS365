@@ -10,6 +10,11 @@ import { recordCoachEvent } from './lib/coachEvents';
 
 const router = express.Router();
 
+// Only these roles may be requested at self-service signup. Excluding 'admin'
+// blocks a privilege-escalation hole: the JWT is signed with the requested
+// role, so an unchecked body role would let anyone mint an admin token.
+const SELF_REGISTERABLE_ROLES = new Set<auth.UserRole>(['athlete', 'parent', 'coach']);
+
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 20,
@@ -127,6 +132,10 @@ router.post('/register', registerLimiter, async (req, res) => {
 
   const userRole = (role as auth.UserRole) || 'athlete';
 
+  if (!SELF_REGISTERABLE_ROLES.has(userRole)) {
+    return res.status(400).json({ error: 'Invalid account type' });
+  }
+
   // Athlete signup: DOB is now required so we can enforce COPPA / parent-gate.
   // Server is the source of truth, regardless of what the client sends.
   let parsedDob: Date | null = null;
@@ -145,6 +154,13 @@ router.post('/register', registerLimiter, async (req, res) => {
       // which is intentionally not yet implemented.
       return res.status(400).json({
         error: 'Users under 13 cannot create their own account. Ask a parent to set up a managed account.',
+      });
+    }
+    // Parent gate: minors (under 18) must supply a parent/guardian email so
+    // coach contact stays parent-mediated. Adults may omit it.
+    if (ageYears < 18 && (!parentEmail || !parentEmail.trim())) {
+      return res.status(400).json({
+        error: 'A parent or guardian email is required for athletes under 18.',
       });
     }
   }
@@ -307,10 +323,14 @@ router.post('/google', loginLimiter, async (req, res) => {
     return res.status(503).json({ error: 'Google OAuth not configured on this server' });
   }
 
+  const userRole = (role as auth.UserRole) || 'athlete';
+  if (!SELF_REGISTERABLE_ROLES.has(userRole)) {
+    return res.status(400).json({ error: 'Invalid account type' });
+  }
+
   try {
     const google = await auth.verifyGoogleToken(credential as string);
     const normalEmail = google.email.toLowerCase();
-    const userRole = (role as auth.UserRole) || 'athlete';
 
     let user = await findUserByEmail(normalEmail, userRole);
 
