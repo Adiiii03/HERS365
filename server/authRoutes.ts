@@ -7,6 +7,7 @@ import * as auth from './auth';
 import jwt from 'jsonwebtoken';
 import { blocklistToken } from './redis';
 import { recordCoachEvent } from './lib/coachEvents';
+import { validateAthleteSignup } from './lib/athleteGate';
 
 const router = express.Router();
 
@@ -136,33 +137,16 @@ router.post('/register', registerLimiter, async (req, res) => {
     return res.status(400).json({ error: 'Invalid account type' });
   }
 
-  // Athlete signup: DOB is now required so we can enforce COPPA / parent-gate.
-  // Server is the source of truth, regardless of what the client sends.
+  // Athlete signup: DOB is required so we can enforce COPPA / parent-gate.
+  // Server is the source of truth, regardless of what the client sends. The
+  // gate lives in one shared validator so every signup path stays uniform.
   let parsedDob: Date | null = null;
   if (userRole === 'athlete') {
-    if (!dob) {
-      return res.status(400).json({ error: 'Date of birth is required for athlete accounts' });
+    const result = validateAthleteSignup(dob, parentEmail);
+    if (!result.ok) {
+      return res.status(400).json({ error: result.error });
     }
-    parsedDob = new Date(dob);
-    if (Number.isNaN(parsedDob.getTime())) {
-      return res.status(400).json({ error: 'Invalid date of birth' });
-    }
-    const ageMs = Date.now() - parsedDob.getTime();
-    const ageYears = ageMs / (1000 * 60 * 60 * 24 * 365.25);
-    if (ageYears < 13) {
-      // COPPA: no direct accounts for under-13s. They need a parent-managed flow,
-      // which is intentionally not yet implemented.
-      return res.status(400).json({
-        error: 'Users under 13 cannot create their own account. Ask a parent to set up a managed account.',
-      });
-    }
-    // Parent gate: minors (under 18) must supply a parent/guardian email so
-    // coach contact stays parent-mediated. Adults may omit it.
-    if (ageYears < 18 && (!parentEmail || !parentEmail.trim())) {
-      return res.status(400).json({
-        error: 'A parent or guardian email is required for athletes under 18.',
-      });
-    }
+    parsedDob = result.dob;
   }
 
   const normalEmail = (email as string).toLowerCase().trim();
@@ -314,7 +298,7 @@ router.post('/coach/register', registerLimiter, async (req, res) => {
 // ─── POST /api/auth/google ────────────────────────────────────────────────────
 
 router.post('/google', loginLimiter, async (req, res) => {
-  const { credential, role = 'athlete' } = req.body ?? {};
+  const { credential, role = 'athlete', dob, parentEmail } = req.body ?? {};
 
   if (!credential) {
     return res.status(400).json({ error: 'Google credential is required' });
@@ -347,8 +331,21 @@ router.post('/google', loginLimiter, async (req, res) => {
         }).returning({ id: schema.parents.id });
         userId = row.id;
       } else {
+        // New athlete via Google: Google provides no DOB, so require the same
+        // age/parent gate as every other athlete signup path. Only new-athlete
+        // creation is gated — coach/parent creation and the existing-user login
+        // path below are untouched.
+        const result = validateAthleteSignup(dob, parentEmail);
+        if (!result.ok) {
+          return res.status(400).json({ error: result.error });
+        }
+        const normalParentEmail = typeof parentEmail === 'string' && parentEmail.trim()
+          ? parentEmail.toLowerCase().trim()
+          : null;
         const [row] = await db.insert(schema.players).values({
           email: normalEmail, name: google.name,
+          dob: result.dob,
+          pendingParentEmail: normalParentEmail,
         }).returning({ id: schema.players.id });
         userId = row.id;
       }
