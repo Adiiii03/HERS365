@@ -25,7 +25,7 @@ describe('POST /api/auth/email/register', () => {
   it('mints a token in the canonical { userId, role, name, email } shape', async () => {
     const res = await request(app)
       .post('/api/auth/email/register')
-      .send({ email: 'canon-register@test.local', password: 'Password1', name: 'Canon' });
+      .send({ email: 'canon-register@test.local', password: 'Password1', name: 'Canon', dob: '2000-01-01' });
     expect(res.status).toBe(201);
     expect(res.body.token).toBeTypeOf('string');
 
@@ -41,7 +41,7 @@ describe('POST /api/auth/email/login', () => {
   it('mints a token in the canonical { userId, role, name, email } shape', async () => {
     const registerRes = await request(app)
       .post('/api/auth/email/register')
-      .send({ email: 'canon-login@test.local', password: 'Password1', name: 'Canon Login' });
+      .send({ email: 'canon-login@test.local', password: 'Password1', name: 'Canon Login', dob: '2000-01-01' });
     expect(registerRes.status).toBe(201);
 
     const loginRes = await request(app)
@@ -63,7 +63,7 @@ describe('email-auth token works on routes that read req.user.userId / req.user.
     const email = 'profile-flow@test.local';
     await request(app)
       .post('/api/auth/email/register')
-      .send({ email, password: 'Password1', name: 'Profile Flow' });
+      .send({ email, password: 'Password1', name: 'Profile Flow', dob: '2000-01-01' });
 
     const loginRes = await request(app)
       .post('/api/auth/email/login')
@@ -85,7 +85,7 @@ describe('email-auth token works on routes that read req.user.userId / req.user.
   it('GET /api/notifications resolves the caller from req.user.id after email-auth register', async () => {
     const registerRes = await request(app)
       .post('/api/auth/email/register')
-      .send({ email: 'notif-flow@test.local', password: 'Password1', name: 'Notif Flow' });
+      .send({ email: 'notif-flow@test.local', password: 'Password1', name: 'Notif Flow', dob: '2000-01-01' });
     expect(registerRes.status).toBe(201);
     const token: string = registerRes.body.token;
 

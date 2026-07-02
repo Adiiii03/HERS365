@@ -84,18 +84,21 @@ describe('POST /api/auth/email/register — error paths', () => {
     const existing = await makeAthlete({ email: 'duplicate-email@test.local' });
     expect(existing.email).toBe('duplicate-email@test.local');
 
+    // Send a valid adult DOB so the request clears the athlete age gate and
+    // reaches the duplicate-detection branch this test is asserting.
     const res = await request(app)
       .post('/api/auth/email/register')
-      .send({ email: 'duplicate-email@test.local', password: 'Password1' });
+      .send({ email: 'duplicate-email@test.local', password: 'Password1', dob: '2000-01-01' });
     expect(res.status).toBe(409);
     expect(res.body.error).toMatch(/already exists/i);
   });
 });
 
-// emailAuthRoutes.ts does not enforce a server-side DOB / COPPA check on
-// register — the field isn't read by the handler at all. The age gate is
-// applied client-side in client/src/pages/Auth.tsx. Documenting that here so
-// a future reader doesn't expect a server reject path that doesn't exist.
+// emailAuthRoutes.ts now enforces the shared athlete age gate on register
+// (DOB required, under-13 blocked, under-18 requires a parent email) via
+// validateAthleteSignup in server/lib/athleteGate.ts. The gate's own reject
+// branches are covered in auth.test.ts; the cases here keep a valid DOB so
+// they exercise the surrounding error and enumeration behavior instead.
 
 describe('POST /api/auth/email/login — error paths', () => {
   it('returns 400 when email is missing', async () => {
