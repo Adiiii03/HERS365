@@ -95,3 +95,85 @@ describe('register / login round trip', () => {
     expect(res.status).toBe(401);
   });
 });
+
+describe('register hardening: role allowlist + parent gate', () => {
+  // Privilege escalation: a body role of 'admin' must be rejected before any
+  // DB write or token signing, so it can never yield an admin JWT.
+  it('rejects a self-registered admin with 400 and no token', async () => {
+    const res = await request(app).post('/api/auth/register').send({
+      email: 'wannabe-admin@test.local', password: 'Str0ng-pass!', name: 'Wannabe', role: 'admin',
+    });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBe('Invalid account type');
+    expect(res.body.token).toBeUndefined();
+  });
+
+  // COPPA + parent-gate: a 13-to-17 athlete cannot self-register without a
+  // parent/guardian email.
+  it('rejects an under-18 athlete with no parent email', async () => {
+    const res = await request(app).post('/api/auth/register').send({
+      email: 'minor@test.local', password: 'Str0ng-pass!', name: 'Minor', role: 'athlete', dob: '2011-01-01',
+    });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toContain('parent');
+  });
+
+  it('accepts an under-18 athlete once a parent email is supplied', async () => {
+    const res = await request(app).post('/api/auth/register').send({
+      email: 'minor2@test.local', password: 'Str0ng-pass!', name: 'Minor Two',
+      role: 'athlete', dob: '2011-01-01', parentEmail: 'guardian@test.local',
+    });
+    expect([200, 201]).toContain(res.status);
+    expect(res.body.token).toBeTruthy();
+  });
+});
+
+// The email/password register endpoint always creates an athlete, so it must
+// enforce the same shared age/parent gate as /api/auth/register. This router
+// is mounted at /api/auth/email. Keep total requests here at or under the
+// 5/hour in-memory register limiter so no case flakes on a 429.
+describe('email/password register: shared athlete gate', () => {
+  it('rejects an under-13 dob (COPPA)', async () => {
+    const res = await request(app).post('/api/auth/email/register').send({
+      email: 'coppa@test.local', password: 'Str0ng-pass!', name: 'Too Young', dob: '2016-01-01',
+    });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toContain('under 13');
+    expect(res.body.token).toBeUndefined();
+  });
+
+  it('rejects an under-18 dob with no parent email', async () => {
+    const res = await request(app).post('/api/auth/email/register').send({
+      email: 'eminor@test.local', password: 'Str0ng-pass!', name: 'E Minor', dob: '2011-01-01',
+    });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toContain('parent');
+    expect(res.body.token).toBeUndefined();
+  });
+
+  it('rejects a missing dob', async () => {
+    const res = await request(app).post('/api/auth/email/register').send({
+      email: 'nodob@test.local', password: 'Str0ng-pass!', name: 'No Dob',
+    });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBe('Date of birth is required for athlete accounts');
+    expect(res.body.token).toBeUndefined();
+  });
+
+  it('accepts an adult dob and returns a token', async () => {
+    const res = await request(app).post('/api/auth/email/register').send({
+      email: 'eadult@test.local', password: 'Str0ng-pass!', name: 'E Adult', dob: '2000-01-01',
+    });
+    expect(res.status).toBe(201);
+    expect(res.body.token).toBeTruthy();
+  });
+
+  it('accepts an under-18 dob once a parent email is supplied', async () => {
+    const res = await request(app).post('/api/auth/email/register').send({
+      email: 'eminor2@test.local', password: 'Str0ng-pass!', name: 'E Minor Two',
+      dob: '2011-01-01', parentEmail: 'guardian@test.local',
+    });
+    expect(res.status).toBe(201);
+    expect(res.body.token).toBeTruthy();
+  });
+});

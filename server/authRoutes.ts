@@ -1,5 +1,4 @@
 import express from 'express';
-import passport from 'passport';
 import { eq } from 'drizzle-orm';
 import rateLimit from 'express-rate-limit';
 import { db } from './db';
@@ -7,12 +6,15 @@ import * as schema from './schema';
 import * as auth from './auth';
 import jwt from 'jsonwebtoken';
 import { blocklistToken } from './redis';
-import { configurePassport, isGitHubOAuthConfigured } from './passport';
 import { recordCoachEvent } from './lib/coachEvents';
-
-configurePassport();
+import { validateAthleteSignup } from './lib/athleteGate';
 
 const router = express.Router();
+
+// Only these roles may be requested at self-service signup. Excluding 'admin'
+// blocks a privilege-escalation hole: the JWT is signed with the requested
+// role, so an unchecked body role would let anyone mint an admin token.
+const SELF_REGISTERABLE_ROLES = new Set<auth.UserRole>(['athlete', 'parent', 'coach']);
 
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -131,26 +133,20 @@ router.post('/register', registerLimiter, async (req, res) => {
 
   const userRole = (role as auth.UserRole) || 'athlete';
 
-  // Athlete signup: DOB is now required so we can enforce COPPA / parent-gate.
-  // Server is the source of truth, regardless of what the client sends.
+  if (!SELF_REGISTERABLE_ROLES.has(userRole)) {
+    return res.status(400).json({ error: 'Invalid account type' });
+  }
+
+  // Athlete signup: DOB is required so we can enforce COPPA / parent-gate.
+  // Server is the source of truth, regardless of what the client sends. The
+  // gate lives in one shared validator so every signup path stays uniform.
   let parsedDob: Date | null = null;
   if (userRole === 'athlete') {
-    if (!dob) {
-      return res.status(400).json({ error: 'Date of birth is required for athlete accounts' });
+    const result = validateAthleteSignup(dob, parentEmail);
+    if (!result.ok) {
+      return res.status(400).json({ error: result.error });
     }
-    parsedDob = new Date(dob);
-    if (Number.isNaN(parsedDob.getTime())) {
-      return res.status(400).json({ error: 'Invalid date of birth' });
-    }
-    const ageMs = Date.now() - parsedDob.getTime();
-    const ageYears = ageMs / (1000 * 60 * 60 * 24 * 365.25);
-    if (ageYears < 13) {
-      // COPPA: no direct accounts for under-13s. They need a parent-managed flow,
-      // which is intentionally not yet implemented.
-      return res.status(400).json({
-        error: 'Users under 13 cannot create their own account. Ask a parent to set up a managed account.',
-      });
-    }
+    parsedDob = result.dob;
   }
 
   const normalEmail = (email as string).toLowerCase().trim();
@@ -302,7 +298,7 @@ router.post('/coach/register', registerLimiter, async (req, res) => {
 // ─── POST /api/auth/google ────────────────────────────────────────────────────
 
 router.post('/google', loginLimiter, async (req, res) => {
-  const { credential, role = 'athlete' } = req.body ?? {};
+  const { credential, role = 'athlete', dob, parentEmail } = req.body ?? {};
 
   if (!credential) {
     return res.status(400).json({ error: 'Google credential is required' });
@@ -311,10 +307,14 @@ router.post('/google', loginLimiter, async (req, res) => {
     return res.status(503).json({ error: 'Google OAuth not configured on this server' });
   }
 
+  const userRole = (role as auth.UserRole) || 'athlete';
+  if (!SELF_REGISTERABLE_ROLES.has(userRole)) {
+    return res.status(400).json({ error: 'Invalid account type' });
+  }
+
   try {
     const google = await auth.verifyGoogleToken(credential as string);
     const normalEmail = google.email.toLowerCase();
-    const userRole = (role as auth.UserRole) || 'athlete';
 
     let user = await findUserByEmail(normalEmail, userRole);
 
@@ -331,8 +331,21 @@ router.post('/google', loginLimiter, async (req, res) => {
         }).returning({ id: schema.parents.id });
         userId = row.id;
       } else {
+        // New athlete via Google: Google provides no DOB, so require the same
+        // age/parent gate as every other athlete signup path. Only new-athlete
+        // creation is gated — coach/parent creation and the existing-user login
+        // path below are untouched.
+        const result = validateAthleteSignup(dob, parentEmail);
+        if (!result.ok) {
+          return res.status(400).json({ error: result.error });
+        }
+        const normalParentEmail = typeof parentEmail === 'string' && parentEmail.trim()
+          ? parentEmail.toLowerCase().trim()
+          : null;
         const [row] = await db.insert(schema.players).values({
           email: normalEmail, name: google.name,
+          dob: result.dob,
+          pendingParentEmail: normalParentEmail,
         }).returning({ id: schema.players.id });
         userId = row.id;
       }
@@ -423,30 +436,6 @@ router.post('/change-password', auth.requireAuth, async (req, res) => {
     console.error('[auth/change-password]', err);
     res.status(500).json({ error: 'Failed to update password' });
   }
-});
-
-router.get('/github', (req, res, next) => {
-  if (!isGitHubOAuthConfigured()) {
-    return res.status(503).json({ error: 'GitHub OAuth not configured' });
-  }
-  passport.authenticate('github', { session: false, scope: ['user:email'] })(req, res, next);
-});
-
-router.get('/github/callback', (req, res, next) => {
-  if (!isGitHubOAuthConfigured()) {
-    return res.status(503).json({ error: 'GitHub OAuth not configured' });
-  }
-  const frontend = (process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/$/, '');
-  passport.authenticate('github', { session: false, failureRedirect: `${frontend}/auth?error=github` })(req, res, next);
-}, (req, res) => {
-  const user = (req as any).user as { userId: number; email: string; name: string; role: auth.UserRole };
-  const token = auth.signToken({ userId: user.userId, email: user.email, name: user.name, role: user.role });
-  const frontend = (process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/$/, '');
-  const data = encodeURIComponent(JSON.stringify({
-    token,
-    user: { id: user.userId, email: user.email, name: user.name, role: user.role },
-  }));
-  res.redirect(`${frontend}/auth/callback?data=${data}`);
 });
 
 export default router;

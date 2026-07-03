@@ -30,7 +30,6 @@ const PlayerProfile = lazyNamed(() => import('./pages/PlayerProfile'), 'PlayerPr
 const Training = lazyNamed(() => import('./pages/Training'), 'Training');
 const Recruiting = lazyNamed(() => import('./pages/Recruiting'), 'Recruiting');
 const Teams = lazyNamed(() => import('./pages/Teams'), 'Teams');
-const AuthCallback = lazyNamed(() => import('./pages/AuthCallback'), 'AuthCallback');
 const ForgotPassword = lazyNamed(() => import('./pages/ForgotPassword'), 'ForgotPassword');
 const ResetPassword = lazyNamed(() => import('./pages/ResetPassword'), 'ResetPassword');
 const VerifyEmail = lazyNamed(() => import('./pages/VerifyEmail'), 'VerifyEmail');
@@ -281,7 +280,6 @@ function App() {
             <Route path="/" element={<LandingPage />} />
             <Route path="/landing" element={<LandingPage />} />
             <Route path="/auth" element={<Auth />} />
-            <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/verify-email" element={<VerifyEmail />} />

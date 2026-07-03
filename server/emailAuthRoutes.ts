@@ -11,6 +11,7 @@ import { db } from './db';
 import * as schema from './schema';
 import { sendPasswordResetEmail, sendVerificationEmail } from './email';
 import * as auth from './auth';
+import { validateAthleteSignup } from './lib/athleteGate';
 
 const router = express.Router();
 
@@ -68,7 +69,7 @@ function signEmailAuthToken(player: { id: number; email: string; name: string | 
 }
 
 router.post('/register', registerLimiter, async (req, res) => {
-  const { email, password, name } = req.body || {};
+  const { email, password, name, dob, parentEmail } = req.body || {};
 
   if (!email || !password) {
     return res.status(400).json({ error: 'email and password are required' });
@@ -79,6 +80,16 @@ router.post('/register', registerLimiter, async (req, res) => {
   if (password.length < 8) {
     return res.status(400).json({ error: 'Password must be at least 8 characters' });
   }
+
+  // This endpoint always creates an athlete, so it must enforce the same
+  // COPPA / parent-gate as every other athlete signup path.
+  const gate = validateAthleteSignup(dob, parentEmail);
+  if (!gate.ok) {
+    return res.status(400).json({ error: gate.error });
+  }
+  const normalParentEmail = typeof parentEmail === 'string' && parentEmail.trim()
+    ? parentEmail.toLowerCase().trim()
+    : null;
 
   try {
     const existing = await db
@@ -94,7 +105,14 @@ router.post('/register', registerLimiter, async (req, res) => {
 
     const inserted = await db
       .insert(schema.players)
-      .values({ email, passwordHash, name: name || email.split('@')[0], emailVerified: false })
+      .values({
+        email,
+        passwordHash,
+        name: name || email.split('@')[0],
+        emailVerified: false,
+        dob: gate.dob,
+        pendingParentEmail: normalParentEmail,
+      })
       .returning();
 
     const player = inserted[0];

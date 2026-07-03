@@ -1,8 +1,10 @@
+// MUST be first: loads the repo-root .env before `new Pool(...)` reads
+// DATABASE_URL and before any env captured at module top elsewhere.
+import './load-env';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 import * as schema from './schema';
 import { logger } from './logger';
-import 'dotenv/config';
 
 // PostgreSQL connection pool (tuned for 50K users)
 const pool = new Pool({
