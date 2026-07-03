@@ -5,6 +5,10 @@ process.env.DATABASE_URL =
 process.env.JWT_SECRET = 'test-secret';
 process.env.DB_POOL_MAX = '5';
 process.env.DB_POOL_MIN = '1';
+// Registration defaults to CLOSED in prod; keep it OPEN for the suite so the
+// existing register round-trip tests exercise the enabled flow. Tests that
+// assert the closed behavior flip this locally and restore it.
+process.env.REGISTRATION_ENABLED = 'true';
 // Stripe keys must be present at module-import time so paymentRoutes can build
 // its Stripe client. The values are dummies — the real Stripe SDK only makes
 // network calls when a handler explicitly invokes it, and the tests that touch

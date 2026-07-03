@@ -148,8 +148,12 @@ export const Auth = () => {
   // does not work inside WKWebView without native auth plumbing. Hide it on
   // native; email/password and the OAuth-callback path still work.
   const isNativePlatform = Capacitor.isNativePlatform();
+  // Build-time kill switch (default: closed). When registration is off we render
+  // a login-only page and never default into signup — the server enforces the
+  // same gate, so this is UX, not the security boundary.
+  const registrationEnabled = import.meta.env.VITE_REGISTRATION_ENABLED === 'true';
   const [searchParams] = useSearchParams();
-  const [isLogin,  setIsLogin]  = useState(searchParams.get('tab') !== 'signup');
+  const [isLogin,  setIsLogin]  = useState(registrationEnabled ? searchParams.get('tab') !== 'signup' : true);
   const [name,     setName]     = useState('');
   const [email,    setEmail]    = useState('');
   const [password, setPassword] = useState('');
@@ -157,7 +161,7 @@ export const Auth = () => {
   // enforce COPPA and parent-gate rules. Parent email is required for athletes
   // under 18 (it's who coach contact gets routed through); 18+ may omit it.
   const [role,        setRole]        = useState<SignupRole>(
-    (searchParams.get('role') as SignupRole | null) === 'parent' ? 'parent' : 'athlete',
+    registrationEnabled && (searchParams.get('role') as SignupRole | null) === 'parent' ? 'parent' : 'athlete',
   );
   const [dob,         setDob]         = useState('');
   const [parentEmail, setParentEmail] = useState('');
@@ -428,7 +432,8 @@ export const Auth = () => {
             </span>
           </div>
 
-          {/* Segmented toggle */}
+          {/* Segmented toggle — hidden when registration is closed (login only) */}
+          {registrationEnabled && (
           <div
             role="group"
             aria-label="Choose sign in or create account"
@@ -459,6 +464,7 @@ export const Auth = () => {
               >{label}</button>
             ))}
           </div>
+          )}
 
           {/* Form */}
           <form onSubmit={handleSubmit} noValidate>
@@ -678,7 +684,7 @@ export const Auth = () => {
           </div>
 
           {/* Footer line (login only — signup uses the CTA-adjacent consent block) */}
-          {isLogin && (
+          {isLogin && registrationEnabled && (
             <p
               style={{
                 fontSize: '.72rem', textAlign: 'center', color: MUTED_2, marginTop: 26, marginBottom: 0,
@@ -694,6 +700,18 @@ export const Auth = () => {
               >
                 New here? Create an account <ArrowUpRight size={13} aria-hidden />
               </button>
+            </p>
+          )}
+
+          {/* Registration closed — quiet, on-brand note where the signup affordance was */}
+          {isLogin && !registrationEnabled && (
+            <p
+              style={{
+                fontSize: '.72rem', textAlign: 'center', color: MUTED_2, marginTop: 26, marginBottom: 0,
+                lineHeight: 1.7, fontFamily: BODY,
+              }}
+            >
+              New signups are currently closed.
             </p>
           )}
         </motion.div>
