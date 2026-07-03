@@ -12,6 +12,7 @@ import * as schema from './schema';
 import { sendPasswordResetEmail, sendVerificationEmail } from './email';
 import * as auth from './auth';
 import { validateAthleteSignup } from './lib/athleteGate';
+import { isRegistrationEnabled } from './lib/registration';
 
 const router = express.Router();
 
@@ -69,6 +70,9 @@ function signEmailAuthToken(player: { id: number; email: string; name: string | 
 }
 
 router.post('/register', registerLimiter, async (req, res) => {
+  if (!isRegistrationEnabled()) {
+    return res.status(403).json({ error: 'Registration is currently closed.' });
+  }
   const { email, password, name, dob, parentEmail } = req.body || {};
 
   if (!email || !password) {

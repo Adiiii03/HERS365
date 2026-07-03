@@ -8,6 +8,7 @@ import jwt from 'jsonwebtoken';
 import { blocklistToken } from './redis';
 import { recordCoachEvent } from './lib/coachEvents';
 import { validateAthleteSignup } from './lib/athleteGate';
+import { isRegistrationEnabled } from './lib/registration';
 
 const router = express.Router();
 
@@ -122,6 +123,9 @@ async function findUserByEmail(email: string, role: auth.UserRole): Promise<Foun
 // ─── POST /api/auth/register ──────────────────────────────────────────────────
 
 router.post('/register', registerLimiter, async (req, res) => {
+  if (!isRegistrationEnabled()) {
+    return res.status(403).json({ error: 'Registration is currently closed.' });
+  }
   const { email, password, name, role = 'athlete', school, division, dob, parentEmail } = req.body ?? {};
 
   if (!email || !password || !name) {
@@ -259,6 +263,9 @@ router.post('/coach/login', loginLimiter, async (req, res) => {
 
 // ─── POST /api/auth/(secure/)coach/register ───────────────────────────────────
 router.post('/coach/register', registerLimiter, async (req, res) => {
+  if (!isRegistrationEnabled()) {
+    return res.status(403).json({ error: 'Registration is currently closed.' });
+  }
   const { email, password, name, school, university, division } = req.body ?? {};
   if (!email || !password || !name) {
     return res.status(400).json({ error: 'email, password, and name are required' });
@@ -319,6 +326,12 @@ router.post('/google', loginLimiter, async (req, res) => {
     let user = await findUserByEmail(normalEmail, userRole);
 
     if (!user) {
+      // New-account creation is gated: an existing user still logs in via
+      // Google above, but a missing user is only created when registration
+      // is open. Closed => fail closed with 403, no account minted.
+      if (!isRegistrationEnabled()) {
+        return res.status(403).json({ error: 'Registration is currently closed.' });
+      }
       let userId: number;
       if (userRole === 'coach') {
         const [row] = await db.insert(schema.coaches).values({
