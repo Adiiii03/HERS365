@@ -87,6 +87,7 @@ type FoundUser = {
   passwordHash: string | null;
   name: string;
   role: auth.UserRole;
+  status?: string | null;
 };
 
 async function findUserByEmail(email: string, role: auth.UserRole): Promise<FoundUser | null> {
@@ -117,7 +118,13 @@ async function findUserByEmail(email: string, role: auth.UserRole): Promise<Foun
   // default: athlete
   const [row] = await db.select().from(schema.players).where(eq(schema.players.email, e)).limit(1);
   if (!row) return null;
-  return { id: row.id, email: row.email, passwordHash: row.passwordHash, name: row.name, role: 'athlete' };
+  return { id: row.id, email: row.email, passwordHash: row.passwordHash, name: row.name, role: 'athlete', status: row.status };
+}
+
+function athleteStatusRefusal(user: FoundUser, res: any): boolean {
+  if (user.role !== 'athlete' || user.status === 'active' || user.status == null) return false;
+  res.status(403).json({ code: user.status === 'deactivated' ? 'ACCOUNT_DEACTIVATED' : 'GUARDIAN_PENDING' });
+  return true;
 }
 
 // ─── POST /api/auth/register ──────────────────────────────────────────────────
@@ -229,6 +236,8 @@ router.post('/login', loginLimiter, async (req, res) => {
   if (!valid) {
     return res.status(401).json({ error: 'Invalid credentials' });
   }
+
+  if (athleteStatusRefusal(user, res)) return;
 
   const token = auth.signToken({ userId: user.id, email: user.email, role: user.role, name: user.name });
   res.json({ token, user: { id: user.id, email: user.email, name: user.name, role: user.role } });
@@ -365,6 +374,8 @@ router.post('/google', loginLimiter, async (req, res) => {
       }
       user = { id: userId, email: normalEmail, passwordHash: null, name: google.name, role: userRole };
     }
+
+    if (athleteStatusRefusal(user, res)) return;
 
     const token = auth.signToken({ userId: user.id, email: user.email, role: user.role, name: user.name });
     res.json({ token, user: { id: user.id, email: user.email, name: user.name, role: user.role } });

@@ -155,6 +155,10 @@ router.post('/login', loginLimiter, async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
+    if (player.status !== 'active') {
+      return res.status(403).json({ code: player.status === 'deactivated' ? 'ACCOUNT_DEACTIVATED' : 'GUARDIAN_PENDING' });
+    }
+
     const token = signEmailAuthToken(player);
 
     return res.json({

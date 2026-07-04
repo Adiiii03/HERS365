@@ -3,7 +3,10 @@ import request from 'supertest';
 import jwt from 'jsonwebtoken';
 import { createApp } from '../app';
 import { resetDb } from './helpers/db';
-import { makeAthlete, makeCoach, tokenFor } from './helpers/fixtures';
+import { makeAthlete, makeCoach, tokenFor, activateAthlete } from './helpers/fixtures';
+import { db } from '../db';
+import * as schema from '../schema';
+import { eq } from 'drizzle-orm';
 
 const app = createApp();
 beforeEach(resetDb);
@@ -69,6 +72,10 @@ describe('register / login round trip', () => {
     expect(reg.body.token).toBeUndefined();
     expect(JSON.stringify(reg.body)).not.toContain('passwordHash');
     expect(JSON.stringify(reg.body)).not.toContain('password_hash');
+
+    const [pending] = await db.select({ id: schema.players.id }).from(schema.players)
+      .where(eq(schema.players.email, 'newathlete@test.local')).limit(1);
+    await activateAthlete(pending.id);
 
     const login = await request(app).post('/api/auth/login').send({
       email: 'newathlete@test.local',

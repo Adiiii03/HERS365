@@ -2,7 +2,17 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import request from 'supertest';
 import jwt from 'jsonwebtoken';
 import { createApp } from '../app';
+import { db } from '../db';
+import * as schema from '../schema';
+import { eq } from 'drizzle-orm';
 import { resetDb } from './helpers/db';
+import { activateAthlete } from './helpers/fixtures';
+
+async function activateByEmail(email: string) {
+  const [row] = await db.select({ id: schema.players.id }).from(schema.players)
+    .where(eq(schema.players.email, email)).limit(1);
+  await activateAthlete(row.id);
+}
 
 const app = createApp();
 beforeEach(resetDb);
@@ -40,6 +50,7 @@ describe('POST /api/auth/email/login', () => {
       .post('/api/auth/email/register')
       .send({ email: 'canon-login@test.local', password: 'Password1', name: 'Canon Login', dob: '2000-01-01', guardianEmail: 'canon-guardian@family.local' });
     expect(registerRes.status).toBe(202);
+    await activateByEmail('canon-login@test.local');
 
     const loginRes = await request(app)
       .post('/api/auth/email/login')
@@ -61,6 +72,7 @@ describe('email-auth token works on routes that read req.user.userId / req.user.
     await request(app)
       .post('/api/auth/email/register')
       .send({ email, password: 'Password1', name: 'Profile Flow', dob: '2000-01-01', guardianEmail: 'profile-guardian@family.local' });
+    await activateByEmail(email);
 
     const loginRes = await request(app)
       .post('/api/auth/email/login')
@@ -84,6 +96,7 @@ describe('email-auth token works on routes that read req.user.userId / req.user.
       .post('/api/auth/email/register')
       .send({ email: 'notif-flow@test.local', password: 'Password1', name: 'Notif Flow', dob: '2000-01-01', guardianEmail: 'notif-guardian@family.local' });
     expect(registerRes.status).toBe(202);
+    await activateByEmail('notif-flow@test.local');
     const loginRes = await request(app)
       .post('/api/auth/email/login')
       .send({ email: 'notif-flow@test.local', password: 'Password1' });

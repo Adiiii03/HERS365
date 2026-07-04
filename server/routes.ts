@@ -5,6 +5,7 @@ import * as ai from './ai';
 import * as mp from './maxpreps';
 import { eq, desc, sql, and } from 'drizzle-orm';
 import { requireAuth, requireAdmin, optionalAuth, type TokenPayload } from './auth';
+import { requireActivated } from './middleware/requireActivated';
 
 const router = express.Router();
 
@@ -112,7 +113,7 @@ router.get('/profile', requireAuth, async (req: Request, res: Response, next: Ne
   }
 });
 
-router.put('/profile', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
+router.put('/profile', requireAuth, requireActivated, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { name, bio, position, school, state, gradYear, heightIn, weightLbs, phone, profileImage } = req.body;
     const updates: Record<string, any> = {};
@@ -235,7 +236,7 @@ router.get('/players/:id/highlights', requireAuth, async (req: Request, res: Res
   }
 });
 
-router.post('/players/:id/highlights', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
+router.post('/players/:id/highlights', requireAuth, requireActivated, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const pId = parseIdParam(req.params.id);
     if (pId === null) return res.status(400).json({ error: 'Invalid id' });
@@ -295,7 +296,7 @@ router.get('/posts', async (req: Request, res: Response, next: NextFunction) => 
   }
 });
 
-router.post('/posts', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
+router.post('/posts', requireAuth, requireActivated, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { content, mediaUrl, mediaType } = req.body;
     const newPost = await db.insert(schema.posts).values({
