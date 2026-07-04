@@ -34,6 +34,7 @@ const Teams = lazyNamed(() => import('./pages/Teams'), 'Teams');
 const ForgotPassword = lazyNamed(() => import('./pages/ForgotPassword'), 'ForgotPassword');
 const ResetPassword = lazyNamed(() => import('./pages/ResetPassword'), 'ResetPassword');
 const VerifyEmail = lazyNamed(() => import('./pages/VerifyEmail'), 'VerifyEmail');
+const GuardianVerify = lazyNamed(() => import('./pages/GuardianVerify'), 'GuardianVerify');
 const Subscription = lazyNamed(() => import('./pages/Subscription'), 'Subscription');
 const Audit = lazyNamed(() => import('./pages/Audit'), 'Audit');
 const Privacy = lazyNamed(() => import('./pages/Privacy'), 'Privacy');
@@ -297,6 +298,9 @@ function App() {
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/verify-email" element={<VerifyEmail />} />
+            {/* Guardian approval — public and unconditional: a guardian must be
+                able to activate a pending athlete even while signup is gated. */}
+            <Route path="/guardian-verify" element={<GuardianVerify />} />
 
             {/* Athlete onboarding (full-screen, no nav chrome) */}
             <Route path="/onboarding" element={<Onboarding />} />

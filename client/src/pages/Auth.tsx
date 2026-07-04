@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
-import { Mail, Lock, User, ArrowRight, Eye, EyeOff, ArrowUpRight, ShieldCheck, Users } from 'lucide-react';
+import { Mail, Lock, User, ArrowRight, Eye, EyeOff, ArrowUpRight, ShieldCheck, Users, Phone, HeartHandshake, RefreshCw } from 'lucide-react';
 import { GoogleLogin } from '@react-oauth/google';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { apiFetch } from '../lib/api';
 import { DemoLoginButton } from '../components/DemoLoginButton';
 import { Capacitor } from '@capacitor/core';
 
@@ -163,19 +162,99 @@ export const Auth = () => {
   const [role,        setRole]        = useState<SignupRole>(
     registrationEnabled && (searchParams.get('role') as SignupRole | null) === 'parent' ? 'parent' : 'athlete',
   );
-  const [dob,         setDob]         = useState('');
-  const [parentEmail, setParentEmail] = useState('');
+  const [dob,           setDob]           = useState('');
+  const [guardianEmail, setGuardianEmail] = useState('');
+  const [guardianPhone, setGuardianPhone] = useState('');
   const [loading,  setLoading]  = useState(false);
   const [error,    setError]    = useState('');
+  // Guardian gate: a 202 from register/google means the account exists but is
+  // locked until the guardian approves. We hold the pending token (also in
+  // localStorage via AuthContext) and show the waiting screen instead of the form.
+  const [guardianMasked, setGuardianMasked] = useState(() => localStorage.getItem('guardianEmailMasked') || '');
+  const [pendingNote,    setPendingNote]    = useState('');
+  const [resendWait,     setResendWait]     = useState(0);
+  const [activatedNote,  setActivatedNote]  = useState('');
+  // Set when Google signup bounced with GUARDIAN_EMAIL_REQUIRED — we keep the
+  // credential and retry once the guardian email is filled in.
+  const [googleCredential, setGoogleCredential] = useState<string | null>(null);
   const navigate  = useNavigate();
-  const { login } = useAuth();
+  const { login, pendingToken, setPending, clearPending } = useAuth();
   const reduced   = !!useReducedMotion();
+  const showPendingScreen = !!pendingToken;
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const enterPending = (data: { pendingToken: string; guardianEmailMasked?: string }) => {
+    if (data.guardianEmailMasked) {
+      localStorage.setItem('guardianEmailMasked', data.guardianEmailMasked);
+      setGuardianMasked(data.guardianEmailMasked);
+    }
+    setPending(data.pendingToken);
+  };
+
+  const finishPending = () => {
+    localStorage.removeItem('guardianEmailMasked');
+    clearPending();
+    setIsLogin(true);
+    setActivatedNote('Your grown up said yes! Your account is ready — sign in below.');
+  };
+
+  const checkGuardianStatus = async (manual = false) => {
+    if (!pendingToken) return;
+    try {
+      const res = await fetch(`/api/auth/guardian/status?pendingToken=${encodeURIComponent(pendingToken)}`);
+      const data = await res.json().catch(() => null);
+      if (res.ok && data?.status === 'active') {
+        finishPending();
+      } else if (manual) {
+        setPendingNote("Not yet! We'll keep watching — hang tight.");
+      }
+    } catch {
+      if (manual) setPendingNote("We couldn't check right now — try again in a moment.");
+    }
+  };
+
+  useEffect(() => {
+    if (!pendingToken) return;
+    pollRef.current = setInterval(() => { checkGuardianStatus(); }, 15000);
+    return () => { if (pollRef.current) clearInterval(pollRef.current); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingToken]);
+
+  useEffect(() => {
+    if (resendWait <= 0) return;
+    const t = setTimeout(() => setResendWait(w => w - 1), 1000);
+    return () => clearTimeout(t);
+  }, [resendWait]);
+
+  const handleResend = async () => {
+    if (!pendingToken || resendWait > 0) return;
+    setPendingNote('');
+    try {
+      const res = await fetch('/api/auth/guardian/resend', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pendingToken }),
+      });
+      const data = await res.json().catch(() => null);
+      if (res.status === 429 && data?.retryAfterSeconds) {
+        setResendWait(data.retryAfterSeconds);
+        setPendingNote('That email just went out — give it a minute before sending another.');
+      } else if (res.ok) {
+        setPendingNote('Sent! Ask your grown up to check their inbox.');
+      } else {
+        setPendingNote(data?.error || data?.message || "We couldn't resend right now — try again soon.");
+      }
+    } catch {
+      setPendingNote("We couldn't resend right now — check your connection and try again.");
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    // Client-side guard: athlete signups need a DOB, and the user must be 13+.
+    // Client-side guard: athlete signups need a DOB, the user must be 13+, and
+    // every athlete needs a guardian email that isn't their own address.
     // Server enforces the same; this just avoids a round trip.
     if (!isLogin && role === 'athlete') {
       if (!dob) {
@@ -187,8 +266,12 @@ export const Auth = () => {
         setError('Athletes must be at least 13. A parent can set up a managed account.');
         return;
       }
-      if (ageYears < 18 && !parentEmail.trim()) {
-        setError('A parent or guardian email is required for athletes under 18.');
+      if (!guardianEmail.trim()) {
+        setError("We need a parent or guardian's email to finish setting up your account.");
+        return;
+      }
+      if (guardianEmail.trim().toLowerCase() === email.trim().toLowerCase()) {
+        setError("Your guardian's email has to be different from your own — use your grown up's address.");
         return;
       }
     }
@@ -202,7 +285,8 @@ export const Auth = () => {
         body.role = role;
         if (role === 'athlete') {
           body.dob = dob;
-          if (parentEmail.trim()) body.parentEmail = parentEmail.trim();
+          body.guardianEmail = guardianEmail.trim();
+          if (guardianPhone.trim()) body.guardianPhone = guardianPhone.trim();
         }
       }
       const res  = await fetch(endpoint, {
@@ -212,12 +296,22 @@ export const Auth = () => {
       });
       const data = await res.json().catch(() => null);
       if (!res.ok) {
+        if (isLogin && res.status === 403 && data?.code === 'GUARDIAN_PENDING') {
+          setError(
+            "This account is waiting on a grown up's OK. We sent your parent or guardian an email — once they approve, you can sign in."
+          );
+          return;
+        }
         setError(
           data?.error || data?.message ||
           (isLogin
             ? "We couldn't sign you in — check your email and password."
             : "We couldn't create your account — please try again.")
         );
+        return;
+      }
+      if (res.status === 202 && data?.status === 'pending_guardian' && data?.pendingToken) {
+        enterPending(data);
         return;
       }
       if (data?.token && data?.user) login(data.token, data.user);
@@ -234,26 +328,65 @@ export const Auth = () => {
 
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
 
+  const submitGoogle = async (credential: string, withGuardianEmail?: string) => {
+    setError('');
+    setLoading(true);
+    try {
+      const body: Record<string, string> = { credential, role: 'athlete' };
+      if (withGuardianEmail) body.guardianEmail = withGuardianEmail;
+      const res = await fetch('/api/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json().catch(() => null);
+      if (res.status === 409 && data?.code === 'GUARDIAN_EMAIL_REQUIRED') {
+        // New athlete via Google — hold the credential and ask for the
+        // guardian email, then retry the same call with it attached.
+        setGoogleCredential(credential);
+        setIsLogin(false);
+        setRole('athlete');
+        return;
+      }
+      if (!res.ok) {
+        if (res.status === 403 && data?.code === 'GUARDIAN_PENDING') {
+          setError("This account is waiting on a grown up's OK. Once your parent or guardian approves, you can sign in.");
+          return;
+        }
+        setError(data?.error || data?.message || 'Google sign-in failed — please try again.');
+        return;
+      }
+      if (res.status === 202 && data?.status === 'pending_guardian' && data?.pendingToken) {
+        setGoogleCredential(null);
+        enterPending(data);
+        return;
+      }
+      if (data?.token && data?.user) {
+        login(data.token, data.user);
+        navigate('/feed');
+      }
+    } catch {
+      setError('Network error — please try again');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleGoogleSuccess = async (credentialResponse: { credential?: string }) => {
     if (!credentialResponse.credential) {
       setError('Google sign-in failed — no credential returned.');
       return;
     }
-    setError('');
-    setLoading(true);
-    try {
-      const data = await apiFetch<{ token: string; user: { id: number; email: string; name: string; role: 'athlete' | 'coach' | 'parent' | 'admin' } }>(
-        '/api/auth/google',
-        { method: 'POST', body: JSON.stringify({ credential: credentialResponse.credential, role: 'athlete' }) },
-      );
-      login(data.token, data.user);
-      navigate('/feed');
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Google sign-in failed — please try again.';
-      setError(msg);
-    } finally {
-      setLoading(false);
+    await submitGoogle(credentialResponse.credential);
+  };
+
+  const handleGoogleGuardianRetry = async () => {
+    if (!googleCredential) return;
+    if (!guardianEmail.trim()) {
+      setError("We need a parent or guardian's email to finish setting up your account.");
+      return;
     }
+    await submitGoogle(googleCredential, guardianEmail.trim());
   };
 
   return (
@@ -397,6 +530,87 @@ export const Auth = () => {
             HERS<span style={{ color: FLAME }}>365</span>
           </button>
 
+          {showPendingScreen ? (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, ease: EASE }}
+            >
+              <HeartHandshake size={40} aria-hidden style={{ color: FLAME, marginBottom: 18 }} />
+              <h1 style={{ fontFamily: DISP, fontWeight: 900, fontSize: 'clamp(2.2rem,5vw,2.8rem)', textTransform: 'uppercase', lineHeight: 0.95, margin: '0 0 12px', letterSpacing: 'var(--tracking-display)' }}>
+                Waiting for your grown up to say yes
+              </h1>
+              <p style={{ color: MUTED, fontSize: '.95rem', lineHeight: 1.6, margin: '0 0 8px' }}>
+                You're almost in! We sent an email to{' '}
+                <strong style={{ color: TEXT }}>{guardianMasked || 'your parent or guardian'}</strong>{' '}
+                with a special code. Once they approve, your account unlocks.
+              </p>
+              <p style={{ color: MUTED_2, fontSize: '.82rem', lineHeight: 1.55, margin: '0 0 24px' }}>
+                Go tell them to check their inbox — we'll keep an eye out here and let you know the moment they say yes.
+              </p>
+
+              <AnimatePresence>
+                {pendingNote && (
+                  <motion.p
+                    role="status"
+                    initial={{ opacity: 0, y: -6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    style={{
+                      color: TEXT, fontSize: '.82rem', margin: '0 0 16px', fontWeight: 600,
+                      padding: '10px 14px', borderRadius: 10,
+                      background: 'rgba(255,255,255,0.04)', border: `1px solid ${LINE}`,
+                    }}
+                  >{pendingNote}</motion.p>
+                )}
+              </AnimatePresence>
+
+              <button
+                type="button"
+                onClick={() => checkGuardianStatus(true)}
+                style={{
+                  width: '100%', padding: '15px 24px', marginBottom: 12,
+                  background: FLAME, color: '#fff', border: 'none', borderRadius: 12,
+                  fontFamily: DISP, fontWeight: 900, fontSize: '1rem',
+                  letterSpacing: '.08em', textTransform: 'uppercase', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+                  boxShadow: '0 8px 26px rgba(255,90,45,.3)',
+                }}
+              >
+                I think my grown up said yes <ArrowRight size={16} />
+              </button>
+
+              <button
+                type="button"
+                onClick={handleResend}
+                disabled={resendWait > 0}
+                style={{
+                  width: '100%', padding: '13px 24px',
+                  background: FIELD, color: resendWait > 0 ? MUTED_2 : TEXT,
+                  border: `1px solid ${LINE}`, borderRadius: 12,
+                  fontFamily: DISP, fontWeight: 800, fontSize: '.85rem',
+                  letterSpacing: '.08em', textTransform: 'uppercase',
+                  cursor: resendWait > 0 ? 'not-allowed' : 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                }}
+              >
+                <RefreshCw size={14} />
+                {resendWait > 0 ? `Send the email again (${resendWait}s)` : 'Send the email again'}
+              </button>
+
+              <p style={{ color: MUTED_2, fontSize: '.72rem', marginTop: 22, lineHeight: 1.6 }}>
+                Signed up with the wrong grown up email?{' '}
+                <button
+                  type="button"
+                  onClick={() => { localStorage.removeItem('guardianEmailMasked'); clearPending(); }}
+                  style={{ background: 'none', border: 'none', color: MUTED, fontSize: '.72rem', cursor: 'pointer', fontFamily: BODY, textDecoration: 'underline', padding: 0 }}
+                >
+                  Start over
+                </button>
+              </p>
+            </motion.div>
+          ) : (
+          <>
           {/* Heading */}
           <AnimatePresence mode="wait">
             <motion.div
@@ -431,6 +645,22 @@ export const Auth = () => {
               Parent approved. Human moderated.
             </span>
           </div>
+
+          <AnimatePresence>
+            {activatedNote && isLogin && (
+              <motion.p
+                role="status"
+                initial={{ opacity: 0, y: -6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                style={{
+                  color: '#7ee2a8', fontSize: '.84rem', margin: '0 0 20px', fontWeight: 600,
+                  padding: '11px 14px', borderRadius: 10,
+                  background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.25)',
+                }}
+              >{activatedNote}</motion.p>
+            )}
+          </AnimatePresence>
 
           {/* Segmented toggle — hidden when registration is closed (login only) */}
           {registrationEnabled && (
@@ -540,17 +770,51 @@ export const Auth = () => {
                     </p>
                   </div>
                   <Field
-                    id="auth-parent-email"
+                    id="auth-guardian-email"
                     label="Parent / Guardian Email"
                     type="email"
                     icon={Mail}
-                    value={parentEmail}
-                    onChange={setParentEmail}
-                    autoComplete="email"
+                    value={guardianEmail}
+                    onChange={setGuardianEmail}
+                    required
+                    autoComplete="off"
                   />
                   <p style={{ color: MUTED_2, fontSize: '.68rem', margin: '-8px 4px 16px', fontFamily: BODY }}>
-                    Required for athletes under 18. We'll send them a link to approve coach contact and oversee messages.
+                    Required. We'll email your grown up a code to approve your account — you can't start until they say yes.
                   </p>
+                  <Field
+                    id="auth-guardian-phone"
+                    label="Parent / Guardian Phone (optional)"
+                    type="tel"
+                    icon={Phone}
+                    value={guardianPhone}
+                    onChange={setGuardianPhone}
+                    autoComplete="off"
+                  />
+                  {googleCredential && (
+                    <div style={{
+                      marginBottom: 16, padding: '12px 14px', borderRadius: 10,
+                      background: 'rgba(255,90,45,0.08)', border: '1px solid rgba(255,90,45,0.2)',
+                    }}>
+                      <p style={{ color: TEXT, fontSize: '.8rem', margin: '0 0 10px', lineHeight: 1.5 }}>
+                        Almost there! Add your parent or guardian's email above, then finish signing up with Google.
+                      </p>
+                      <button
+                        type="button"
+                        disabled={loading}
+                        onClick={handleGoogleGuardianRetry}
+                        style={{
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                          width: '100%', padding: '12px', background: FLAME, color: '#fff',
+                          border: 'none', borderRadius: 10, cursor: loading ? 'not-allowed' : 'pointer',
+                          fontFamily: DISP, fontWeight: 800, fontSize: '.85rem',
+                          letterSpacing: '.08em', textTransform: 'uppercase', opacity: loading ? 0.75 : 1,
+                        }}
+                      >
+                        <GoogleMark size={14} /> Finish signing up with Google
+                      </button>
+                    </div>
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>
@@ -713,6 +977,8 @@ export const Auth = () => {
             >
               New signups are currently closed.
             </p>
+          )}
+          </>
           )}
         </motion.div>
       </main>
