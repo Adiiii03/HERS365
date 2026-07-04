@@ -99,3 +99,59 @@ export async function sendWelcomeEmail(to: string, name: string) {
     `,
   });
 }
+export async function sendNewsletterConfirm(to: string, name: string | null, confirmUrl: string) {
+  const greeting = name ? `Hi ${name},` : 'Hi,';
+  return sendEmail({
+    to,
+    subject: 'Confirm your H.E.R.S.365 updates',
+    html: `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background: #0f0f0f; padding: 32px; border-radius: 12px;">
+        <h1 style="color: #ff6b35; font-size: 24px; margin-bottom: 8px;">H.E.R.S.365</h1>
+        <h2 style="color: #ffffff; font-size: 20px; margin-bottom: 16px;">One quick confirmation</h2>
+        <p style="color: #aaaaaa; margin-bottom: 16px;">${greeting}</p>
+        <p style="color: #aaaaaa; margin-bottom: 16px;">
+          You (or someone using this email address) asked for updates about H.E.R.S.365,
+          the safe online community for girls who play flag football, where parents stay
+          in control and all coach contact is gated.
+        </p>
+        <p style="color: #aaaaaa; margin-bottom: 24px;">
+          Click below to confirm. If you do not confirm, we will not send you anything else —
+          this is the only email you will get.
+        </p>
+        <a href="${confirmUrl}" style="display: inline-block; background: #ff6b35; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; margin-bottom: 24px;">
+          Yes, keep me posted
+        </a>
+        <p style="color: #666666; font-size: 12px; margin-top: 24px;">
+          Did not sign up? Just delete this email and you will never hear from us.
+        </p>
+      </div>
+    `,
+  });
+}
+
+export async function sendNewsletterWelcome(to: string, name: string | null) {
+  const greeting = name ? `Thanks, ${name}.` : 'Thanks.';
+  return sendEmail({
+    to,
+    subject: "You're on the H.E.R.S.365 list",
+    html: `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background: #0f0f0f; padding: 32px; border-radius: 12px;">
+        <h1 style="color: #ff6b35; font-size: 24px; margin-bottom: 8px;">H.E.R.S.365</h1>
+        <h2 style="color: #ffffff; font-size: 20px; margin-bottom: 16px;">You're confirmed</h2>
+        <p style="color: #aaaaaa; margin-bottom: 16px;">${greeting} You are on the list.</p>
+        <p style="color: #aaaaaa; margin-bottom: 16px;">
+          We are building a safe place for girls who play flag football to build their
+          profiles, connect, and get seen — with parents in control of every coach contact.
+        </p>
+        <p style="color: #aaaaaa; margin-bottom: 24px;">
+          We will only email when there is real news: launch dates, early access, and
+          things worth a parent's time. No spam, ever, and every email has an
+          unsubscribe link.
+        </p>
+        <p style="color: #666666; font-size: 12px; margin-top: 24px;">
+          Changed your mind? Use the unsubscribe link in any email we send.
+        </p>
+      </div>
+    `,
+  });
+}

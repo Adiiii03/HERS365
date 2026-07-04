@@ -24,6 +24,7 @@ import { followsRouter } from './api/follows';
 import { badgesRouter } from './api/badges';
 import { faqsRouter } from './api/faqs';
 import { contactRouter } from './api/contact';
+import { newsletterRouter } from './api/newsletter';
 import { adminStatsRouter } from './api/admin';
 import { leaguesRouter } from './api/leagues';
 import { teamsRouter } from './api/teams';
@@ -95,6 +96,7 @@ export function createApp() {
   app.use('/api/badges', badgesRouter);
   app.use('/api/faqs', faqsRouter);
   app.use('/api/contact', contactRouter);
+  app.use('/api/newsletter', newsletterRouter);
   app.use('/api/leagues', leaguesRouter);
   app.use('/api/teams', teamsRouter);
   app.use('/api', mainApiRouter);
