@@ -12,6 +12,7 @@ import { makeAthlete } from './helpers/fixtures';
 // every request) and reset the limiter store between tests so cases stay
 // deterministic without any sleep / fake-timer juggling.
 vi.mock('../email', () => ({
+  sendGuardianConsentEmail: vi.fn(async () => ({ success: true })),
   sendPasswordResetEmail: vi.fn(async () => undefined),
   sendEmail: vi.fn(async () => undefined),
 }));

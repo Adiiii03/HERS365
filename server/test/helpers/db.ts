@@ -7,6 +7,8 @@ const TABLES = [
   'message_reports',
   'parent_child_relations',
   'guardian_verification_codes',
+  'guardian_consents',
+  'consent_audit_log',
   'event_registrations',
   'saved_scholarships',
   'support_interactions',

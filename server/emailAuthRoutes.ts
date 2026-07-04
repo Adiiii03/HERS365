@@ -9,10 +9,10 @@ import rateLimit from 'express-rate-limit';
 import { eq } from 'drizzle-orm';
 import { db } from './db';
 import * as schema from './schema';
-import { sendPasswordResetEmail, sendVerificationEmail } from './email';
+import { sendPasswordResetEmail } from './email';
 import * as auth from './auth';
-import { validateAthleteSignup } from './lib/athleteGate';
 import { isRegistrationEnabled } from './lib/registration';
+import { createPendingAthlete, guardianFailureResponse } from './lib/guardianRegistration';
 
 const router = express.Router();
 
@@ -73,7 +73,7 @@ router.post('/register', registerLimiter, async (req, res) => {
   if (!isRegistrationEnabled()) {
     return res.status(403).json({ error: 'Registration is currently closed.' });
   }
-  const { email, password, name, dob, parentEmail } = req.body || {};
+  const { email, password, name, dob, parentEmail, guardianEmail, guardianPhone } = req.body || {};
 
   if (!email || !password) {
     return res.status(400).json({ error: 'email and password are required' });
@@ -85,21 +85,18 @@ router.post('/register', registerLimiter, async (req, res) => {
     return res.status(400).json({ error: 'Password must be at least 8 characters' });
   }
 
-  // This endpoint always creates an athlete, so it must enforce the same
-  // COPPA / parent-gate as every other athlete signup path.
-  const gate = validateAthleteSignup(dob, parentEmail);
-  if (!gate.ok) {
-    return res.status(400).json({ error: gate.error });
+  // This endpoint always creates an athlete, so every signup goes through the
+  // shared guardian-gated choke point.
+  const rawGuardianEmail = guardianEmail ?? parentEmail;
+  if (typeof rawGuardianEmail !== 'string' || !rawGuardianEmail.trim()) {
+    return res.status(400).json({ code: 'GUARDIAN_EMAIL_REQUIRED', error: 'A parent or guardian email is required for athlete accounts.' });
   }
-  const normalParentEmail = typeof parentEmail === 'string' && parentEmail.trim()
-    ? parentEmail.toLowerCase().trim()
-    : null;
 
   try {
     const existing = await db
       .select()
       .from(schema.players)
-      .where(eq(schema.players.email, email))
+      .where(eq(schema.players.email, email.toLowerCase().trim()))
       .limit(1);
     if (existing.length > 0) {
       return res.status(409).json({ error: 'An account with this email already exists' });
@@ -107,36 +104,26 @@ router.post('/register', registerLimiter, async (req, res) => {
 
     const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
 
-    const inserted = await db
-      .insert(schema.players)
-      .values({
-        email,
-        passwordHash,
-        name: name || email.split('@')[0],
-        emailVerified: false,
-        dob: gate.dob,
-        pendingParentEmail: normalParentEmail,
-      })
-      .returning();
+    const result = await createPendingAthlete({
+      email,
+      passwordHash,
+      name: name || email.split('@')[0],
+      dob,
+      guardianEmail: rawGuardianEmail,
+      guardianPhone: typeof guardianPhone === 'string' ? guardianPhone : null,
+      emailVerified: false,
+      signupIp: req.ip ?? null,
+      signupUserAgent: req.get('user-agent') ?? null,
+    });
+    if (!result.ok) {
+      const { status, body } = guardianFailureResponse(result);
+      return res.status(status).json(body);
+    }
 
-    const player = inserted[0];
-
-    // Send email verification — athlete won't appear in coach search until confirmed.
-    const verifyToken = crypto.randomBytes(32).toString('hex');
-    verificationTokens.set(verifyToken, { playerId: player.id, expiresAt: Date.now() + 24 * 60 * 60 * 1000 });
-    sendVerificationEmail(email, verifyToken).catch(err => console.error('[email-auth/register] verification email failed:', err));
-
-    const token = signEmailAuthToken(player);
-
-    return res.status(201).json({
-      token,
-      user: {
-        id: player.id,
-        email: player.email,
-        name: player.name,
-        subscriptionTier: player.subscriptionTier,
-        emailVerified: player.emailVerified,
-      },
+    return res.status(202).json({
+      status: 'pending_guardian',
+      pendingToken: result.pendingToken,
+      guardianEmailMasked: result.guardianEmailMasked,
     });
   } catch (err) {
     console.error('[email-auth/register] 500:', err);

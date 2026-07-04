@@ -7,7 +7,7 @@ import * as auth from './auth';
 import jwt from 'jsonwebtoken';
 import { blocklistToken } from './redis';
 import { recordCoachEvent } from './lib/coachEvents';
-import { validateAthleteSignup } from './lib/athleteGate';
+import { createPendingAthlete, guardianFailureResponse } from './lib/guardianRegistration';
 import { isRegistrationEnabled } from './lib/registration';
 
 const router = express.Router();
@@ -126,7 +126,7 @@ router.post('/register', registerLimiter, async (req, res) => {
   if (!isRegistrationEnabled()) {
     return res.status(403).json({ error: 'Registration is currently closed.' });
   }
-  const { email, password, name, role = 'athlete', school, division, dob, parentEmail } = req.body ?? {};
+  const { email, password, name, role = 'athlete', school, division, dob, parentEmail, guardianEmail, guardianPhone, relationship } = req.body ?? {};
 
   if (!email || !password || !name) {
     return res.status(400).json({ error: 'email, password, and name are required' });
@@ -141,20 +141,14 @@ router.post('/register', registerLimiter, async (req, res) => {
     return res.status(400).json({ error: 'Invalid account type' });
   }
 
-  // Athlete signup: DOB is required so we can enforce COPPA / parent-gate.
-  // Server is the source of truth, regardless of what the client sends. The
-  // gate lives in one shared validator so every signup path stays uniform.
-  let parsedDob: Date | null = null;
-  if (userRole === 'athlete') {
-    const result = validateAthleteSignup(dob, parentEmail);
-    if (!result.ok) {
-      return res.status(400).json({ error: result.error });
-    }
-    parsedDob = result.dob;
+  // Athlete signup: DOB + guardian email are required for ALL athletes so the
+  // guardian gate applies uniformly (COPPA under-13 block stays server-side).
+  const rawGuardianEmail = guardianEmail ?? parentEmail;
+  if (userRole === 'athlete' && (typeof rawGuardianEmail !== 'string' || !rawGuardianEmail.trim())) {
+    return res.status(400).json({ code: 'GUARDIAN_EMAIL_REQUIRED', error: 'A parent or guardian email is required for athlete accounts.' });
   }
 
   const normalEmail = (email as string).toLowerCase().trim();
-  const normalParentEmail = parentEmail ? (parentEmail as string).toLowerCase().trim() : null;
 
   const existing = await findUserByEmail(normalEmail, userRole);
   if (existing) {
@@ -163,6 +157,30 @@ router.post('/register', registerLimiter, async (req, res) => {
 
   try {
     const passwordHash = await auth.hashPassword(password as string);
+
+    if (userRole === 'athlete') {
+      const result = await createPendingAthlete({
+        email: normalEmail,
+        passwordHash,
+        name: name as string,
+        dob,
+        guardianEmail: rawGuardianEmail,
+        guardianPhone: typeof guardianPhone === 'string' ? guardianPhone : null,
+        relationship: typeof relationship === 'string' ? relationship : null,
+        signupIp: req.ip ?? null,
+        signupUserAgent: req.get('user-agent') ?? null,
+      });
+      if (!result.ok) {
+        const { status, body } = guardianFailureResponse(result);
+        return res.status(status).json(body);
+      }
+      return res.status(202).json({
+        status: 'pending_guardian',
+        pendingToken: result.pendingToken,
+        guardianEmailMasked: result.guardianEmailMasked,
+      });
+    }
+
     let userId: number;
 
     if (userRole === 'coach') {
@@ -176,36 +194,11 @@ router.post('/register', registerLimiter, async (req, res) => {
         verificationRequestedAt: new Date(),
       }).returning({ id: schema.coaches.id });
       userId = row.id;
-    } else if (userRole === 'parent') {
+    } else {
       const [row] = await db.insert(schema.parents).values({
         email: normalEmail, passwordHash, name: name as string,
       }).returning({ id: schema.parents.id });
       userId = row.id;
-    } else {
-      const [row] = await db.insert(schema.players).values({
-        email: normalEmail, passwordHash, name: name as string,
-        dob: parsedDob,
-        pendingParentEmail: normalParentEmail,
-      }).returning({ id: schema.players.id });
-      userId = row.id;
-      // Best-effort: kick off a parent invite if an email was provided.
-      // The actual invite flow lives in /api/parent/invites (see parent routes).
-      if (normalParentEmail) {
-        try {
-          const existingParent = await db.select().from(schema.parents).where(eq(schema.parents.email, normalParentEmail)).limit(1);
-          if (existingParent.length > 0) {
-            await db.insert(schema.parentChildRelations).values({
-              parentId: existingParent[0].id,
-              playerId: userId,
-              relationship: 'pending',
-            });
-          }
-          // If the parent isn't a user yet, the pendingParentEmail column carries
-          // the address for the invite job to pick up later.
-        } catch (linkErr) {
-          console.warn('[auth/register] parent link skipped', linkErr);
-        }
-      }
     }
 
     const token = auth.signToken({ userId, email: normalEmail, role: userRole, name: name as string });
@@ -305,7 +298,7 @@ router.post('/coach/register', registerLimiter, async (req, res) => {
 // ─── POST /api/auth/google ────────────────────────────────────────────────────
 
 router.post('/google', loginLimiter, async (req, res) => {
-  const { credential, role = 'athlete', dob, parentEmail } = req.body ?? {};
+  const { credential, role = 'athlete', dob, parentEmail, guardianEmail } = req.body ?? {};
 
   if (!credential) {
     return res.status(400).json({ error: 'Google credential is required' });
@@ -344,23 +337,31 @@ router.post('/google', loginLimiter, async (req, res) => {
         }).returning({ id: schema.parents.id });
         userId = row.id;
       } else {
-        // New athlete via Google: Google provides no DOB, so require the same
-        // age/parent gate as every other athlete signup path. Only new-athlete
-        // creation is gated — coach/parent creation and the existing-user login
-        // path below are untouched.
-        const result = validateAthleteSignup(dob, parentEmail);
-        if (!result.ok) {
-          return res.status(400).json({ error: result.error });
+        // New athlete via Google: same guardian gate as every other athlete
+        // signup path. The client collects the guardian email and retries on
+        // 409; existing users log in above untouched.
+        const rawGuardianEmail = guardianEmail ?? parentEmail;
+        if (typeof rawGuardianEmail !== 'string' || !rawGuardianEmail.trim()) {
+          return res.status(409).json({ code: 'GUARDIAN_EMAIL_REQUIRED', error: 'A parent or guardian email is required to finish signup.' });
         }
-        const normalParentEmail = typeof parentEmail === 'string' && parentEmail.trim()
-          ? parentEmail.toLowerCase().trim()
-          : null;
-        const [row] = await db.insert(schema.players).values({
-          email: normalEmail, name: google.name,
-          dob: result.dob,
-          pendingParentEmail: normalParentEmail,
-        }).returning({ id: schema.players.id });
-        userId = row.id;
+        const result = await createPendingAthlete({
+          email: normalEmail,
+          passwordHash: null,
+          name: google.name,
+          dob,
+          guardianEmail: rawGuardianEmail,
+          signupIp: req.ip ?? null,
+          signupUserAgent: req.get('user-agent') ?? null,
+        });
+        if (!result.ok) {
+          const { status, body } = guardianFailureResponse(result);
+          return res.status(status).json(body);
+        }
+        return res.status(202).json({
+          status: 'pending_guardian',
+          pendingToken: result.pendingToken,
+          guardianEmailMasked: result.guardianEmailMasked,
+        });
       }
       user = { id: userId, email: normalEmail, passwordHash: null, name: google.name, role: userRole };
     }

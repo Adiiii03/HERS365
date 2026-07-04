@@ -29,6 +29,7 @@ import { adminStatsRouter } from './api/admin';
 import { leaguesRouter } from './api/leagues';
 import { teamsRouter } from './api/teams';
 import { errorsRouter } from './api/errors';
+import { guardianRouter } from './api/guardian';
 import errorHandler from './middleware/errorHandler';
 import { pool } from './db';
 
@@ -83,6 +84,7 @@ export function createApp() {
   app.use('/api/coaches', coachesRouter);
   app.use('/api/parent', parentRouter);
   app.use('/api/coach', coachRouter);
+  app.use('/api/auth/guardian', guardianRouter);
   app.use('/api/auth', authRoutesRouter);
   app.use('/api/auth/secure', authRoutesRouter);
   app.use('/api/auth/email', emailAuthRouter);

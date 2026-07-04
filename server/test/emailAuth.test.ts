@@ -23,6 +23,7 @@ import { makeAthlete } from './helpers/fixtures';
 // that the route would otherwise only deliver via email. vi.mock is hoisted
 // above the static imports so the route picks up the stubbed module.
 vi.mock('../email', () => ({
+  sendGuardianConsentEmail: vi.fn(async () => ({ success: true })),
   sendPasswordResetEmail: vi.fn(async () => undefined),
   sendEmail: vi.fn(async () => undefined),
 }));
@@ -88,7 +89,7 @@ describe('POST /api/auth/email/register — error paths', () => {
     // reaches the duplicate-detection branch this test is asserting.
     const res = await request(app)
       .post('/api/auth/email/register')
-      .send({ email: 'duplicate-email@test.local', password: 'Password1', dob: '2000-01-01' });
+      .send({ email: 'duplicate-email@test.local', password: 'Password1', dob: '2000-01-01', guardianEmail: 'dup-guardian@family.local' });
     expect(res.status).toBe(409);
     expect(res.body.error).toMatch(/already exists/i);
   });

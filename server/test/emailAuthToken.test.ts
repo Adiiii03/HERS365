@@ -22,18 +22,15 @@ function decode(token: string): DecodedToken {
 }
 
 describe('POST /api/auth/email/register', () => {
-  it('mints a token in the canonical { userId, role, name, email } shape', async () => {
+  it('returns 202 pending_guardian with no token — the guardian gate mints nothing', async () => {
     const res = await request(app)
       .post('/api/auth/email/register')
-      .send({ email: 'canon-register@test.local', password: 'Password1', name: 'Canon', dob: '2000-01-01' });
-    expect(res.status).toBe(201);
-    expect(res.body.token).toBeTypeOf('string');
-
-    const decoded = decode(res.body.token);
-    expect(decoded.userId).toBe(res.body.user.id);
-    expect(decoded.email).toBe('canon-register@test.local');
-    expect(decoded.role).toBe('athlete');
-    expect(decoded.name).toBe('Canon');
+      .send({ email: 'canon-register@test.local', password: 'Password1', name: 'Canon', dob: '2000-01-01', guardianEmail: 'canon-guardian@family.local' });
+    expect(res.status).toBe(202);
+    expect(res.body.status).toBe('pending_guardian');
+    expect(res.body.pendingToken).toBeTypeOf('string');
+    expect(res.body.token).toBeUndefined();
+    expect(res.body.user).toBeUndefined();
   });
 });
 
@@ -41,8 +38,8 @@ describe('POST /api/auth/email/login', () => {
   it('mints a token in the canonical { userId, role, name, email } shape', async () => {
     const registerRes = await request(app)
       .post('/api/auth/email/register')
-      .send({ email: 'canon-login@test.local', password: 'Password1', name: 'Canon Login', dob: '2000-01-01' });
-    expect(registerRes.status).toBe(201);
+      .send({ email: 'canon-login@test.local', password: 'Password1', name: 'Canon Login', dob: '2000-01-01', guardianEmail: 'canon-guardian@family.local' });
+    expect(registerRes.status).toBe(202);
 
     const loginRes = await request(app)
       .post('/api/auth/email/login')
@@ -63,7 +60,7 @@ describe('email-auth token works on routes that read req.user.userId / req.user.
     const email = 'profile-flow@test.local';
     await request(app)
       .post('/api/auth/email/register')
-      .send({ email, password: 'Password1', name: 'Profile Flow', dob: '2000-01-01' });
+      .send({ email, password: 'Password1', name: 'Profile Flow', dob: '2000-01-01', guardianEmail: 'profile-guardian@family.local' });
 
     const loginRes = await request(app)
       .post('/api/auth/email/login')
@@ -82,12 +79,16 @@ describe('email-auth token works on routes that read req.user.userId / req.user.
     expect(profileRes.body?.email).toBe(email);
   });
 
-  it('GET /api/notifications resolves the caller from req.user.id after email-auth register', async () => {
+  it('GET /api/notifications resolves the caller from req.user.id after email-auth login', async () => {
     const registerRes = await request(app)
       .post('/api/auth/email/register')
-      .send({ email: 'notif-flow@test.local', password: 'Password1', name: 'Notif Flow', dob: '2000-01-01' });
-    expect(registerRes.status).toBe(201);
-    const token: string = registerRes.body.token;
+      .send({ email: 'notif-flow@test.local', password: 'Password1', name: 'Notif Flow', dob: '2000-01-01', guardianEmail: 'notif-guardian@family.local' });
+    expect(registerRes.status).toBe(202);
+    const loginRes = await request(app)
+      .post('/api/auth/email/login')
+      .send({ email: 'notif-flow@test.local', password: 'Password1' });
+    expect(loginRes.status).toBe(200);
+    const token: string = loginRes.body.token;
 
     const res = await request(app)
       .get('/api/notifications')

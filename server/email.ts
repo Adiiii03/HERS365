@@ -155,3 +155,35 @@ export async function sendNewsletterWelcome(to: string, name: string | null) {
     `,
   });
 }
+
+export async function sendGuardianConsentEmail(
+  to: string,
+  opts: { childName: string; code: string; linkUrl: string; expiresMinutes: number },
+) {
+  const { childName, code, linkUrl, expiresMinutes } = opts;
+  return sendEmail({
+    to,
+    subject: `${childName} asked to join H.E.R.S.365 — your approval is needed`,
+    html: `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background: #0f0f0f; padding: 32px; border-radius: 12px;">
+        <h1 style="color: #ff6b35; font-size: 24px; margin-bottom: 8px;">H.E.R.S.365</h1>
+        <h2 style="color: #ffffff; font-size: 20px; margin-bottom: 16px;">Your approval is needed</h2>
+        <p style="color: #aaaaaa; margin-bottom: 16px;">
+          ${childName} asked to join HERS365, a safe community for girls who play flag football.
+          Her account stays paused until you approve it.
+        </p>
+        <p style="color: #aaaaaa; margin-bottom: 8px;">Open your single-use approval link and enter this code:</p>
+        <p style="color: #ffffff; font-size: 28px; letter-spacing: 4px; font-weight: bold; margin: 16px 0;">${code}</p>
+        <a href="${linkUrl}" style="display: inline-block; background: #ff6b35; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; margin-bottom: 24px;">
+          Review and approve
+        </a>
+        <p style="color: #aaaaaa; margin-bottom: 16px;">
+          By entering this code you are approving your child joining HERS365 and creating your parent account.
+        </p>
+        <p style="color: #666666; font-size: 12px; margin-top: 24px;">
+          The code and link expire in ${expiresMinutes} minutes and work once. If you did not expect this, ignore this email and nothing happens.
+        </p>
+      </div>
+    `,
+  });
+}

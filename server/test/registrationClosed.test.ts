@@ -6,6 +6,7 @@ import { makeAthlete } from './helpers/fixtures';
 
 // Mocking ../email keeps the newsletter subscribe path offline (no SMTP).
 vi.mock('../email', () => ({
+  sendGuardianConsentEmail: vi.fn(async () => ({ success: true })),
   sendEmail: vi.fn().mockResolvedValue(undefined),
   sendPasswordResetEmail: vi.fn().mockResolvedValue(undefined),
   sendVerificationEmail: vi.fn().mockResolvedValue(undefined),
