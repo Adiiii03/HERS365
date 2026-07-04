@@ -9,6 +9,7 @@ import { blocklistToken } from './redis';
 import { recordCoachEvent } from './lib/coachEvents';
 import { createPendingAthlete, guardianFailureResponse } from './lib/guardianRegistration';
 import { isRegistrationEnabled } from './lib/registration';
+import { makeLimiterStore } from './lib/limiterStore';
 
 const router = express.Router();
 
@@ -20,6 +21,7 @@ const SELF_REGISTERABLE_ROLES = new Set<auth.UserRole>(['athlete', 'parent', 'co
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 20,
+  store: makeLimiterStore('auth-login'),
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Too many attempts — try again in 15 minutes' },
@@ -30,6 +32,7 @@ const loginLimiter = rateLimit({
 const registerLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
   max: 5, // 5 new accounts per IP per hour
+  store: makeLimiterStore('auth-register'),
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Too many accounts created from this network — try again later' },

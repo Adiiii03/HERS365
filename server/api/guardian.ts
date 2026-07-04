@@ -6,6 +6,7 @@ import { db } from '../db';
 import * as schema from '../schema';
 import { issueCode, verifyCode } from '../lib/verificationCodes';
 import { sendGuardianConsentEmail } from '../email';
+import { makeLimiterStore } from '../lib/limiterStore';
 
 export const guardianRouter = express.Router();
 
@@ -20,6 +21,7 @@ const verifyLimiter = rateLimit({
     const raw = Number(process.env.GUARDIAN_VERIFY_RATE_LIMIT_MAX);
     return Number.isFinite(raw) && raw > 0 ? raw : 10;
   },
+  store: makeLimiterStore('guardian-verify'),
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Too many attempts — try again later' },
@@ -31,6 +33,7 @@ const resendLimiter = rateLimit({
     const raw = Number(process.env.GUARDIAN_RESEND_RATE_LIMIT_MAX);
     return Number.isFinite(raw) && raw > 0 ? raw : 10;
   },
+  store: makeLimiterStore('guardian-resend'),
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Too many requests — try again later' },
@@ -39,6 +42,7 @@ const resendLimiter = rateLimit({
 const statusLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 60,
+  store: makeLimiterStore('guardian-status'),
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Too many requests — try again later' },

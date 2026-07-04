@@ -7,6 +7,7 @@ import { db } from '../db';
 import * as schema from '../schema';
 import { validateBody } from '../middleware/validate';
 import { sendNewsletterConfirm, sendNewsletterWelcome } from '../email';
+import { makeLimiterStore } from '../lib/limiterStore';
 
 const router = express.Router();
 
@@ -15,6 +16,7 @@ const router = express.Router();
 const subscribeLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
   max: 10,
+  store: makeLimiterStore('newsletter-subscribe'),
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Too many requests from this network — try again later' },
