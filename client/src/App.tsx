@@ -6,6 +6,7 @@ import { Layout } from './components/Layout';
 import { CoachLayout } from './components/CoachLayout';
 import { LandingPage } from './pages/LandingPage';
 import { Auth } from './pages/Auth';
+import { ComingSoon } from './pages/ComingSoon';
 
 // Every other route is split into its own chunk so a first-time visitor on
 // /, /auth, or /coach/login does not download Feed + Profile + VideoStudio +
@@ -78,7 +79,7 @@ const CoachAnalytics = lazyNamed(() => import('./pages/coach/CoachAnalytics'), '
 const CoachSignup = lazyNamed(() => import('./pages/coach/CoachSignup'), 'CoachSignup');
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { NotificationProvider } from './context/NotificationContext';
 import { AuthProvider } from './context/AuthContext';
 import { Capacitor } from '@capacitor/core';
@@ -137,6 +138,19 @@ function ScrollProgressBar() {
       style={{ width: `${width}%`, opacity: width > 2 ? 1 : 0 }}
     />
   );
+}
+
+// Mirrors the build-time registration kill switch used in Auth.tsx. When
+// registration is off the public entry points show the coming-soon page and
+// signup deep links bounce there; login stays reachable for existing users.
+const registrationEnabled = import.meta.env.VITE_REGISTRATION_ENABLED === 'true';
+
+function AuthOrComingSoon() {
+  const [searchParams] = useSearchParams();
+  if (!registrationEnabled && searchParams.get('tab') === 'signup') {
+    return <Navigate to="/" replace />;
+  }
+  return <Auth />;
 }
 
 function AthleteRouteGuard({ children }: { children: React.ReactNode }) {
@@ -277,9 +291,9 @@ function App() {
             </Route>
 
             {/* Standalone full-page routes (no nav shell) */}
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/landing" element={<LandingPage />} />
-            <Route path="/auth" element={<Auth />} />
+            <Route path="/" element={registrationEnabled ? <LandingPage /> : <ComingSoon />} />
+            <Route path="/landing" element={registrationEnabled ? <LandingPage /> : <ComingSoon />} />
+            <Route path="/auth" element={<AuthOrComingSoon />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/verify-email" element={<VerifyEmail />} />
