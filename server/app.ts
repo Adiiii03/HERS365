@@ -52,7 +52,19 @@ export function createApp() {
     res.set('Access-Control-Allow-Origin', '*');
     let db = 'down';
     try { await pool.query('SELECT 1'); db = 'up'; } catch { /* db unreachable */ }
-    res.json({ status: 'ok', db, uptime: Math.round(process.uptime()), time: new Date().toISOString() });
+    res.json({
+      status: db === 'up' ? 'ok' : 'degraded',
+      db,
+      integrations: {
+        stripe: Boolean(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_WEBHOOK_SECRET),
+        openai: Boolean(process.env.OPENAI_API_KEY),
+        maxpreps: Boolean(process.env.MAXPREPS_API_KEY),
+        'google-oauth': Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.env.GOOGLE_CALLBACK_URL),
+        'github-oauth': Boolean(process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET && process.env.GITHUB_CALLBACK_URL),
+      },
+      uptime: Math.round(process.uptime()),
+      time: new Date().toISOString(),
+    });
   });
 
   // Client error sink — mounted before every other /api/* router so an auth
