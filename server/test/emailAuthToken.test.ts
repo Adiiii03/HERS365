@@ -57,7 +57,7 @@ describe('POST /api/auth/email/register', () => {
 });
 
 describe('POST /api/auth/email/login', () => {
-  it('mints a token in the canonical { userId, role, name, email } shape', async () => {
+  it('mints a slim { userId, role } token with no PII', async () => {
     const registerRes = await request(app)
       .post('/api/auth/email/register')
       .send({ email: 'canon-login@test.local', password: 'Password1', name: 'Canon Login', dob: '2000-01-01', guardianEmail: 'canon-guardian@family.local' });
@@ -72,9 +72,9 @@ describe('POST /api/auth/email/login', () => {
 
     const decoded = decode(loginRes.body.token);
     expect(decoded.userId).toBe(loginRes.body.user.id);
-    expect(decoded.email).toBe('canon-login@test.local');
     expect(decoded.role).toBe('athlete');
-    expect(decoded.name).toBe('Canon Login');
+    expect(decoded.email).toBeUndefined();
+    expect(decoded.name).toBeUndefined();
   });
 });
 

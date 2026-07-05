@@ -108,13 +108,8 @@ async function redeemEmailLinkToken(token: string, purpose: CodePurpose) {
 // Issue the same JWT shape as the canonical auth router. Tokens minted here
 // previously omitted userId/role/name, which broke any downstream route that
 // branched on req.user.role or read req.user.userId.
-function signEmailAuthToken(player: { id: number; email: string; name: string | null }): string {
-  return auth.signToken({
-    userId: player.id,
-    email: player.email,
-    role: 'athlete',
-    name: player.name ?? '',
-  });
+function signEmailAuthToken(player: { id: number }): string {
+  return auth.signToken({ userId: player.id, role: 'athlete' });
 }
 
 router.post('/register', registerLimiter, async (req, res) => {

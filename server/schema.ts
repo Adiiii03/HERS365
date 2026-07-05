@@ -874,6 +874,7 @@ export const refreshTokens = pgTable('refresh_tokens', {
   userId: integer('user_id').notNull(), // Can reference players, parents, coaches, or admin_users
   userType: text('user_type').notNull(), // 'athlete', 'parent', 'coach', 'admin'
   tokenHash: text('token_hash').notNull().unique(), // Hashed refresh token
+  familyId: text('family_id'), // rotation family; reuse of a consumed token revokes the whole family
   deviceFingerprint: text('device_fingerprint'), // Browser/device identifier
   ipAddress: text('ip_address'),
   userAgent: text('user_agent'),

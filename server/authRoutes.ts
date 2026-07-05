@@ -10,6 +10,15 @@ import { recordCoachEvent } from './lib/coachEvents';
 import { createPendingAthlete, guardianFailureResponse } from './lib/guardianRegistration';
 import { isRegistrationEnabled } from './lib/registration';
 import { makeLimiterStore } from './lib/limiterStore';
+import {
+  REFRESH_COOKIE,
+  clearRefreshCookie,
+  hashRefreshToken,
+  issueRefreshToken,
+  revokeFamily,
+  rotateRefreshToken,
+  setRefreshCookie,
+} from './lib/refreshTokens';
 
 const router = express.Router();
 
@@ -124,6 +133,42 @@ async function findUserByEmail(email: string, role: auth.UserRole): Promise<Foun
   return { id: row.id, email: row.email, passwordHash: row.passwordHash, name: row.name, role: 'athlete', status: row.status };
 }
 
+// Sign a slim access token and mint a rotating refresh token. The refresh
+// token rides in the response body and an httpOnly cookie scoped to /api/auth.
+async function issueSession(res: express.Response, userId: number, role: auth.UserRole) {
+  const token = auth.signToken({ userId, role });
+  const { token: refreshToken } = await issueRefreshToken(userId, role);
+  setRefreshCookie(res, refreshToken);
+  return { token, refreshToken };
+}
+
+// No cookie parser in the stack; pull one cookie out of the raw header.
+function readCookie(req: express.Request, name: string): string | null {
+  const header = req.headers.cookie ?? '';
+  for (const part of header.split(';')) {
+    const [k, ...v] = part.trim().split('=');
+    if (k === name) return decodeURIComponent(v.join('='));
+  }
+  return null;
+}
+
+async function findUserById(userId: number, role: auth.UserRole): Promise<FoundUser | null> {
+  if (role === 'coach') {
+    const [row] = await db.select().from(schema.coaches).where(eq(schema.coaches.id, userId)).limit(1);
+    return row ? { id: row.id, email: row.email, passwordHash: row.passwordHash, name: row.name ?? '', role: 'coach' } : null;
+  }
+  if (role === 'parent') {
+    const [row] = await db.select().from(schema.parents).where(eq(schema.parents.id, userId)).limit(1);
+    return row ? { id: row.id, email: row.email, passwordHash: row.passwordHash, name: row.name, role: 'parent' } : null;
+  }
+  if (role === 'admin') {
+    const [row] = await db.select().from(schema.adminUsers).where(eq(schema.adminUsers.id, userId)).limit(1);
+    return row ? { id: row.id, email: row.username, passwordHash: row.passwordHash, name: row.username, role: 'admin' } : null;
+  }
+  const [row] = await db.select().from(schema.players).where(eq(schema.players.id, userId)).limit(1);
+  return row ? { id: row.id, email: row.email, passwordHash: row.passwordHash, name: row.name, role: 'athlete', status: row.status } : null;
+}
+
 function athleteStatusRefusal(user: FoundUser, res: any): boolean {
   if (user.role !== 'athlete' || user.status === 'active' || user.status == null) return false;
   res.status(403).json({ code: user.status === 'deactivated' ? 'ACCOUNT_DEACTIVATED' : 'GUARDIAN_PENDING' });
@@ -211,8 +256,8 @@ router.post('/register', registerLimiter, async (req, res) => {
       userId = row.id;
     }
 
-    const token = auth.signToken({ userId, email: normalEmail, role: userRole, name: name as string });
-    res.status(201).json({ token, user: { id: userId, email: normalEmail, name, role: userRole } });
+    const session = await issueSession(res, userId, userRole);
+    res.status(201).json({ ...session, user: { id: userId, email: normalEmail, name, role: userRole } });
   } catch (err: any) {
     console.error('[auth/register]', err);
     res.status(500).json({ error: 'Registration failed' });
@@ -242,8 +287,8 @@ router.post('/login', loginLimiter, async (req, res) => {
 
   if (athleteStatusRefusal(user, res)) return;
 
-  const token = auth.signToken({ userId: user.id, email: user.email, role: user.role, name: user.name });
-  res.json({ token, user: { id: user.id, email: user.email, name: user.name, role: user.role } });
+  const session = await issueSession(res, user.id, user.role);
+  res.json({ ...session, user: { id: user.id, email: user.email, name: user.name, role: user.role } });
 });
 
 // ─── POST /api/auth/(secure/)coach/login ──────────────────────────────────────
@@ -262,8 +307,8 @@ router.post('/coach/login', loginLimiter, async (req, res) => {
   if (!valid) {
     return res.status(401).json({ error: 'Invalid credentials' });
   }
-  const token = auth.signToken({ userId: user.id, email: user.email, role: 'coach', name: user.name });
-  res.json({ token, user: { id: user.id, email: user.email, name: user.name, role: 'coach' } });
+  const session = await issueSession(res, user.id, 'coach');
+  res.json({ ...session, user: { id: user.id, email: user.email, name: user.name, role: 'coach' } });
 });
 
 // ─── POST /api/auth/(secure/)coach/register ───────────────────────────────────
@@ -295,9 +340,9 @@ router.post('/coach/register', registerLimiter, async (req, res) => {
       verificationRequestedAt: new Date(),
       verificationNote: verificationNote ?? undefined,
     }).returning({ id: schema.coaches.id });
-    const token = auth.signToken({ userId: row.id, email: normalEmail, role: 'coach', name: name as string });
+    const session = await issueSession(res, row.id, 'coach');
     res.status(201).json({
-      token,
+      ...session,
       user: { id: row.id, email: normalEmail, name, role: 'coach', verifiedStatus: false },
       pendingVerification: true,
     });
@@ -380,8 +425,8 @@ router.post('/google', loginLimiter, async (req, res) => {
 
     if (athleteStatusRefusal(user, res)) return;
 
-    const token = auth.signToken({ userId: user.id, email: user.email, role: user.role, name: user.name });
-    res.json({ token, user: { id: user.id, email: user.email, name: user.name, role: user.role } });
+    const session = await issueSession(res, user.id, user.role);
+    res.json({ ...session, user: { id: user.id, email: user.email, name: user.name, role: user.role } });
   } catch (err: any) {
     console.error('[auth/google]', err);
     if (err.message?.includes('Invalid token') || err.message?.includes('Token used too late')) {
@@ -393,8 +438,45 @@ router.post('/google', loginLimiter, async (req, res) => {
 
 // ─── GET /api/auth/me ─────────────────────────────────────────────────────────
 
-router.get('/me', auth.requireAuth, (req, res) => {
-  res.json({ user: (req as any).user });
+// The token payload is just { userId, role }; hydrate email/name from the DB
+// so clients get the same identity shape login returns.
+router.get('/me', auth.requireAuth, async (req, res) => {
+  const u = (req as any).user as auth.TokenPayload;
+  try {
+    const found = await findUserById(Number(u.userId ?? u.id), u.role);
+    if (!found) return res.status(404).json({ error: 'User not found' });
+    res.json({ user: { id: found.id, userId: found.id, email: found.email, name: found.name, role: u.role } });
+  } catch (err) {
+    console.error('[auth/me]', err);
+    res.status(500).json({ error: 'Failed to load user' });
+  }
+});
+
+// ─── POST /api/auth/refresh ───────────────────────────────────────────────────
+
+// Rotating refresh: a valid unconsumed token yields a new access + refresh
+// pair; the old one is consumed atomically. Presenting an already consumed
+// token is treated as theft: the whole family is revoked and the caller gets
+// 401 { code: 'TOKEN_REUSE' }.
+router.post('/refresh', loginLimiter, async (req, res) => {
+  const raw = (req.body?.refreshToken as string | undefined) || readCookie(req, REFRESH_COOKIE);
+  if (!raw) return res.status(401).json({ error: 'Missing refresh token' });
+  try {
+    const result = await rotateRefreshToken(raw);
+    if (!result.ok) {
+      clearRefreshCookie(res);
+      if (result.code === 'TOKEN_REUSE') {
+        return res.status(401).json({ code: 'TOKEN_REUSE', error: 'Refresh token reuse detected' });
+      }
+      return res.status(401).json({ error: 'Invalid or expired refresh token' });
+    }
+    const token = auth.signToken({ userId: result.userId, role: result.role });
+    setRefreshCookie(res, result.token);
+    res.json({ token, refreshToken: result.token });
+  } catch (err) {
+    console.error('[auth/refresh]', err);
+    res.status(500).json({ error: 'Refresh failed' });
+  }
 });
 
 // ─── POST /api/auth/logout ────────────────────────────────────────────────────
@@ -411,7 +493,26 @@ router.post('/logout', auth.requireAuth, async (req, res) => {
     if (ttl > 0) await blocklistToken(token, ttl);
   } catch (err) {
     console.error('[auth/logout] blocklist failed:', err);
-    // Don't fail the logout — the client still drops its token.
+    // [V2-13] In production a failed revocation write means the token would
+    // stay live for its full lifetime; fail the logout so the caller knows.
+    if ((process.env.APP_ENV ?? process.env.NODE_ENV) === 'production') {
+      return res.status(503).json({ error: 'Logout unavailable, try again' });
+    }
+    // Dev/test: don't fail the logout — the client still drops its token.
+  }
+
+  // Revoke the presented refresh token's whole family so it cannot be rotated
+  // into a new access token after logout.
+  const rawRefresh = (req.body?.refreshToken as string | undefined) || readCookie(req, REFRESH_COOKIE);
+  if (rawRefresh) {
+    try {
+      const rt = schema.refreshTokens;
+      const [row] = await db.select({ familyId: rt.familyId }).from(rt)
+        .where(eq(rt.tokenHash, hashRefreshToken(rawRefresh))).limit(1);
+      if (row?.familyId) await revokeFamily(row.familyId, 'user_logout');
+    } catch (err) {
+      console.error('[auth/logout] refresh revocation failed:', err);
+    }
   }
 
   const user = (req as any).user as auth.TokenPayload | undefined;
@@ -431,7 +532,7 @@ router.post('/logout', auth.requireAuth, async (req, res) => {
     recordCoachEvent(Number(user.userId ?? user.id), 'session_ended', { durationMs });
   }
 
-  res.clearCookie('refreshToken', { httpOnly: true, sameSite: 'lax' });
+  clearRefreshCookie(res);
   res.json({ success: true });
 });
 
@@ -446,7 +547,7 @@ router.post('/change-password', auth.requireAuth, async (req, res) => {
     return res.status(400).json({ error: 'Password must be at least 8 characters' });
   }
 
-  const found = await findUserByEmail(user.email, user.role);
+  const found = await findUserById(Number(user.userId ?? user.id), user.role);
   if (!found?.passwordHash) {
     return res.status(400).json({ error: 'Password change is not available for this account' });
   }

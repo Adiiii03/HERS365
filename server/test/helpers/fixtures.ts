@@ -131,6 +131,6 @@ export async function linkParentChild(parentId: number, playerId: number) {
   return row;
 }
 
-export function tokenFor(user: { id: number; email: string; name: string | null }, role: UserRole) {
-  return signToken({ userId: user.id, email: user.email, role, name: user.name ?? '' });
+export function tokenFor(user: { id: number }, role: UserRole) {
+  return signToken({ userId: user.id, role });
 }

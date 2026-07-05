@@ -1,6 +1,7 @@
 import { pool } from '../../db';
 
 const TABLES = [
+  'refresh_tokens',
   'messages',
   'message_requests',
   'message_blocks',
