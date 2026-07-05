@@ -79,6 +79,7 @@ export const Layout = () => {
     };
     return (
       <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: '#0a0a0a', color: '#fff' }}>
+        <a href="#main-content" className="skip-link">Skip to content</a>
         <header style={{
           height: 56, display: 'flex', alignItems: 'center', padding: '0 20px',
           borderBottom: '1px solid rgba(255,255,255,0.06)',
@@ -110,12 +111,12 @@ export const Layout = () => {
               className="k-btn k-btn-primary"
               style={{ padding: '8px 18px', borderRadius: 9999, fontSize: '0.8rem', textDecoration: 'none' }}
             >
-              Get Recruited
+              Get Started
             </Link>
           </div>
         </header>
 
-        <main style={{ flex: 1 }}>
+        <main id="main-content" style={{ flex: 1 }}>
           <AnimatePresence mode="wait">
             <motion.div key={location.pathname} {...pageTransition}>
               <Outlet />
@@ -128,6 +129,7 @@ export const Layout = () => {
 
   return (
     <div style={{ display: 'flex', height: '100vh', background: '#0a0a0a', color: '#fff', overflow: 'hidden' }}>
+      <a href="#main-content" className="skip-link">Skip to content</a>
 
       {/* ─── Desktop Sidebar ─── */}
       <aside
@@ -393,6 +395,7 @@ export const Layout = () => {
         <ProfileCompletionBanner />
         {/* Page Content */}
         <main
+          id="main-content"
           className="main-scroll"
           style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden' }}
         >

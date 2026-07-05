@@ -4,6 +4,7 @@ import { Suspense, lazy, useEffect, useRef, useState } from 'react';
 // opposite of the win this PR is going for.
 import { Layout } from './components/Layout';
 import { CoachLayout } from './components/CoachLayout';
+import { ParentLayout } from './components/ParentLayout';
 import { LandingPage } from './pages/LandingPage';
 import { Auth } from './pages/Auth';
 import { ComingSoon } from './pages/ComingSoon';
@@ -166,6 +167,34 @@ function AthleteRouteGuard({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+// Role guard for parent / admin / staff routes. Auth resolves synchronously
+// from localStorage before children render so protected content never
+// flashes for unauthenticated or wrong-role users.
+function RoleRouteGuard({ roles, loginPath, children }: {
+  roles: string[]; loginPath: string; children: React.ReactNode;
+}) {
+  const navigate = useNavigate();
+  const token = localStorage.getItem('token');
+  const userStr = localStorage.getItem('user');
+
+  let isAuthorized = false;
+  if (token && userStr) {
+    try {
+      const user = JSON.parse(userStr);
+      isAuthorized = roles.includes(user.role);
+    } catch {
+      isAuthorized = false;
+    }
+  }
+
+  useEffect(() => {
+    if (!isAuthorized) navigate(loginPath);
+  }, [navigate, isAuthorized, loginPath]);
+
+  if (!isAuthorized) return null;
+  return <>{children}</>;
+}
+
 // Simple role-based guard for coach routes.
 // Auth is resolved synchronously before any children render so protected
 // content (athlete PII, scouting data) never flashes for unauthenticated users.
@@ -282,13 +311,17 @@ function App() {
               <Route path="/squads" element={<SquadFinder />} />
               <Route path="/teams/find" element={<TeamFinder />} />
               <Route path="/scholarships" element={<ScholarshipTracker />} />
-              <Route path="/parent" element={<ParentDashboard />} />
-              <Route path="/parent/dashboard" element={<ParentDashboard />} />
-              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin" element={<RoleRouteGuard roles={['admin']} loginPath="/admin/login"><AdminDashboard /></RoleRouteGuard>} />
               <Route path="/admin/login" element={<AdminLogin />} />
-              <Route path="/staff" element={<StaffDashboard />} />
+              <Route path="/staff" element={<RoleRouteGuard roles={['admin', 'staff']} loginPath="/admin/login"><StaffDashboard /></RoleRouteGuard>} />
               <Route path="/static/:slug" element={<StaticPageLayout />} />
               <Route path="*" element={<NotFound />} />
+            </Route>
+
+            {/* Parent shell — its own top bar, no athlete sidebar or tabs */}
+            <Route element={<RoleRouteGuard roles={['parent']} loginPath="/auth"><ParentLayout /></RoleRouteGuard>}>
+              <Route path="/parent" element={<ParentDashboard />} />
+              <Route path="/parent/dashboard" element={<ParentDashboard />} />
             </Route>
 
             {/* Standalone full-page routes (no nav shell) */}

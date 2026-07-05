@@ -452,10 +452,32 @@ html, body {
     animation: pulse-dot 2s ease-in-out infinite;
   }
 
+  /* ── Skip to content ── */
+  .skip-link {
+    position: absolute;
+    top: 8px; left: 8px;
+    z-index: 200;
+    padding: 10px 18px;
+    border-radius: 9px;
+    background: #ff5a2d;
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.82rem;
+    text-decoration: none;
+    transform: translateY(-200%);
+  }
+  .skip-link:focus-visible {
+    transform: translateY(0);
+    outline: 2px solid #fff;
+    outline-offset: 2px;
+  }
+
   /* ── Buttons ── */
   .k-btn {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
+    min-height: 44px;
     gap: 7px;
     border: none;
     border-radius: 9px;
@@ -588,7 +610,7 @@ html, body {
     box-shadow: 0 0 0 3px rgba(255,90,45,0.08);
   }
 
-  .k-input::placeholder { color: #3a3a3a; }
+  .k-input::placeholder { color: #6b6b76; }
 
   /* ── Animate on mount ── */
   .k-fade-up {

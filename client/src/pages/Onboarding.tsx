@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Target, GraduationCap, Trophy, ChevronRight, ChevronLeft, Check, Star, Zap, MapPin, BookOpen, Upload } from 'lucide-react';
+import { Target, Trophy, ChevronRight, ChevronLeft, Check, Zap, MapPin, Upload } from 'lucide-react';
 import { useNotifications } from '../context/NotificationContext';
 import { FLAG_POSITIONS } from '../lib/positions';
 
@@ -12,14 +12,13 @@ const INK_2   = '#111111';
 const INK_3   = '#161616';
 const LINE    = 'rgba(255,255,255,0.07)';
 const MUTED   = '#8a8a86';
-const MUTED_2 = '#5a5a56';
+const MUTED_2 = '#8a8a85';
 const DISP    = "'Barlow Condensed', sans-serif";
 const BODY    = "'DM Sans', sans-serif";
 const GRAIN   = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`;
 
 const SPORTS    = ['Flag Football', '7v7 Flag', 'Tackle Football'];
 const POSITIONS = FLAG_POSITIONS;
-const GRAD_YEARS = ['2025', '2026', '2027', '2028', '2029', '2030', '2031'];
 const STATES = [
   'AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS',
   'KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY',
@@ -44,8 +43,8 @@ const CONFETTI = Array.from({ length: 52 }, (_, i) => ({
 
 const steps = [
   { num: 1, label: 'Your Game',  icon: Target,        sub: 'Sport & position' },
-  { num: 2, label: 'School',     icon: GraduationCap, sub: 'School & grad year' },
-  { num: 3, label: 'Stand Out',  icon: Trophy,        sub: 'GPA & achievements' },
+  { num: 2, label: 'Home Turf',  icon: MapPin,        sub: 'Your state' },
+  { num: 3, label: 'Stand Out',  icon: Trophy,        sub: 'Photo & achievements' },
   { num: 4, label: 'Launch',     icon: Zap,           sub: 'Profile live' },
 ];
 
@@ -69,25 +68,6 @@ const labelCls: React.CSSProperties = {
   fontSize: '.66rem', letterSpacing: '.18em', textTransform: 'uppercase',
   color: MUTED, marginBottom: 8,
 };
-
-function StyledInput({ label, value, onChange, placeholder }: {
-  label: string; value: string; onChange: (v: string) => void; placeholder?: string;
-}) {
-  const [focused, setFocused] = useState(false);
-  return (
-    <div>
-      <label style={labelCls}>{label}</label>
-      <input
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        placeholder={placeholder}
-        onFocus={e => { setFocused(true); e.target.style.borderColor = 'rgba(255,90,45,0.55)'; e.target.style.boxShadow = '0 0 0 3px rgba(255,90,45,0.09)'; }}
-        onBlur={e => { setFocused(false); e.target.style.borderColor = LINE; e.target.style.boxShadow = 'none'; }}
-        style={{ ...inputCls, borderColor: focused ? 'rgba(255,90,45,0.55)' : LINE }}
-      />
-    </div>
-  );
-}
 
 function StyledSelect({ label, value, onChange, children }: {
   label: string; value: string; onChange: (v: string) => void; children: React.ReactNode;
@@ -114,10 +94,9 @@ function StyledSelect({ label, value, onChange, children }: {
 // let it move backward, and show nothing until a position is picked.
 function projectedRating(form: Record<string, string>, step: number): number | '—' {
   if (step < 1 || !form.position) return '—';
-  let r = 60;                                              // base, once a position is set
-  if (form.school && form.gradYear && form.state) r += 8;  // verified school details
-  const gpa = parseFloat(form.gpa);
-  if (!Number.isNaN(gpa)) r += Math.round((Math.min(Math.max(gpa, 0), 4) / 4) * 12); // up to +12 for a 4.0
+  let r = 60;                          // base, once a position is set
+  if (form.state) r += 10;             // home state set
+  if (form.achievements) r += 10;      // shared something about her game
   return Math.min(r, 99);
 }
 
@@ -162,9 +141,8 @@ function ProfilePreview({ form, step, userName }: {
       {/* Info rows */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
         {[
-          { icon: MapPin, text: [form.school, form.state].filter(Boolean).join(' · ') || 'School TBD', unlocked: step >= 2 },
-          { icon: BookOpen, text: form.gradYear ? `Class of ${form.gradYear}` : 'Grad year TBD', unlocked: step >= 2 },
-          { icon: Star, text: form.gpa ? `GPA ${form.gpa}` : 'GPA optional', unlocked: step >= 3 },
+          { icon: MapPin, text: form.state || 'Home state TBD', unlocked: step >= 2 },
+          { icon: Trophy, text: form.achievements ? 'Highlights added' : 'Highlights optional', unlocked: step >= 3 },
         ].map(({ icon: Icon, text, unlocked }) => (
           <div key={text} style={{ display: 'flex', gap: 9, alignItems: 'center' }}>
             <Icon size={13} style={{ color: unlocked ? FLAME_S : MUTED_2, flexShrink: 0, transition: 'color 0.4s' }} />
@@ -190,7 +168,7 @@ function ProfilePreview({ form, step, userName }: {
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 16 }}>
         {[
           { label: 'Position Ranked', active: step > 1 },
-          { label: 'School Verified', active: step > 2 },
+          { label: 'Home State Set',  active: step > 2 },
           { label: 'Profile Live',    active: step > 3 },
         ].map(({ label, active }) => (
           <div key={label} style={{
@@ -217,8 +195,8 @@ export function Onboarding() {
   const [dir,    setDir]    = useState<1 | -1>(1);
   const [userName, setUserName] = useState('');
   const [form,   setForm]   = useState({
-    sport: 'Flag Football', position: '', school: '',
-    gradYear: '', state: '', gpa: '', achievements: '',
+    sport: 'Flag Football', position: '',
+    state: '', achievements: '',
     photoUploaded: false, profileImageUrl: '',
   });
   const photoRef = useRef<HTMLInputElement>(null);
@@ -257,7 +235,7 @@ export function Onboarding() {
 
   const canAdvance =
     (step === 1 && !!form.sport && !!form.position) ||
-    (step === 2 && !!form.school && !!form.gradYear && !!form.state) ||
+    (step === 2 && !!form.state) ||
     step === 3 || step === 4;
 
   const goNext = () => { setDir(1);  setStep(s => Math.min(s + 1, TOTAL_STEPS)); };
@@ -290,7 +268,7 @@ export function Onboarding() {
         setSaving(false);
         return;
       }
-      showNotification('success', 'Profile complete', 'Your recruiting profile is live.');
+      showNotification('success', 'Profile complete', 'Your profile is live.');
       setDir(1);
       setStep(4);
     } catch {
@@ -421,17 +399,10 @@ export function Onboarding() {
               {/* ── STEP 2 ── */}
               {step === 2 && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
-                  <StyledInput label="School" value={form.school} onChange={v => set('school', v)} placeholder="Lincoln High School" />
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                    <StyledSelect label="Grad Year" value={form.gradYear} onChange={v => set('gradYear', v)}>
-                      <option value="">Year</option>
-                      {GRAD_YEARS.map(y => <option key={y} value={y}>{y}</option>)}
-                    </StyledSelect>
-                    <StyledSelect label="State" value={form.state} onChange={v => set('state', v)}>
-                      <option value="">State</option>
-                      {STATES.map(s => <option key={s} value={s}>{s}</option>)}
-                    </StyledSelect>
-                  </div>
+                  <StyledSelect label="State" value={form.state} onChange={v => set('state', v)}>
+                    <option value="">State</option>
+                    {STATES.map(s => <option key={s} value={s}>{s}</option>)}
+                  </StyledSelect>
                 </div>
               )}
 
@@ -451,7 +422,6 @@ export function Onboarding() {
                       {photoBusy ? 'Uploading…' : form.photoUploaded ? 'Photo added' : 'Upload photo'}
                     </button>
                   </div>
-                  <StyledInput label="GPA (optional)" value={form.gpa} onChange={v => set('gpa', v)} placeholder="e.g. 3.8" />
                   <div>
                     <label style={labelCls}>Achievements <span style={{ color: MUTED_2, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
                     <textarea
@@ -511,7 +481,7 @@ export function Onboarding() {
                       YOU'RE ON<br /><span style={{ color: FLAME }}>THE GRID.</span>
                     </h2>
                     <p style={{ color: MUTED, fontSize: '1.1rem', maxWidth: 420, margin: '0 auto 36px', lineHeight: 1.65 }}>
-                      Your recruiting profile is live. 380+ coaches are already scouting the grid. It's your time.
+                      Your profile is live. Share your highlights, cheer on your friends, and have fun out there.
                     </p>
                   </motion.div>
 
@@ -522,7 +492,7 @@ export function Onboarding() {
                     transition={{ duration: 0.5, delay: 0.5 }}
                     style={{ display: 'flex', justifyContent: 'center', gap: 40, marginBottom: 40 }}
                   >
-                    {[{ n: '380+', l: 'Coaches watching' }, { n: '4.2K', l: 'Athletes ranked' }, { n: '365', l: 'Days a year' }].map(s => (
+                    {[{ n: '1', l: 'Profile, all yours' }, { n: '52', l: 'Weeks to grow' }, { n: '365', l: 'Days a year' }].map(s => (
                       <div key={s.l} style={{ textAlign: 'center' }}>
                         <div style={{ fontFamily: DISP, fontWeight: 900, fontSize: '1.8rem', color: FLAME, lineHeight: 1 }}>{s.n}</div>
                         <div style={{ fontSize: '.68rem', fontWeight: 700, letterSpacing: '.12em', textTransform: 'uppercase', color: MUTED_2, marginTop: 4 }}>{s.l}</div>

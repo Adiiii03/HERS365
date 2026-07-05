@@ -162,40 +162,23 @@ const ClipText = ({ children }: { children: string }) => (
   </span>
 );
 
-const heroStats = [
-  { v: '4.6s', l: '40 Dash' },
-  { v: '28', l: 'TDs' },
-  { v: '12', l: 'Offers' },
-];
-
 const bandStats = [
-  { n: '4.2', suffix: 'K', c: 'Athletes Ranked' },
-  { n: '380', suffix: '+', c: 'Coaches Scouting' },
-  { n: '1.1', suffix: 'K', c: 'Offers Made' },
-  { n: '365', suffix: '', c: 'Days A Year' },
+  { n: 'Safe', c: 'Parents In The Loop' },
+  { n: 'Fun', c: 'Highlights And Reels' },
+  { n: 'Real', c: 'Rankings You Earn' },
+  { n: '365', c: 'Days A Year' },
 ];
 
 const triad = [
-  { icon: Crosshair, title: 'Achieve Your Goals', body: 'Log combines, drills and game film. Our HERS Rating turns your work into a verified score coaches trust.' },
-  { icon: Megaphone, title: 'Challenge Your Friends', body: 'Climb the live leaderboard. Go head-to-head on the grid and watch your rank rise every single week.' },
-  { icon: Share2, title: 'Share Your Journey', body: 'Post highlights to your profile, get discovered by 380+ scouting coaches, and let your tape do the talking.' },
+  { icon: Crosshair, title: 'Achieve Your Goals', body: 'Log combines, drills and game film. Our HERS Rating turns your work into a verified score you can be proud of.' },
+  { icon: Megaphone, title: 'Challenge Your Friends', body: 'Climb the live leaderboard. Compete with friends on the grid and watch your rank rise every single week.' },
+  { icon: Share2, title: 'Share Your Journey', body: 'Post highlights to your profile and share your best moments with your team, your family, and your community.' },
 ];
 
 const gridFeatures = [
   { h: 'Verified HERS Rating', p: 'A single, trusted score built from real performance data — not hype.' },
   { h: 'Real-time rankings', p: 'Climb position by position. Your rank moves the moment you do.' },
   { h: 'Coach-facing profiles', p: 'Film, stats and contact in one place — built for how coaches actually scout.' },
-];
-
-const tickerItems = [
-  { label: 'Athlete Profile', meta: 'QB · #1 Nationally' },
-  { label: '380+ Coaches', meta: 'Now Scouting' },
-  { label: 'Maya Johnson', meta: 'WR · 93 HERS Rating' },
-  { label: '4,200+ Athletes', meta: 'On The Grid' },
-  { label: 'Jordan Reyes', meta: 'S · 91 HERS Rating' },
-  { label: '1,100+ Offers', meta: 'Made This Season' },
-  { label: 'Taylor Brooks', meta: 'QB · 88 HERS Rating' },
-  { label: '365 Days', meta: 'A Year Of Visibility' },
 ];
 
 interface GridRow {
@@ -226,14 +209,12 @@ interface ApiRanking {
 export const LandingPage = () => {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
-  const [barWidth, setBarWidth] = useState('0%');
   const [leaderboard, setLeaderboard] = useState<GridRow[]>(fallbackLeaderboard);
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', onScroll, { passive: true });
-    const t = setTimeout(() => setBarWidth('92%'), 700);
 
     const fades = ['linear-gradient(135deg,#3a3a3a,#1c1c1c)', 'linear-gradient(135deg,#2a2a2a,#161616)', 'linear-gradient(135deg,#222,#111)'];
     fetch('/api/rankings?limit=4&sortBy=rating')
@@ -252,7 +233,7 @@ export const LandingPage = () => {
       })
       .catch(() => {});
 
-    return () => { window.removeEventListener('scroll', onScroll); clearTimeout(t); };
+    return () => { window.removeEventListener('scroll', onScroll); };
   }, []);
 
   return (
@@ -284,7 +265,7 @@ export const LandingPage = () => {
             <span /><span /><span />
           </button>
           <Link to="/auth?tab=signup" className="lp-btn lp-btn-primary" style={{ fontSize: '.85rem', padding: '11px 22px' }}>
-            Get Recruited <ArrowRight size={14} />
+            Join Free <ArrowRight size={14} />
           </Link>
         </div>
       </nav>
@@ -296,7 +277,7 @@ export const LandingPage = () => {
         <Link to="/rankings" onClick={() => setMenuOpen(false)}>Rankings</Link>
         <Link to="/coach/login" onClick={() => setMenuOpen(false)}>For Coaches</Link>
         <Link to="/auth?tab=signup" className="lp-btn lp-btn-primary" style={{ fontSize: '1rem', padding: '13px 28px', marginTop: 8 }} onClick={() => setMenuOpen(false)}>
-          Get Recruited <ArrowRight size={16} />
+          Join Free <ArrowRight size={16} />
         </Link>
       </div>
 
@@ -315,7 +296,7 @@ export const LandingPage = () => {
           WebkitMaskImage: 'radial-gradient(ellipse 70% 80% at 80% 10%,#000 0%,transparent 80%)',
         }} />
 
-        <div className="lp-hero-grid" style={{ ...wrap, position: 'relative' }}>
+        <div style={{ ...wrap, position: 'relative', maxWidth: 860 }}>
           {/* LEFT */}
           <div style={{ borderLeft: `3px solid ${FLAME}`, paddingLeft: 28 }}>
             <motion.span {...reveal} style={{
@@ -333,9 +314,9 @@ export const LandingPage = () => {
               className="lp-hero-title"
               style={{ ...disp, fontWeight: 900, fontSize: 'clamp(3.8rem,9vw,7.4rem)', lineHeight: 0.88, margin: 0, letterSpacing: 'var(--tracking-display)' }}
             >
-              Get Seen.<br />
-              Get Ranked.<br />
-              Get <em style={{ color: FLAME, fontStyle: 'normal' }}>Recruited.</em>
+              Play.<br />
+              Grow.<br />
+              <em style={{ color: FLAME, fontStyle: 'normal' }}>Belong.</em>
             </motion.h1>
 
             <motion.p
@@ -343,7 +324,7 @@ export const LandingPage = () => {
               transition={{ ...reveal.transition, delay: 0.16 }}
               style={{ color: MUTED, fontSize: '1.1rem', maxWidth: 460, margin: '24px 0 0', lineHeight: 1.65 }}
             >
-              The recruiting platform built for girls flag football. Post your film, climb the rankings, and put your game in front of every coach that matters — 365 days a year.
+              A safe home for girls flag football. Post your highlights, cheer on your friends, and grow your game, 365 days a year.
             </motion.p>
 
             {/* Social proof */}
@@ -357,7 +338,7 @@ export const LandingPage = () => {
                   }} />
                 ))}
               </div>
-              <span>Join <b style={{ color: '#f4f4f2' }}>4,200+</b> athletes already on the grid</span>
+              <span>Join the girls already building their game on <b style={{ color: '#f4f4f2' }}>HERS365</b></span>
             </motion.div>
 
             <motion.div {...reveal} transition={{ ...reveal.transition, delay: 0.28 }} style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center', marginTop: 26 }}>
@@ -368,106 +349,8 @@ export const LandingPage = () => {
             </motion.div>
           </div>
 
-          {/* RIGHT: Profile card */}
-          <motion.div
-            {...reveal}
-            transition={{ ...reveal.transition, delay: 0.18 }}
-            className="lp-hero-card"
-            style={{
-              position: 'relative',
-              background: `linear-gradient(160deg,${INK_3},${INK_2})`,
-              border: `1px solid ${LINE_2}`,
-              borderRadius: 22,
-              padding: 24,
-              boxShadow: '0 32px 84px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.03)',
-            }}
-          >
-            {/* Top 5% badge */}
-            <div style={{
-              position: 'absolute', top: -14, right: 22,
-              background: FLAME, color: '#fff', ...disp, fontWeight: 800,
-              fontSize: '.73rem', letterSpacing: '.1em', padding: '5px 13px', borderRadius: 9999,
-              boxShadow: '0 8px 22px rgba(255,90,45,.45)', lineHeight: 1.2,
-            }}>Top 5%</div>
-
-            {/* Header row */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 18 }}>
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 5 }}>
-                  <div style={{ ...disp, fontWeight: 800, fontSize: '1.3rem', letterSpacing: '.02em' }}>Athlete Profile</div>
-                  <span className="lp-live"><span className="lp-live-dot" />Live</span>
-                </div>
-                <div style={{ color: MUTED, fontSize: '.79rem', fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase', fontFamily: DISP }}>QB · Class of 2026</div>
-              </div>
-              <div style={{ textAlign: 'right' }}>
-                <div className="tnum" style={{ ...disp, fontWeight: 900, fontSize: '2.8rem', color: FLAME, lineHeight: 1 }}>95</div>
-                <div style={{ fontSize: '.6rem', letterSpacing: '.14em', color: MUTED_2, fontWeight: 700, fontFamily: DISP, textTransform: 'uppercase', marginTop: 2 }}>HERS Rating</div>
-              </div>
-            </div>
-
-            {/* Stat chips */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 18 }}>
-              {heroStats.map(s => (
-                <div
-                  key={s.l}
-                  style={{
-                    background: 'rgba(255,255,255,.03)', border: `1px solid ${LINE}`,
-                    borderRadius: 12, padding: '12px 10px',
-                    transition: 'border-color .22s, background .22s',
-                  }}
-                  onMouseEnter={e => {
-                    (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255,90,45,.28)';
-                    (e.currentTarget as HTMLDivElement).style.background = 'rgba(255,90,45,.04)';
-                  }}
-                  onMouseLeave={e => {
-                    (e.currentTarget as HTMLDivElement).style.borderColor = LINE;
-                    (e.currentTarget as HTMLDivElement).style.background = 'rgba(255,255,255,.03)';
-                  }}
-                >
-                  <div className="tnum" style={{ ...disp, fontWeight: 800, fontSize: '1.5rem' }}>{s.v}</div>
-                  <div style={{ fontSize: '.63rem', letterSpacing: '.1em', color: MUTED_2, textTransform: 'uppercase', fontWeight: 700, marginTop: 2, fontFamily: DISP }}>{s.l}</div>
-                </div>
-              ))}
-            </div>
-
-            {/* Visibility bar */}
-            <div style={{ height: 7, borderRadius: 9999, background: 'rgba(255,255,255,.06)', overflow: 'hidden', marginBottom: 7 }}>
-              <i style={{
-                display: 'block', height: '100%', borderRadius: 9999,
-                background: `linear-gradient(90deg,${FLAME},${FLAME_SOFT})`,
-                width: barWidth, transition: 'width 1.4s cubic-bezier(.2,.8,.2,1)',
-              }} />
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '.73rem', color: MUTED, fontWeight: 600 }}>
-              <span>Recruiting Visibility</span><span className="tnum" style={{ color: 'var(--accent-text)', fontWeight: 700 }}>92%</span>
-            </div>
-
-            {/* Footer row */}
-            <div style={{ borderTop: `1px solid ${LINE}`, marginTop: 18, paddingTop: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ fontSize: '.74rem', color: MUTED_2 }}>
-                <span style={{ color: '#4ade80', marginRight: 4 }}>▲ 3</span> positions this week
-              </div>
-              <div style={{ fontSize: '.74rem', color: MUTED_2 }}>
-                <b style={{ color: '#f4f4f2' }}>14</b> coach views today
-              </div>
-            </div>
-          </motion.div>
         </div>
       </header>
-
-      {/* LIVE TICKER */}
-      <div className="lp-ticker">
-        <div className="lp-ticker-track">
-          {[...tickerItems, ...tickerItems].map((item, i) => (
-            <span key={i} className="lp-ticker-item">
-              <b style={{ color: 'var(--accent-text)' }}>{item.label}</b>
-              <span style={{ color: MUTED_2 }}>·</span>
-              {item.meta}
-              <span className="lp-ticker-sep">◆</span>
-            </span>
-          ))}
-        </div>
-      </div>
 
       {/* STAT BAND */}
       <div style={{ borderTop: `1px solid ${LINE}`, borderBottom: `1px solid ${LINE}`, background: INK_2 }}>
@@ -481,7 +364,7 @@ export const LandingPage = () => {
               style={{ padding: '36px 24px', textAlign: 'center', borderRight: i < 3 ? `1px solid ${LINE}` : 'none' }}
             >
               <div className="tnum" style={{ ...disp, fontWeight: 900, fontSize: '3.2rem', lineHeight: 1 }}>
-                <span style={{ color: FLAME }}>{s.n}</span>{s.suffix}
+                <span style={{ color: FLAME }}>{s.n}</span>
               </div>
               <div style={{ fontSize: '.77rem', letterSpacing: '.14em', textTransform: 'uppercase', color: MUTED, fontWeight: 600, marginTop: 8, fontFamily: DISP }}>{s.c}</div>
             </motion.div>
@@ -497,7 +380,7 @@ export const LandingPage = () => {
             <h2 style={{ ...disp, fontWeight: 900, fontSize: 'clamp(2.4rem,5vw,4rem)', margin: 0 }}>
               Your highlight reel<br />shouldn't sit in a folder.
             </h2>
-            <p style={{ color: MUTED, fontSize: '1.08rem', marginTop: 18 }}>Stop hoping a coach finds your film. HERS 365 turns every rep into ranking — and every ranking into a reason to get recruited.</p>
+            <p style={{ color: MUTED, fontSize: '1.08rem', marginTop: 18 }}>HERS365 turns every rep into progress you can see, and every highlight into a moment worth sharing.</p>
           </motion.div>
           <div className="lp-triad">
             {triad.map((c, i) => (
@@ -554,8 +437,10 @@ export const LandingPage = () => {
                 <span className="lp-live"><span className="lp-live-dot" />Live</span>
               </div>
               {leaderboard.map((r, i) => (
-                <div key={r.name} className="lb-row" onClick={() => navigate('/rankings')} style={{
-                  display: 'flex', gap: 12, padding: '14px 18px',
+                <button key={r.name} type="button" className="lb-row" onClick={() => navigate('/rankings')} aria-label={`View ${r.name} on the rankings`} style={{
+                  display: 'flex', gap: 12, padding: '14px 18px', width: '100%',
+                  background: 'transparent', border: 'none', textAlign: 'left',
+                  color: 'inherit', font: 'inherit', minHeight: 44,
                   borderBottom: i < leaderboard.length - 1 ? `1px solid ${LINE}` : 'none',
                   alignItems: 'center', cursor: 'pointer',
                 }}>
@@ -572,7 +457,7 @@ export const LandingPage = () => {
                   <div className="tnum" style={{ marginLeft: 'auto', ...disp, fontWeight: 900, fontSize: '1.28rem', color: i === 0 ? FLAME : '#f4f4f2', flexShrink: 0 }}>
                     {r.up && <span style={{ fontSize: '.58rem', color: '#4ade80', marginRight: 2 }}>▲</span>}{r.rank}
                   </div>
-                </div>
+                </button>
               ))}
             </div>
           </motion.div>
@@ -588,19 +473,19 @@ export const LandingPage = () => {
             border: '1px solid rgba(255,90,45,.22)', padding: '76px 40px', textAlign: 'center',
           }}>
             <div style={{ position: 'absolute', width: 640, height: 640, borderRadius: '50%', filter: 'blur(96px)', opacity: 0.55, top: -260, right: '25%', background: 'radial-gradient(circle,rgba(255,90,45,.5),transparent 65%)', pointerEvents: 'none' }} />
-            <div style={{ ...kicker, position: 'relative' }}>Finally — recruiting built for her</div>
+            <div style={{ ...kicker, position: 'relative' }}>Finally, a home built for her</div>
             <h2 style={{ ...disp, fontWeight: 900, fontSize: 'clamp(2.4rem,5vw,4rem)', margin: 0, position: 'relative' }}>
-              <ClipText>Your tape is ready.</ClipText><br />
-              <ClipText>Are the coaches?</ClipText>
+              <ClipText>Your game is ready.</ClipText><br />
+              <ClipText>Your team is waiting.</ClipText>
             </h2>
             <p style={{ position: 'relative', color: MUTED, fontSize: '1.1rem', maxWidth: 500, margin: '18px auto 34px', lineHeight: 1.65 }}>
-              Claim your profile and put your film in front of the coaches who are already scouting the grid. Free to start. Built for the class of 2026 and beyond.
+              Claim your profile, share your highlights, and grow with girls who love the game as much as you do. Free to start.
             </p>
             <div style={{ position: 'relative', display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
               <button className="lp-btn lp-btn-primary" onClick={() => navigate('/auth?tab=signup')}>Claim Your Profile <ArrowRight size={15} /></button>
               <button className="lp-btn lp-btn-ghost" onClick={() => navigate('/coach/login')}>I'm A Coach</button>
             </div>
-            <div style={{ position: 'relative', marginTop: 16, color: MUTED_2, fontSize: '.82rem' }}>No spam. No pressure. Just your shot in front of the right coaches.</div>
+            <div style={{ position: 'relative', marginTop: 16, color: MUTED_2, fontSize: '.82rem' }}>No spam. No pressure. Just you and your game.</div>
           </motion.div>
         </div>
       </section>
@@ -616,7 +501,7 @@ export const LandingPage = () => {
             <Link className="lp-nav-link" to="/about">About</Link>
             <Link className="lp-nav-link" to="/privacy">Privacy</Link>
           </div>
-          <div style={{ color: MUTED_2, fontSize: '.8rem' }}>© 2026 HERS 365 · Girls Flag Football Recruiting</div>
+          <div style={{ color: MUTED_2, fontSize: '.8rem' }}>© 2026 HERS 365 · Girls Flag Football Community</div>
         </div>
       </footer>
     </div>

@@ -70,17 +70,17 @@ export const Contact = () => {
               { key: 'email', label: 'Email', placeholder: 'you@email.com', type: 'email' },
             ].map((f) => (
               <div key={f.key}>
-                <div style={{ fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#555', marginBottom: 7 }}>{f.label}</div>
+                <div style={{ fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#8a8a85', marginBottom: 7 }}>{f.label}</div>
                 <input className="k-input" type={f.type} placeholder={f.placeholder} required value={form[f.key as keyof typeof form]} onChange={(e) => setForm({ ...form, [f.key]: e.target.value })} style={{ width: '100%', padding: '10px 14px' }} />
               </div>
             ))}
           </div>
           <div>
-            <div style={{ fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#555', marginBottom: 7 }}>Subject</div>
+            <div style={{ fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#8a8a85', marginBottom: 7 }}>Subject</div>
             <input className="k-input" placeholder="What's this about?" required value={form.subject} onChange={(e) => setForm({ ...form, subject: e.target.value })} style={{ width: '100%', padding: '10px 14px' }} />
           </div>
           <div>
-            <div style={{ fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#555', marginBottom: 7 }}>Message</div>
+            <div style={{ fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#8a8a85', marginBottom: 7 }}>Message</div>
             <textarea className="k-input" rows={5} placeholder="Your message..." required value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} style={{ width: '100%', padding: '10px 14px', resize: 'vertical' }} />
           </div>
           {error && (
