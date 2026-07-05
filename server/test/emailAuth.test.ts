@@ -25,6 +25,7 @@ import { makeAthlete } from './helpers/fixtures';
 vi.mock('../email', () => ({
   sendGuardianConsentEmail: vi.fn(async () => ({ success: true })),
   sendPasswordResetEmail: vi.fn(async () => undefined),
+  sendVerificationEmail: vi.fn(async () => undefined),
   sendEmail: vi.fn(async () => undefined),
 }));
 
@@ -78,20 +79,25 @@ describe('POST /api/auth/email/register — error paths', () => {
     expect(res.body.error).toMatch(/at least 8/i);
   });
 
-  it('returns 409 when the email is already registered', async () => {
+  it('responds to a duplicate email exactly like a fresh signup — no enumeration', async () => {
     // Seed an athlete with the same email via the db helper (no /register
     // call) so the duplicate-detection branch is exercised without burning
-    // a rate-limit slot.
+    // an extra rate-limit slot.
     const existing = await makeAthlete({ email: 'duplicate-email@test.local' });
     expect(existing.email).toBe('duplicate-email@test.local');
 
-    // Send a valid adult DOB so the request clears the athlete age gate and
-    // reaches the duplicate-detection branch this test is asserting.
     const res = await request(app)
       .post('/api/auth/email/register')
       .send({ email: 'duplicate-email@test.local', password: 'Password1', dob: '2000-01-01', guardianEmail: 'dup-guardian@family.local' });
-    expect(res.status).toBe(409);
-    expect(res.body.error).toMatch(/already exists/i);
+    // Same status and shape as a real pending signup, so a probe cannot tell
+    // which emails exist. The real owner is notified via a reset-style email.
+    expect(res.status).toBe(202);
+    expect(res.body.status).toBe('pending_guardian');
+    expect(res.body.pendingToken).toBeTypeOf('string');
+    expect(res.body.guardianEmailMasked).toBeTypeOf('string');
+    expect(res.body).not.toHaveProperty('error');
+    expect(vi.mocked(sendPasswordResetEmail)).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(sendPasswordResetEmail).mock.calls[0][0]).toBe('duplicate-email@test.local');
   });
 });
 

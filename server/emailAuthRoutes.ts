@@ -6,13 +6,15 @@ import express from 'express';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import rateLimit from 'express-rate-limit';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { db } from './db';
 import * as schema from './schema';
-import { sendPasswordResetEmail } from './email';
+import { sendPasswordResetEmail, sendVerificationEmail } from './email';
 import * as auth from './auth';
 import { isRegistrationEnabled } from './lib/registration';
-import { createPendingAthlete, guardianFailureResponse } from './lib/guardianRegistration';
+import { createPendingAthlete, guardianFailureResponse, maskEmail } from './lib/guardianRegistration';
+import { issueCode, verifyCode, hashCode, type CodePurpose } from './lib/verificationCodes';
+import { makeLimiterStore } from './lib/limiterStore';
 
 const router = express.Router();
 
@@ -25,6 +27,7 @@ const registerLimiter = rateLimit({
   max: 5,
   standardHeaders: true,
   legacyHeaders: false,
+  store: makeLimiterStore('email-register'),
   message: { error: 'Too many accounts created from this network — try again later' },
 });
 
@@ -40,6 +43,7 @@ const loginLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  store: makeLimiterStore('email-login'),
   message: { error: 'Too many attempts — try again in 15 minutes' },
 });
 
@@ -54,8 +58,52 @@ const passwordResetLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  store: makeLimiterStore('email-pw-reset'),
   message: { error: 'Too many password reset requests — try again later' },
 });
+
+// PRD section 7 item 7: /verify-email previously had no limiter, making the
+// token space brute-forceable without a per-IP cost.
+const verifyEmailLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: () => {
+    const raw = Number(process.env.VERIFY_EMAIL_RATE_LIMIT_MAX);
+    return Number.isFinite(raw) && raw > 0 ? raw : 10;
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  store: makeLimiterStore('email-verify'),
+  message: { error: 'Too many verification attempts — try again later' },
+});
+
+// DB-backed link tokens (PRD section 7 item 2): the emailed token is a 256-bit
+// random string; the guardian_verification_codes row stores only its HMAC (in
+// both link_token, the lookup key, and code_hash, the value verifyCode compares
+// with timingSafeEqual). issueCode is kept as the single issuance choke point
+// so its cooldown/hourly/lifetime/per-destination caps apply; its short display
+// code is discarded and the row is rekeyed to the long token, since these
+// emails embed a link rather than showing an 8-char code.
+async function issueEmailLinkToken(
+  playerId: number,
+  purpose: CodePurpose,
+  destination: string,
+): Promise<{ ok: true; token: string } | { ok: false }> {
+  const issued = await issueCode({ playerId, channel: 'email', destination, purpose });
+  if (!issued.ok) return { ok: false };
+
+  const token = crypto.randomBytes(32).toString('base64url');
+  const tokenHash = hashCode(token);
+  const gvc = schema.guardianVerificationCodes;
+  await db
+    .update(gvc)
+    .set({ linkToken: tokenHash, codeHash: tokenHash })
+    .where(and(eq(gvc.codeHash, hashCode(issued.code)), eq(gvc.used, false)));
+  return { ok: true, token };
+}
+
+async function redeemEmailLinkToken(token: string, purpose: CodePurpose) {
+  return verifyCode({ linkToken: hashCode(token), purpose, channel: 'email', code: token });
+}
 
 // Issue the same JWT shape as the canonical auth router. Tokens minted here
 // previously omitted userId/role/name, which broke any downstream route that
@@ -93,13 +141,26 @@ router.post('/register', registerLimiter, async (req, res) => {
   }
 
   try {
+    const normalizedEmail = email.toLowerCase().trim();
     const existing = await db
       .select()
       .from(schema.players)
-      .where(eq(schema.players.email, email.toLowerCase().trim()))
+      .where(eq(schema.players.email, normalizedEmail))
       .limit(1);
     if (existing.length > 0) {
-      return res.status(409).json({ error: 'An account with this email already exists' });
+      // Enumeration defense (PRD section 7 item 15): respond exactly like a
+      // fresh signup instead of a distinct 409, and notify the real owner via
+      // a reset-style email so a legitimate re-signup can still recover.
+      const issued = await issueEmailLinkToken(existing[0].id, 'password_reset', normalizedEmail);
+      if (issued.ok) {
+        sendPasswordResetEmail(normalizedEmail, issued.token)
+          .catch(() => console.error('[email-auth/register] existing-account notice dispatch failed'));
+      }
+      return res.status(202).json({
+        status: 'pending_guardian',
+        pendingToken: crypto.randomBytes(32).toString('base64url'),
+        guardianEmailMasked: maskEmail(rawGuardianEmail.toLowerCase().trim()),
+      });
     }
 
     const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
@@ -176,24 +237,18 @@ router.post('/login', loginLimiter, async (req, res) => {
   }
 });
 
-// In-memory email verification token store (24h TTL).
-const verificationTokens = new Map<string, { playerId: number; expiresAt: number }>();
-
-// In-memory reset token store — swap for DB table in production
-const resetTokens = new Map<string, { playerId: number; expiresAt: number }>();
-
 router.post('/forgot-password', passwordResetLimiter, async (req, res) => {
   const { email } = req.body || {};
   if (!email) return res.status(400).json({ error: 'email is required' });
 
   try {
     const rows = await db.select().from(schema.players).where(eq(schema.players.email, email)).limit(1);
-    // Always respond 200 to prevent email enumeration
-    if (!rows.length) return res.json({ message: 'If that email exists, a reset link was sent.' });
-
-    const token = crypto.randomBytes(32).toString('hex');
-    resetTokens.set(token, { playerId: rows[0].id, expiresAt: Date.now() + 60 * 60 * 1000 }); // 1h TTL
-    await sendPasswordResetEmail(email, token);
+    // Always respond 200 to prevent email enumeration — including when the
+    // issuance caps in issueCode reject the request.
+    if (rows.length) {
+      const issued = await issueEmailLinkToken(rows[0].id, 'password_reset', email);
+      if (issued.ok) await sendPasswordResetEmail(email, issued.token);
+    }
     return res.json({ message: 'If that email exists, a reset link was sent.' });
   } catch (err) {
     console.error('[email-auth/forgot-password] 500:', err);
@@ -203,18 +258,19 @@ router.post('/forgot-password', passwordResetLimiter, async (req, res) => {
 
 router.post('/reset-password', passwordResetLimiter, async (req, res) => {
   const { token, password } = req.body || {};
-  if (!token || !password) return res.status(400).json({ error: 'token and password are required' });
+  if (!token || typeof token !== 'string' || !password) {
+    return res.status(400).json({ error: 'token and password are required' });
+  }
   if (password.length < 8) return res.status(400).json({ error: 'Password must be at least 8 characters' });
 
-  const entry = resetTokens.get(token);
-  if (!entry || entry.expiresAt < Date.now()) {
-    return res.status(400).json({ error: 'Reset token is invalid or expired' });
-  }
-
   try {
+    const result = await redeemEmailLinkToken(token, 'password_reset');
+    if (!result.ok || result.row.playerId == null) {
+      return res.status(400).json({ error: 'Reset token is invalid or expired' });
+    }
+
     const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
-    await db.update(schema.players).set({ passwordHash }).where(eq(schema.players.id, entry.playerId));
-    resetTokens.delete(token);
+    await db.update(schema.players).set({ passwordHash }).where(eq(schema.players.id, result.row.playerId));
     return res.json({ message: 'Password updated successfully' });
   } catch (err) {
     console.error('[email-auth/reset-password] 500:', err);
@@ -222,18 +278,38 @@ router.post('/reset-password', passwordResetLimiter, async (req, res) => {
   }
 });
 
-router.post('/verify-email', async (req, res) => {
-  const { token } = req.body || {};
-  if (!token) return res.status(400).json({ error: 'token is required' });
+// Authenticated re-request of the confirmation email. The old in-memory
+// verification Map had no issuance path at all; this is now the one.
+router.post('/send-verification', verifyEmailLimiter, auth.requireAuth, async (req, res) => {
+  const user = (req as auth.AuthenticatedRequest).user;
+  try {
+    const [player] = await db.select().from(schema.players).where(eq(schema.players.id, user.userId)).limit(1);
+    if (!player) return res.status(404).json({ error: 'Account not found' });
+    if (player.emailVerified) return res.json({ message: 'Email is already verified.' });
 
-  const entry = verificationTokens.get(token);
-  if (!entry || entry.expiresAt < Date.now()) {
-    return res.status(400).json({ error: 'Verification link is invalid or expired' });
+    const issued = await issueEmailLinkToken(player.id, 'email_verify', player.email);
+    if (!issued.ok) {
+      return res.status(429).json({ error: 'A verification email was sent recently — try again later' });
+    }
+    await sendVerificationEmail(player.email, issued.token);
+    return res.json({ message: 'Verification email sent.' });
+  } catch (err) {
+    console.error('[email-auth/send-verification] 500:', err);
+    return res.status(500).json({ error: 'Verification request failed, please try again' });
   }
+});
+
+router.post('/verify-email', verifyEmailLimiter, async (req, res) => {
+  const { token } = req.body || {};
+  if (!token || typeof token !== 'string') return res.status(400).json({ error: 'token is required' });
 
   try {
-    await db.update(schema.players).set({ emailVerified: true }).where(eq(schema.players.id, entry.playerId));
-    verificationTokens.delete(token);
+    const result = await redeemEmailLinkToken(token, 'email_verify');
+    if (!result.ok || result.row.playerId == null) {
+      return res.status(400).json({ error: 'Verification link is invalid or expired' });
+    }
+
+    await db.update(schema.players).set({ emailVerified: true }).where(eq(schema.players.id, result.row.playerId));
     return res.json({ message: 'Email verified — your profile is now visible to coaches.' });
   } catch (err) {
     console.error('[email-auth/verify-email] 500:', err);
@@ -248,6 +324,7 @@ router.post('/verify-email', async (req, res) => {
 export const _emailAuthLimitersForTests = {
   login: loginLimiter,
   passwordReset: passwordResetLimiter,
+  verifyEmail: verifyEmailLimiter,
 };
 
 export default router;
