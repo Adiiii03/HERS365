@@ -31,11 +31,11 @@ const sampleDrills = [
 const levelColor: Record<string, string> = {
   Beginner:     'rgba(100,200,100,0.15)',
   Intermediate: 'rgba(255,180,50,0.12)',
-  Advanced:     'rgba(255,90,45,0.12)',
+  Advanced:     'rgba(139,59,255,0.12)',
   Elite:        'rgba(200,50,255,0.12)',
 };
 const levelText: Record<string, string> = {
-  Beginner: '#64c864', Intermediate: '#ffb432', Advanced: '#ff5a2d', Elite: '#c832ff',
+  Beginner: '#64c864', Intermediate: '#ffb432', Advanced: '#8B3BFF', Elite: '#c832ff',
 };
 
 const ALL = 'All';
@@ -169,7 +169,7 @@ export const Training = () => {
                   setFormSuccess(false);
                 }}
                 style={{
-                  background: '#ff5a2d', border: 'none', borderRadius: 7,
+                  background: '#8B3BFF', border: 'none', borderRadius: 7,
                   color: '#fff', fontSize: '0.72rem', fontWeight: 700,
                   padding: '7px 14px', cursor: 'pointer', letterSpacing: '0.04em',
                 }}
@@ -183,7 +183,7 @@ export const Training = () => {
             )}
 
             {!statsLoading && statsError && (
-              <div style={{ color: '#ff5a2d', fontSize: '0.82rem', padding: '8px 0' }}>{statsError}</div>
+              <div style={{ color: '#8B3BFF', fontSize: '0.82rem', padding: '8px 0' }}>{statsError}</div>
             )}
 
             {!statsLoading && !statsError && !hasAnyStats && !showForm && (
@@ -199,9 +199,9 @@ export const Training = () => {
                   const val = stats ? stats[m.key] : null;
                   return (
                     <div key={m.key} style={{
-                      background: val ? 'rgba(255,90,45,0.08)' : 'rgba(255,255,255,0.03)',
+                      background: val ? 'rgba(139,59,255,0.08)' : 'rgba(255,255,255,0.03)',
                       borderRadius: 8, padding: '12px 14px',
-                      border: val ? '1px solid rgba(255,90,45,0.18)' : '1px solid rgba(255,255,255,0.06)',
+                      border: val ? '1px solid rgba(139,59,255,0.18)' : '1px solid rgba(255,255,255,0.06)',
                     }}>
                       <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#555', marginBottom: 4 }}>{m.label}</div>
                       <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 800, fontSize: '1.4rem', color: val ? '#fff' : '#333', lineHeight: 1, marginBottom: 2 }}>
@@ -258,13 +258,13 @@ export const Training = () => {
                   </div>
                 </div>
 
-                {formError && <div style={{ color: '#ff5a2d', fontSize: '0.8rem' }}>{formError}</div>}
+                {formError && <div style={{ color: '#8B3BFF', fontSize: '0.8rem' }}>{formError}</div>}
 
                 <button
                   type="submit"
                   disabled={formSaving}
                   style={{
-                    background: formSaving ? '#333' : '#ff5a2d', border: 'none', borderRadius: 7,
+                    background: formSaving ? '#333' : '#8B3BFF', border: 'none', borderRadius: 7,
                     color: '#fff', fontSize: '0.82rem', fontWeight: 700,
                     padding: '10px 20px', cursor: formSaving ? 'not-allowed' : 'pointer',
                     alignSelf: 'flex-start', letterSpacing: '0.04em',
@@ -301,8 +301,8 @@ export const Training = () => {
                         <div style={{ fontSize: '0.72rem', color: '#555' }}>{p.cat}</div>
                       </div>
                       <span style={{
-                        background: levelColor[p.level] || 'rgba(255,90,45,0.12)',
-                        color: levelText[p.level] || '#ff5a2d',
+                        background: levelColor[p.level] || 'rgba(139,59,255,0.12)',
+                        color: levelText[p.level] || '#8B3BFF',
                         fontSize: '0.65rem', fontWeight: 700,
                         padding: '3px 8px', borderRadius: 4,
                         letterSpacing: '0.06em', textTransform: 'uppercase',
@@ -313,7 +313,7 @@ export const Training = () => {
                     <div style={{ marginBottom: 12 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
                         <span style={{ fontSize: '0.72rem', color: '#666' }}>{p.done}/{p.total} sessions</span>
-                        <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#ff5a2d' }}>{pct}%</span>
+                        <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#8B3BFF' }}>{pct}%</span>
                       </div>
                       <div className="k-progress-track">
                         <div className="k-progress-fill" style={{ width: `${pct}%` }} />
@@ -339,8 +339,8 @@ export const Training = () => {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
               <span style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#555' }}>Sample Session</span>
               <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                <Flame size={13} color="#ff5a2d" />
-                <span style={{ fontSize: '0.75rem', color: '#ff5a2d', fontWeight: 700 }}>{completedToday}/{drills.length}</span>
+                <Flame size={13} color="#8B3BFF" />
+                <span style={{ fontSize: '0.75rem', color: '#8B3BFF', fontWeight: 700 }}>{completedToday}/{drills.length}</span>
               </div>
             </div>
             <div style={{ fontSize: '0.68rem', color: '#444', marginBottom: 12 }}>Example drills — check off as you go</div>
@@ -385,7 +385,7 @@ export const Training = () => {
                   transition: 'opacity 0.15s',
                 }}>
                   {d.done
-                    ? <CheckCircle size={16} color="#ff5a2d" fill="#ff5a2d" style={{ flexShrink: 0 }} />
+                    ? <CheckCircle size={16} color="#8B3BFF" fill="#8B3BFF" style={{ flexShrink: 0 }} />
                     : <div style={{ width: 16, height: 16, borderRadius: '50%', border: '1.5px solid #333', flexShrink: 0 }} />
                   }
                   <div style={{ flex: 1, minWidth: 0 }}>

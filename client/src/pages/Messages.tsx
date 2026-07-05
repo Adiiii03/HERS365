@@ -5,8 +5,8 @@ import { Send, Inbox, Clock, X, Shield, Check, CheckCheck, MessagesSquare, Shiel
 import { motion, useReducedMotion } from 'framer-motion';
 import { apiFetch } from '../lib/api';
 
-const FLAME = '#ff5a2d';
-const FLAME_SOFT = '#ff8c66';
+const FLAME = '#8B3BFF';
+const FLAME_SOFT = '#C4A3FF';
 const INK = '#0a0a0a';
 const INK_2 = '#111111';
 const INK_3 = '#161616';
@@ -267,10 +267,10 @@ export const Messages = () => {
       <style>{`
         .msg-scroll::-webkit-scrollbar { width: 7px; height: 7px; }
         .msg-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
-        .msg-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255,90,45,0.4); }
+        .msg-scroll::-webkit-scrollbar-thumb:hover { background: rgba(139,59,255,0.4); }
         .msg-scroll::-webkit-scrollbar-track { background: transparent; }
         .msg-scroll { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.12) transparent; }
-        .msg-root button:focus-visible, .msg-root input:focus-visible, .msg-root textarea:focus-visible { outline: 2px solid rgba(255,90,45,0.55); outline-offset: 2px; border-radius: 6px; }
+        .msg-root button:focus-visible, .msg-root input:focus-visible, .msg-root textarea:focus-visible { outline: 2px solid rgba(139,59,255,0.55); outline-offset: 2px; border-radius: 6px; }
       `}</style>
       {/* ── Left: list ── */}
       <div style={{ width: isMobile ? '100%' : 332, borderRight: isMobile ? 'none' : `1px solid ${LINE}`, display: (isMobile && activePartner != null) ? 'none' : 'flex', flexDirection: 'column', flexShrink: 0 }}>
@@ -334,7 +334,7 @@ export const Messages = () => {
                 onClick={() => setActivePartner(c.partnerId)}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 11, width: '100%', textAlign: 'left',
-                  padding: '12px 16px', background: active ? 'rgba(255,90,45,0.08)' : 'transparent',
+                  padding: '12px 16px', background: active ? 'rgba(139,59,255,0.08)' : 'transparent',
                   borderLeft: active ? `2px solid ${FLAME}` : '2px solid transparent',
                   border: 'none', borderBottom: `1px solid ${LINE}`, cursor: 'pointer', color: '#fff',
                   transition: 'background 0.12s',
@@ -400,7 +400,7 @@ export const Messages = () => {
       <div style={{ flex: 1, display: (isMobile && activePartner == null) ? 'none' : 'flex', flexDirection: 'column', minWidth: 0 }}>
         {activePartner == null ? (
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14, color: MUTED_2, textAlign: 'center', padding: 24, position: 'relative', overflow: 'hidden' }}>
-            <div style={{ position: 'absolute', width: 440, height: 440, borderRadius: '50%', filter: 'blur(130px)', background: 'radial-gradient(circle, rgba(255,90,45,0.12), transparent 70%)', pointerEvents: 'none' }} />
+            <div style={{ position: 'absolute', width: 440, height: 440, borderRadius: '50%', filter: 'blur(130px)', background: 'radial-gradient(circle, rgba(139,59,255,0.12), transparent 70%)', pointerEvents: 'none' }} />
             <div style={{ width: 64, height: 64, borderRadius: 18, background: INK_2, border: `1px solid ${LINE}`, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
               <MessagesSquare size={28} color={MUTED_2} />
             </div>
@@ -487,9 +487,9 @@ export const Messages = () => {
                     )}
                     {i === firstUnreadIdx && firstUnreadIdx > 0 && (
                       <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '8px 0', color: FLAME }}>
-                        <span style={{ flex: 1, height: 1, background: 'rgba(255,90,45,0.3)' }} />
+                        <span style={{ flex: 1, height: 1, background: 'rgba(139,59,255,0.3)' }} />
                         <span style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase' }}>New</span>
-                        <span style={{ flex: 1, height: 1, background: 'rgba(255,90,45,0.3)' }} />
+                        <span style={{ flex: 1, height: 1, background: 'rgba(139,59,255,0.3)' }} />
                       </div>
                     )}
                     <motion.div
@@ -561,7 +561,7 @@ export const Messages = () => {
                     onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitDraft(); e.currentTarget.style.height = 'auto'; } }}
                     placeholder="Type a message…  (Enter to send, Shift+Enter for a new line)"
                     style={{ flex: 1, background: INK_3, border: `1px solid ${LINE}`, borderRadius: 20, padding: '11px 18px', color: '#fff', outline: 'none', fontSize: '0.88rem', resize: 'none', fontFamily: 'inherit', lineHeight: 1.4, maxHeight: 120, transition: 'border-color 0.15s' }}
-                    onFocus={(e) => (e.currentTarget.style.borderColor = 'rgba(255,90,45,0.4)')}
+                    onFocus={(e) => (e.currentTarget.style.borderColor = 'rgba(139,59,255,0.4)')}
                     onBlur={(e) => (e.currentTarget.style.borderColor = LINE)}
                   />
                   <button type="submit" aria-label="Send message" disabled={!draft.trim() || send.isPending} style={{
@@ -593,7 +593,7 @@ export const Messages = () => {
             <button onClick={() => setShowUpgrade(false)} aria-label="Close" style={{ position: 'absolute', top: 14, right: 14, background: 'none', border: 'none', color: MUTED_2, cursor: 'pointer', display: 'flex' }}>
               <X size={18} />
             </button>
-            <div style={{ width: 46, height: 46, borderRadius: 13, background: 'rgba(255,90,45,0.14)', border: '1px solid rgba(255,90,45,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+            <div style={{ width: 46, height: 46, borderRadius: 13, background: 'rgba(139,59,255,0.14)', border: '1px solid rgba(139,59,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
               <Zap size={22} color={FLAME} />
             </div>
             <div style={{ fontFamily: DISP, fontSize: '1.5rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.02em', lineHeight: 1.05 }}>
@@ -604,7 +604,7 @@ export const Messages = () => {
             </div>
             <button
               onClick={() => navigate('/subscribe?reason=messaging')}
-              style={{ width: '100%', marginTop: 20, padding: '12px 0', borderRadius: 9999, border: 'none', background: FLAME, color: '#fff', fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer', boxShadow: '0 6px 18px rgba(255,90,45,0.32)' }}
+              style={{ width: '100%', marginTop: 20, padding: '12px 0', borderRadius: 9999, border: 'none', background: FLAME, color: '#fff', fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer', boxShadow: '0 6px 18px rgba(139,59,255,0.32)' }}
             >
               Upgrade to Pro
             </button>
@@ -657,8 +657,8 @@ export const Messages = () => {
                       <button key={o.value} onClick={() => setReportReason(o.value)} style={{
                         display: 'flex', alignItems: 'center', gap: 10, width: '100%', textAlign: 'left',
                         padding: '11px 14px', borderRadius: 10, cursor: 'pointer',
-                        background: sel ? 'rgba(255,90,45,0.1)' : INK_3,
-                        border: `1px solid ${sel ? 'rgba(255,90,45,0.4)' : LINE}`,
+                        background: sel ? 'rgba(139,59,255,0.1)' : INK_3,
+                        border: `1px solid ${sel ? 'rgba(139,59,255,0.4)' : LINE}`,
                         color: '#fff', fontSize: '0.82rem', fontWeight: 600,
                       }}>
                         <span style={{ width: 15, height: 15, borderRadius: '50%', border: `2px solid ${sel ? FLAME : MUTED_2}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>

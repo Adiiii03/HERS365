@@ -1,6 +1,6 @@
 import { Flame, Shield, Users, Trophy, TrendingUp, Heart } from 'lucide-react';
 
-const FLAME_C = '#ff5a2d';
+const FLAME_C = '#8B3BFF';
 const LINE = 'rgba(255,255,255,0.07)';
 const MUTED = '#8a8a86';
 const DISP = "'Barlow Condensed', sans-serif";

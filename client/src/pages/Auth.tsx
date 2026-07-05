@@ -7,8 +7,8 @@ import { useAuth } from '../context/AuthContext';
 import { DemoLoginButton } from '../components/DemoLoginButton';
 import { Capacitor } from '@capacitor/core';
 
-const FLAME   = '#ff5a2d';
-const FLAME_S = '#ff8c66';
+const FLAME   = '#8B3BFF';
+const FLAME_S = '#C4A3FF';
 const INK      = '#0a0a0a';
 const PANEL    = '#0c0808';
 const FIELD    = 'rgba(255,255,255,0.02)';
@@ -84,13 +84,13 @@ function Field({
           onBlur={() => setFocused(false)}
           style={{
             width: '100%', background: FIELD,
-            border: `1px solid ${focused ? 'rgba(255,90,45,0.5)' : LINE}`,
+            border: `1px solid ${focused ? 'rgba(139,59,255,0.5)' : LINE}`,
             borderRadius: 12,
-            outline: focused ? '2px solid rgba(255,90,45,0.9)' : 'none',
+            outline: focused ? '2px solid rgba(139,59,255,0.9)' : 'none',
             outlineOffset: 2,
             padding: isPass ? '15px 46px 15px 44px' : '15px 16px 15px 44px',
             fontSize: '1rem', color: TEXT, fontFamily: BODY,
-            boxShadow: focused ? '0 0 0 3px rgba(255,90,45,0.08)' : 'none',
+            boxShadow: focused ? '0 0 0 3px rgba(139,59,255,0.08)' : 'none',
             transition: 'border-color .2s, box-shadow .2s',
           }}
         />
@@ -574,7 +574,7 @@ export const Auth = () => {
                   fontFamily: DISP, fontWeight: 900, fontSize: '1rem',
                   letterSpacing: '.08em', textTransform: 'uppercase', cursor: 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-                  boxShadow: '0 8px 26px rgba(255,90,45,.3)',
+                  boxShadow: '0 8px 26px rgba(139,59,255,.3)',
                 }}
               >
                 I think my grown up said yes <ArrowRight size={16} />
@@ -675,7 +675,7 @@ export const Auth = () => {
               transition={{ type: 'spring', stiffness: 480, damping: 38 }}
               style={{
                 position: 'absolute', top: 4, bottom: 4, width: 'calc(50% - 4px)',
-                background: FLAME, borderRadius: 8, boxShadow: '0 4px 16px rgba(255,90,45,.32)',
+                background: FLAME, borderRadius: 8, boxShadow: '0 4px 16px rgba(139,59,255,.32)',
               }}
             />
             {[{ label: 'Sign In', val: true }, { label: 'Create Account', val: false }].map(({ label, val }) => (
@@ -719,7 +719,7 @@ export const Auth = () => {
                         style={{
                           padding: '12px 10px', borderRadius: 11,
                           border: `1.5px solid ${role === r ? FLAME : LINE}`,
-                          background: role === r ? 'rgba(255,90,45,0.12)' : FIELD,
+                          background: role === r ? 'rgba(139,59,255,0.12)' : FIELD,
                           color: role === r ? TEXT : MUTED,
                           fontFamily: DISP, fontWeight: 800, fontSize: '.78rem',
                           letterSpacing: '.16em', textTransform: 'uppercase',
@@ -794,7 +794,7 @@ export const Auth = () => {
                   {googleCredential && (
                     <div style={{
                       marginBottom: 16, padding: '12px 14px', borderRadius: 10,
-                      background: 'rgba(255,90,45,0.08)', border: '1px solid rgba(255,90,45,0.2)',
+                      background: 'rgba(139,59,255,0.08)', border: '1px solid rgba(139,59,255,0.2)',
                     }}>
                       <p style={{ color: TEXT, fontSize: '.8rem', margin: '0 0 10px', lineHeight: 1.5 }}>
                         Almost there! Add your parent or guardian's email above, then finish signing up with Google.
@@ -851,7 +851,7 @@ export const Auth = () => {
                   style={{
                     color: '#ff9a8a', fontSize: '.84rem', margin: isLogin ? '0 0 16px' : '4px 0 16px',
                     fontWeight: 600, padding: '11px 14px', borderRadius: 10, wordBreak: 'break-word',
-                    background: 'rgba(255,90,45,0.08)', border: '1px solid rgba(255,90,45,0.2)',
+                    background: 'rgba(139,59,255,0.08)', border: '1px solid rgba(139,59,255,0.2)',
                   }}
                 >{error}</motion.p>
               )}
@@ -867,12 +867,12 @@ export const Auth = () => {
                 letterSpacing: '.08em', textTransform: 'uppercase',
                 cursor: loading ? 'not-allowed' : 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-                boxShadow: loading ? 'none' : '0 8px 26px rgba(255,90,45,.3)',
+                boxShadow: loading ? 'none' : '0 8px 26px rgba(139,59,255,.3)',
                 transition: 'transform .18s, box-shadow .2s, opacity .2s',
                 opacity: loading ? 0.75 : 1,
               }}
-              onMouseEnter={e => { if (!loading) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 14px 34px rgba(255,90,45,.45)'; } }}
-              onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = loading ? 'none' : '0 8px 26px rgba(255,90,45,.3)'; }}
+              onMouseEnter={e => { if (!loading) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 14px 34px rgba(139,59,255,.45)'; } }}
+              onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = loading ? 'none' : '0 8px 26px rgba(139,59,255,.3)'; }}
               onMouseDown={e => { if (!loading) e.currentTarget.style.transform = 'scale(0.99)'; }}
               onMouseUp={e => { if (!loading) e.currentTarget.style.transform = 'translateY(-2px)'; }}
             >

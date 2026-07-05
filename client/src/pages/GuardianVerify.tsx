@@ -2,7 +2,7 @@ import { useState, type CSSProperties } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { CheckCircle, Loader2, ShieldCheck } from 'lucide-react';
 
-const FLAME = '#ff5a2d';
+const FLAME = '#8B3BFF';
 const INK   = '#0a0a0a';
 const TEXT  = '#f4f4f2';
 const MUTED = '#9a9a96';
@@ -180,7 +180,7 @@ export function GuardianVerify() {
                 <p role="alert" style={{
                   color: '#ff9a8a', fontSize: 13.5, textAlign: 'left', fontWeight: 600,
                   padding: '11px 14px', borderRadius: 10, margin: '0 0 16px', lineHeight: 1.5,
-                  background: 'rgba(255,90,45,0.08)', border: '1px solid rgba(255,90,45,0.2)',
+                  background: 'rgba(139,59,255,0.08)', border: '1px solid rgba(139,59,255,0.2)',
                 }}>{error}</p>
               )}
 

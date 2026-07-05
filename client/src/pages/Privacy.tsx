@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
-const FLAME = '#ff5a2d';
+const FLAME = '#8B3BFF';
 const INK = '#0a0a0a';
 const INK_2 = '#111111';
 const LINE = 'rgba(255,255,255,0.07)';
@@ -25,7 +25,7 @@ const css = `
     letter-spacing:.1em;text-decoration:none;
     border:1px solid ${LINE_2};border-radius:9999px;padding:8px 16px;
     transition:border-color .22s,color .22s,background .22s;background:none}
-  .pp-back:hover{color:${FLAME};border-color:rgba(255,90,45,.4);background:rgba(255,90,45,.05)}
+  .pp-back:hover{color:${FLAME};border-color:rgba(139,59,255,.4);background:rgba(139,59,255,.05)}
 
   .pp-section + .pp-section{margin-top:52px;padding-top:52px;border-top:1px solid ${LINE}}
 
@@ -77,8 +77,8 @@ const bodyEmphasis: React.CSSProperties = {
 
 const pill: React.CSSProperties = {
   display: 'inline-block',
-  background: 'rgba(255,90,45,.1)',
-  border: '1px solid rgba(255,90,45,.28)',
+  background: 'rgba(139,59,255,.1)',
+  border: '1px solid rgba(139,59,255,.28)',
   borderRadius: 9999,
   padding: '4px 13px',
   fontFamily: DISP,
@@ -104,8 +104,8 @@ const listStyle: React.CSSProperties = {
 };
 
 const coppaBox: React.CSSProperties = {
-  background: 'rgba(255,90,45,.06)',
-  border: '1px solid rgba(255,90,45,.22)',
+  background: 'rgba(139,59,255,.06)',
+  border: '1px solid rgba(139,59,255,.22)',
   borderRadius: 16,
   padding: '24px 28px',
   marginTop: 20,
@@ -159,7 +159,7 @@ export const Privacy = () => {
           position: 'absolute', width: 480, height: 480, borderRadius: '50%',
           filter: 'blur(96px)', opacity: 0.25,
           top: -200, right: -80,
-          background: 'radial-gradient(circle,rgba(255,90,45,.6),transparent 65%)',
+          background: 'radial-gradient(circle,rgba(139,59,255,.6),transparent 65%)',
           pointerEvents: 'none',
         }} />
         <div style={{

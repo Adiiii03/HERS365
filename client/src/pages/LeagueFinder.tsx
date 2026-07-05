@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { MapPin, Users, Calendar, ChevronRight, Trophy } from 'lucide-react';
 
-const FLAME = '#ff5a2d';
+const FLAME = '#8B3BFF';
 const LINE = 'rgba(255,255,255,0.07)';
 const MUTED = '#8a8a86';
 const MUTED_2 = '#5a5a56';

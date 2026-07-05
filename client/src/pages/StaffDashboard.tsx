@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Users, TrendingUp, MessageSquare, CreditCard, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-const FLAME = '#ff5a2d';
+const FLAME = '#8B3BFF';
 const LINE = 'rgba(255,255,255,0.07)';
 const MUTED = '#8a8a86';
 const MUTED_2 = '#5a5a56';

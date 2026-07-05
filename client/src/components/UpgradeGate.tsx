@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Lock, Zap, Star, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-const FLAME = '#ff5a2d';
+const FLAME = '#8B3BFF';
 const MUTED = '#8a8a86';
 const MUTED_2 = '#5a5a56';
 const DISP = "'Barlow Condensed', sans-serif";

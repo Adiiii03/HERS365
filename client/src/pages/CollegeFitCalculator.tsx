@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { FLAG_POSITIONS } from '../lib/positions';
 
-const FLAME_C = '#ff5a2d';
+const FLAME_C = '#8B3BFF';
 const INK_2 = '#111111';
 const LINE = 'rgba(255,255,255,0.07)';
 const MUTED = '#8a8a86';

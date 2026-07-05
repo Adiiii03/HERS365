@@ -60,7 +60,7 @@ async function coachFetch<T = unknown>(path: string, opts: RequestInit = {}): Pr
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 const GRADIENTS = [
-  ['#ff5a2d', '#ff8a6a'], ['#a855f7', '#ec4899'],
+  ['#8B3BFF', '#A66BFF'], ['#a855f7', '#ec4899'],
   ['#3b82f6', '#06b6d4'], ['#10b981', '#84cc16'],
   ['#f59e0b', '#ef4444'], ['#8b5cf6', '#6366f1'],
 ];
@@ -150,7 +150,7 @@ function ParticleCanvas() {
     }
     geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
     const mat = new THREE.PointsMaterial({
-      color: 0xff5a2d, size: 0.055,
+      color: 0x8b3bff, size: 0.055,
       transparent: true, opacity: 0.55,
       blending: THREE.AdditiveBlending, depthWrite: false,
     });
@@ -381,13 +381,13 @@ export function CoachMessages() {
     },
     coachBadge: {
       fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.06em',
-      background: 'linear-gradient(90deg,#a855f7,#ff5a2d)',
+      background: 'linear-gradient(90deg,#a855f7,#8B3BFF)',
       WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
       textTransform: 'uppercase' as const,
     },
     composeBtn: {
       width: 30, height: 30, borderRadius: '50%',
-      background: '#ff5a2d', border: 'none', cursor: 'pointer',
+      background: '#8B3BFF', border: 'none', cursor: 'pointer',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       color: '#fff', fontSize: 18, lineHeight: 1, flexShrink: 0,
       transition: 'background 0.2s',
@@ -407,7 +407,7 @@ export function CoachMessages() {
     },
     composeSectionLabel: {
       fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.08em',
-      color: '#ff5a2d', textTransform: 'uppercase' as const, marginBottom: 8,
+      color: '#8B3BFF', textTransform: 'uppercase' as const, marginBottom: 8,
     },
     playerSearchInput: {
       width: '100%', background: '#111113',
@@ -436,10 +436,10 @@ export function CoachMessages() {
     convRow: (active: boolean) => ({
       display: 'flex', alignItems: 'center', gap: 10,
       width: '100%', padding: '11px 14px', textAlign: 'left' as const,
-      background: active ? 'rgba(255,90,45,0.08)' : 'transparent',
+      background: active ? 'rgba(139,59,255,0.08)' : 'transparent',
       border: 'none', borderBottom: '1px solid rgba(255,255,255,0.04)',
       cursor: 'pointer', color: '#fff',
-      borderLeft: active ? '2px solid #ff5a2d' : '2px solid transparent',
+      borderLeft: active ? '2px solid #8B3BFF' : '2px solid transparent',
       transition: 'background 0.15s',
     }),
     convInfo: { flex: 1, minWidth: 0 },
@@ -455,7 +455,7 @@ export function CoachMessages() {
     },
     unreadBadge: {
       minWidth: 18, height: 18, borderRadius: 9,
-      background: '#ff5a2d', display: 'flex', alignItems: 'center', justifyContent: 'center',
+      background: '#8B3BFF', display: 'flex', alignItems: 'center', justifyContent: 'center',
       fontSize: '0.6rem', fontWeight: 700, color: '#fff', padding: '0 4px',
     },
     convMeta: {
@@ -473,9 +473,9 @@ export function CoachMessages() {
     },
     threadName: { fontWeight: 700, fontSize: '0.9rem', color: '#fff', flex: 1 },
     viewProfileLink: {
-      fontSize: '0.7rem', color: '#ff5a2d',
+      fontSize: '0.7rem', color: '#8B3BFF',
       textDecoration: 'none', fontWeight: 600,
-      padding: '4px 10px', border: '1px solid rgba(255,90,45,0.3)',
+      padding: '4px 10px', border: '1px solid rgba(139,59,255,0.3)',
       borderRadius: 999, transition: 'background 0.15s',
     },
     thread: {
@@ -488,7 +488,7 @@ export function CoachMessages() {
       padding: '9px 14px', borderRadius: mine ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
       fontSize: '0.84rem', lineHeight: 1.45,
       alignSelf: mine ? 'flex-end' : 'flex-start',
-      background: mine ? 'linear-gradient(135deg,#ff5a2d,#ff7a4d)' : '#1c1c1e',
+      background: mine ? 'linear-gradient(135deg,#8B3BFF,#ff7a4d)' : '#1c1c1e',
       color: '#fff',
       wordBreak: 'break-word' as const,
     }),
@@ -512,7 +512,7 @@ export function CoachMessages() {
     },
     sendBtn: {
       width: 40, height: 40, borderRadius: '50%',
-      background: '#ff5a2d', border: 'none',
+      background: '#8B3BFF', border: 'none',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       cursor: 'pointer', flexShrink: 0, alignSelf: 'flex-end',
     },
@@ -522,7 +522,7 @@ export function CoachMessages() {
       color: '#444',
     },
     backBtn: {
-      background: 'none', border: 'none', color: '#ff5a2d',
+      background: 'none', border: 'none', color: '#8B3BFF',
       cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600,
       padding: '4px 8px', borderRadius: 8,
       display: 'flex', alignItems: 'center', gap: 4,
@@ -542,7 +542,7 @@ export function CoachMessages() {
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
         .conv-row:hover { background: rgba(255,255,255,0.03) !important; }
         .player-result-item:hover { background: rgba(255,255,255,0.07) !important; }
-        .view-profile-link:hover { background: rgba(255,90,45,0.1); }
+        .view-profile-link:hover { background: rgba(139,59,255,0.1); }
       `}</style>
 
       <ParticleCanvas />
@@ -634,7 +634,7 @@ export function CoachMessages() {
                 </div>
                 <button
                   onClick={() => qc.invalidateQueries({ queryKey: ['coach-messages'] })}
-                  style={{ background: '#ff5a2d', color: '#fff', border: 'none', borderRadius: 8,
+                  style={{ background: '#8B3BFF', color: '#fff', border: 'none', borderRadius: 8,
                     padding: '6px 16px', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
                 >
                   Retry
@@ -803,7 +803,7 @@ export function CoachMessages() {
               <div style={{ fontSize: '2.5rem' }}>💬</div>
               <div style={{ fontSize: '0.9rem', fontWeight: 600, color: '#555' }}>Select a conversation</div>
               <div style={{ fontSize: '0.75rem', color: '#3a3a3a', textAlign: 'center', maxWidth: 260, lineHeight: 1.6 }}>
-                Choose a thread on the left, or tap <span style={{ color: '#ff5a2d' }}>+</span> to reach out to a player.
+                Choose a thread on the left, or tap <span style={{ color: '#8B3BFF' }}>+</span> to reach out to a player.
               </div>
             </div>
           )}

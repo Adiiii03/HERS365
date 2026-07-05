@@ -4,8 +4,8 @@ import { motion, MotionConfig } from 'framer-motion';
 import { Check, Play, ArrowRight, Crosshair, Megaphone, Share2 } from 'lucide-react';
 import { athleteAvatar } from '../lib/avatar';
 
-const FLAME = '#ff5a2d';
-const FLAME_SOFT = '#ff8c66';
+const FLAME = '#8B3BFF';
+const FLAME_SOFT = '#C4A3FF';
 const INK = '#0a0a0a';
 const INK_2 = '#111111';
 const INK_3 = '#161616';
@@ -30,14 +30,14 @@ const css = `
     padding:13px 26px;border-radius:9999px;cursor:pointer;border:none;display:inline-flex;align-items:center;gap:9px;
     transition:transform .18s cubic-bezier(.25,1,.5,1),box-shadow .22s,border-color .22s,color .22s;
     text-decoration:none;position:relative;overflow:hidden;white-space:nowrap}
-  .lp-btn-primary{background:${FLAME};color:var(--accent-on);box-shadow:0 6px 22px rgba(255,90,45,.32)}
+  .lp-btn-primary{background:${FLAME};color:var(--accent-on);box-shadow:0 6px 22px rgba(139,59,255,.32)}
   .lp-btn-primary::after{content:'';position:absolute;inset:0;
     background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,.22) 50%,transparent 100%);
     transform:translateX(-110%);transition:transform .6s cubic-bezier(.25,1,.5,1);pointer-events:none}
-  .lp-btn-primary:hover{transform:translateY(-2px) scale(1.015);box-shadow:0 14px 36px rgba(255,90,45,.54)}
+  .lp-btn-primary:hover{transform:translateY(-2px) scale(1.015);box-shadow:0 14px 36px rgba(139,59,255,.54)}
   .lp-btn-primary:hover::after{transform:translateX(110%)}
   .lp-btn-ghost{background:transparent;color:#f4f4f2;border:1px solid ${LINE_2}}
-  .lp-btn-ghost::after{content:'';position:absolute;inset:0;background:rgba(255,90,45,.06);
+  .lp-btn-ghost::after{content:'';position:absolute;inset:0;background:rgba(139,59,255,.06);
     transform:scaleX(0);transform-origin:left;transition:transform .3s cubic-bezier(.25,1,.5,1);pointer-events:none}
   .lp-btn-ghost:hover{border-color:${FLAME};color:${FLAME}}
   .lp-btn-ghost:hover::after{transform:scaleX(1)}
@@ -52,8 +52,8 @@ const css = `
 
   /* Cards */
   .lp-card{transition:transform .28s cubic-bezier(.25,1,.5,1),border-color .28s,box-shadow .28s}
-  .lp-card:hover{transform:translateY(-5px);border-color:rgba(255,90,45,.38);
-    box-shadow:0 24px 60px rgba(0,0,0,.5),0 0 0 1px rgba(255,90,45,.14),0 6px 28px rgba(255,90,45,.1)}
+  .lp-card:hover{transform:translateY(-5px);border-color:rgba(139,59,255,.38);
+    box-shadow:0 24px 60px rgba(0,0,0,.5),0 0 0 1px rgba(139,59,255,.14),0 6px 28px rgba(139,59,255,.1)}
 
   /* Clip-text hover reveal */
   .clip-wrap{position:relative;display:inline-block}
@@ -65,7 +65,7 @@ const css = `
 
   /* Pulse */
   .lp-pulse{animation:lpPulse 2s infinite}
-  @keyframes lpPulse{0%{box-shadow:0 0 0 0 rgba(255,90,45,.6)}70%{box-shadow:0 0 0 9px rgba(255,90,45,0)}100%{box-shadow:0 0 0 0 rgba(255,90,45,0)}}
+  @keyframes lpPulse{0%{box-shadow:0 0 0 0 rgba(139,59,255,.6)}70%{box-shadow:0 0 0 9px rgba(139,59,255,0)}100%{box-shadow:0 0 0 0 rgba(139,59,255,0)}}
 
   /* Live badge */
   .lp-live{display:inline-flex;align-items:center;gap:5px;font-size:.67rem;font-weight:700;
@@ -85,11 +85,11 @@ const css = `
 
   /* Stat band */
   .stat-cell{transition:background .22s}
-  .stat-cell:hover{background:rgba(255,90,45,.03)}
+  .stat-cell:hover{background:rgba(139,59,255,.03)}
 
   /* Leaderboard row */
   .lb-row{transition:background .18s}
-  .lb-row:hover{background:rgba(255,90,45,.05)}
+  .lb-row:hover{background:rgba(139,59,255,.05)}
 
   /* Layouts */
   .lp-hero-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:52px;align-items:center}
@@ -114,7 +114,7 @@ const css = `
   .lp-mobile-drawer a{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:2.2rem;
     text-transform:uppercase;letter-spacing:.06em;color:#f4f4f2;text-decoration:none;
     transition:color .2s}
-  .lp-mobile-drawer a:active{color:#ff5a2d}
+  .lp-mobile-drawer a:active{color:#8B3BFF}
 
   @media(max-width:900px){
     .lp-hero-grid,.lp-split{grid-template-columns:1fr;gap:36px}
@@ -285,8 +285,8 @@ export const LandingPage = () => {
       {/* HERO */}
       <header className="lp-hero-header" style={{ position: 'relative', padding: '152px 0 80px', overflow: 'hidden' }}>
         {/* BG glows */}
-        <div style={{ position: 'absolute', width: 680, height: 680, borderRadius: '50%', filter: 'blur(100px)', opacity: 0.45, top: -200, right: -140, background: 'radial-gradient(circle,rgba(255,90,45,.5),transparent 65%)', pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', width: 440, height: 440, borderRadius: '50%', filter: 'blur(90px)', opacity: 0.35, bottom: -200, left: -140, background: 'radial-gradient(circle,rgba(255,90,45,.22),transparent 65%)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', width: 680, height: 680, borderRadius: '50%', filter: 'blur(100px)', opacity: 0.45, top: -200, right: -140, background: 'radial-gradient(circle,rgba(139,59,255,.5),transparent 65%)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', width: 440, height: 440, borderRadius: '50%', filter: 'blur(90px)', opacity: 0.35, bottom: -200, left: -140, background: 'radial-gradient(circle,rgba(139,59,255,.22),transparent 65%)', pointerEvents: 'none' }} />
         {/* Grid texture */}
         <div style={{
           position: 'absolute', inset: 0, opacity: 0.45, pointerEvents: 'none',
@@ -301,8 +301,8 @@ export const LandingPage = () => {
           <div style={{ borderLeft: `3px solid ${FLAME}`, paddingLeft: 28 }}>
             <motion.span {...reveal} style={{
               display: 'inline-flex', alignItems: 'center', gap: 9, ...disp, fontWeight: 700, letterSpacing: '.18em',
-              fontSize: '.79rem', color: 'var(--accent-text)', marginBottom: 22, border: '1px solid rgba(255,90,45,.28)',
-              padding: '7px 14px', borderRadius: 9999, background: 'rgba(255,90,45,.06)', lineHeight: 1.2,
+              fontSize: '.79rem', color: 'var(--accent-text)', marginBottom: 22, border: '1px solid rgba(139,59,255,.28)',
+              padding: '7px 14px', borderRadius: 9999, background: 'rgba(139,59,255,.06)', lineHeight: 1.2,
             }}>
               <span className="lp-pulse" style={{ width: 7, height: 7, borderRadius: '50%', background: FLAME, flexShrink: 0 }} />
               Girls Flag Football · Class of 2026
@@ -388,7 +388,7 @@ export const LandingPage = () => {
                 position: 'relative', background: INK_2, border: `1px solid ${LINE}`, borderRadius: 20, padding: 30, overflow: 'hidden',
               }}>
                 <div style={{
-                  width: 50, height: 50, borderRadius: 13, background: 'rgba(255,90,45,.1)', border: '1px solid rgba(255,90,45,.22)',
+                  width: 50, height: 50, borderRadius: 13, background: 'rgba(139,59,255,.1)', border: '1px solid rgba(139,59,255,.22)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20, color: FLAME,
                 }}><c.icon size={22} /></div>
                 <h3 style={{ ...disp, fontWeight: 800, fontSize: '1.55rem', letterSpacing: '.01em', marginBottom: 10 }}>
@@ -413,8 +413,8 @@ export const LandingPage = () => {
               {gridFeatures.map(f => (
                 <div key={f.h} style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
                   <div style={{
-                    flexShrink: 0, width: 26, height: 26, borderRadius: '50%', background: 'rgba(255,90,45,.1)',
-                    border: '1px solid rgba(255,90,45,.28)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: FLAME, marginTop: 3,
+                    flexShrink: 0, width: 26, height: 26, borderRadius: '50%', background: 'rgba(139,59,255,.1)',
+                    border: '1px solid rgba(139,59,255,.28)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: FLAME, marginTop: 3,
                   }}><Check size={12} strokeWidth={3} /></div>
                   <div>
                     <h4 style={{ ...disp, fontWeight: 800, fontSize: '1.14rem', letterSpacing: '.02em', margin: 0 }}>
@@ -470,9 +470,9 @@ export const LandingPage = () => {
           <motion.div {...reveal} className="lp-cta-box" style={{
             position: 'relative', borderRadius: 26, overflow: 'hidden',
             background: 'linear-gradient(135deg,#1a0f0a,#0a0a0a)',
-            border: '1px solid rgba(255,90,45,.22)', padding: '76px 40px', textAlign: 'center',
+            border: '1px solid rgba(139,59,255,.22)', padding: '76px 40px', textAlign: 'center',
           }}>
-            <div style={{ position: 'absolute', width: 640, height: 640, borderRadius: '50%', filter: 'blur(96px)', opacity: 0.55, top: -260, right: '25%', background: 'radial-gradient(circle,rgba(255,90,45,.5),transparent 65%)', pointerEvents: 'none' }} />
+            <div style={{ position: 'absolute', width: 640, height: 640, borderRadius: '50%', filter: 'blur(96px)', opacity: 0.55, top: -260, right: '25%', background: 'radial-gradient(circle,rgba(139,59,255,.5),transparent 65%)', pointerEvents: 'none' }} />
             <div style={{ ...kicker, position: 'relative' }}>Finally, a home built for her</div>
             <h2 style={{ ...disp, fontWeight: 900, fontSize: 'clamp(2.4rem,5vw,4rem)', margin: 0, position: 'relative' }}>
               <ClipText>Your game is ready.</ClipText><br />

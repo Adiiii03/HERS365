@@ -153,7 +153,7 @@ export default class GlobalErrorBoundary extends Component<Props, State> {
             type="button"
             onClick={this.handleReload}
             style={{
-              background: '#ff5a2d',
+              background: '#8B3BFF',
               color: '#0a0a0c',
               border: 'none',
               borderRadius: 10,
@@ -164,7 +164,7 @@ export default class GlobalErrorBoundary extends Component<Props, State> {
               letterSpacing: '0.06em',
               textTransform: 'uppercase',
               cursor: 'pointer',
-              boxShadow: '0 6px 22px rgba(255,90,45,.32)',
+              boxShadow: '0 6px 22px rgba(139,59,255,.32)',
             }}
           >
             Reload

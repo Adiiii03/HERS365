@@ -5,7 +5,7 @@ import { ChevronRight, X, Zap } from 'lucide-react';
 import { useProfileCompletion } from '../hooks/useProfileCompletion';
 import { useAuth } from '../context/AuthContext';
 
-const FLAME = '#ff5a2d';
+const FLAME = '#8B3BFF';
 
 export function ProfileCompletionBanner() {
   const { user } = useAuth();
@@ -27,8 +27,8 @@ export function ProfileCompletionBanner() {
         style={{ overflow: 'hidden' }}
       >
         <div style={{
-          background: `linear-gradient(90deg, rgba(255,90,45,0.12) 0%, rgba(255,90,45,0.06) 100%)`,
-          borderBottom: '1px solid rgba(255,90,45,0.2)',
+          background: `linear-gradient(90deg, rgba(139,59,255,0.12) 0%, rgba(139,59,255,0.06) 100%)`,
+          borderBottom: '1px solid rgba(139,59,255,0.2)',
           padding: '10px 20px',
           display: 'flex',
           alignItems: 'center',

@@ -159,7 +159,7 @@ export const CoachLayout = () => {
               >
                 <Bell size={20} aria-hidden="true" />
                 {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-coral-500 rounded-full shadow-[0_0_10px_rgba(255,90,45,0.8)]" />
+                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-coral-500 rounded-full shadow-[0_0_10px_rgba(139,59,255,0.8)]" />
                 )}
               </button>
 

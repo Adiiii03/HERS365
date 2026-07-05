@@ -21,7 +21,7 @@ const requirements = [
 const statusColor: Record<string, { bg: string; text: string; label: string }> = {
   approved: { bg: 'rgba(74,222,128,0.1)',   text: '#4ade80', label: 'Approved'  },
   pending:  { bg: 'rgba(251,191,36,0.1)',   text: '#fbbf24', label: 'Pending'   },
-  review:   { bg: 'rgba(255,90,45,0.1)',    text: '#ff5a2d', label: 'Review'    },
+  review:   { bg: 'rgba(139,59,255,0.1)',    text: '#8B3BFF', label: 'Review'    },
   rejected: { bg: 'rgba(248,113,113,0.1)',  text: '#f87171', label: 'Rejected'  },
 };
 
@@ -47,10 +47,10 @@ export const Audit = () => {
       {/* Score cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 24 }}>
         {[
-          { label: 'COMPLIANCE',  value: `${compliancePct}%`,   sub: `${doneCount}/${requirements.length} items`, icon: Shield,     accent: compliancePct === 100 ? '#4ade80' : '#ff5a2d' },
+          { label: 'COMPLIANCE',  value: `${compliancePct}%`,   sub: `${doneCount}/${requirements.length} items`, icon: Shield,     accent: compliancePct === 100 ? '#4ade80' : '#8B3BFF' },
           { label: 'ACTIVE DEALS', value: approvedCount,         sub: 'Approved',                                 icon: CheckCircle2, accent: '#4ade80' },
           { label: 'PENDING',     value: pendingCount,           sub: 'Needs action',                             icon: Clock,      accent: '#fbbf24' },
-          { label: 'UNDER REVIEW', value: reviewCount,           sub: 'In progress',                              icon: Eye,        accent: '#ff5a2d' },
+          { label: 'UNDER REVIEW', value: reviewCount,           sub: 'In progress',                              icon: Eye,        accent: '#8B3BFF' },
         ].map(({ label, value, sub, icon: Icon, accent }) => (
           <motion.div key={label} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
             className="k-card" style={{ padding: '16px 18px' }}>
@@ -68,10 +68,10 @@ export const Audit = () => {
       <div className="k-card" style={{ padding: '16px 20px', marginBottom: 20 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
           <span style={{ fontSize: '0.78rem', fontWeight: 600, color: '#ccc' }}>Overall Compliance Score</span>
-          <span style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 800, fontSize: '1rem', color: compliancePct >= 80 ? '#4ade80' : '#ff5a2d' }}>{compliancePct}%</span>
+          <span style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 800, fontSize: '1rem', color: compliancePct >= 80 ? '#4ade80' : '#8B3BFF' }}>{compliancePct}%</span>
         </div>
         <div className="k-progress-track" style={{ height: 8 }}>
-          <div className="k-progress-fill" style={{ width: `${compliancePct}%`, background: compliancePct >= 80 ? '#4ade80' : '#ff5a2d' }} />
+          <div className="k-progress-fill" style={{ width: `${compliancePct}%`, background: compliancePct >= 80 ? '#4ade80' : '#8B3BFF' }} />
         </div>
       </div>
 
@@ -79,9 +79,9 @@ export const Audit = () => {
       <div style={{ display: 'flex', gap: 4, marginBottom: 16 }}>
         {(['nil', 'checklist'] as const).map(tab => (
           <button key={tab} onClick={() => setActiveTab(tab)} style={{
-            background: activeTab === tab ? '#ff5a2d' : 'transparent',
+            background: activeTab === tab ? '#8B3BFF' : 'transparent',
             border: '1px solid',
-            borderColor: activeTab === tab ? '#ff5a2d' : 'rgba(255,255,255,0.08)',
+            borderColor: activeTab === tab ? '#8B3BFF' : 'rgba(255,255,255,0.08)',
             borderRadius: 7, padding: '7px 16px',
             color: activeTab === tab ? '#fff' : '#666',
             fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s',
@@ -119,7 +119,7 @@ export const Audit = () => {
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <div style={{ width: 32, height: 32, borderRadius: 8, background: '#1c1c1c', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <DollarSign size={14} color="#ff5a2d" />
+                        <DollarSign size={14} color="#8B3BFF" />
                       </div>
                       <div>
                         <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#ddd' }}>{deal.brand}</div>

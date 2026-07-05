@@ -388,7 +388,7 @@ function RouteFallback() {
           height: 22,
           borderRadius: '50%',
           border: '2px solid rgba(255,255,255,0.18)',
-          borderTopColor: '#ff5a2d',
+          borderTopColor: '#8B3BFF',
           animation: 'auth-spin 0.65s linear infinite',
         }}
       />

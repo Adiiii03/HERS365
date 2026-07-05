@@ -241,7 +241,7 @@ export const Rankings = () => {
                 className="k-card"
                 style={{
                   padding: '20px 18px',
-                  borderColor: i === 0 ? 'rgba(255,90,45,0.4)' : 'rgba(255,255,255,0.06)',
+                  borderColor: i === 0 ? 'rgba(139,59,255,0.4)' : 'rgba(255,255,255,0.06)',
                   display: 'flex',
                   alignItems: 'center',
                   gap: 14,
@@ -351,8 +351,8 @@ export const Rankings = () => {
                   padding: '20px 18px',
                   position: 'relative',
                   overflow: 'hidden',
-                  borderColor: isOne ? 'rgba(255,90,45,0.4)' : 'rgba(255,255,255,0.06)',
-                  boxShadow: isOne ? '0 0 0 1px rgba(255,90,45,0.1), 0 8px 32px rgba(255,90,45,0.08)' : 'none',
+                  borderColor: isOne ? 'rgba(139,59,255,0.4)' : 'rgba(255,255,255,0.06)',
+                  boxShadow: isOne ? '0 0 0 1px rgba(139,59,255,0.1), 0 8px 32px rgba(139,59,255,0.08)' : 'none',
                   cursor: 'pointer',
                 }}
               >
@@ -364,7 +364,7 @@ export const Rankings = () => {
                       right: -40,
                       width: 160,
                       height: 160,
-                      background: 'radial-gradient(circle, rgba(255,90,45,0.12) 0%, transparent 70%)',
+                      background: 'radial-gradient(circle, rgba(139,59,255,0.12) 0%, transparent 70%)',
                       pointerEvents: 'none',
                     }}
                   />
@@ -378,8 +378,8 @@ export const Rankings = () => {
                       fontSize: isOne ? 88 : 64,
                       lineHeight: 1,
                       letterSpacing: '-0.01em',
-                      color: isOne ? '#FF5A2D' : '#F4F4F5',
-                      textShadow: isOne ? '0 0 16px rgba(255,90,45,0.4)' : 'none',
+                      color: isOne ? '#8B3BFF' : '#F4F4F5',
+                      textShadow: isOne ? '0 0 16px rgba(139,59,255,0.4)' : 'none',
                     }}
                     aria-hidden="true"
                   >
@@ -392,7 +392,7 @@ export const Rankings = () => {
                       fontFamily: 'Barlow Condensed, sans-serif',
                       fontWeight: 800,
                       fontSize: isOne ? 64 : 48,
-                      color: isOne ? '#FF7A52' : '#C8C8D0',
+                      color: isOne ? '#C4A3FF' : '#C8C8D0',
                       lineHeight: 1,
                     }}
                   >
@@ -415,7 +415,7 @@ export const Rankings = () => {
                       >
                         {p.name}
                       </span>
-                      {p.verified && <CheckCircle2 size={12} color="#ff5a2d" fill="#ff5a2d" style={{ flexShrink: 0 }} />}
+                      {p.verified && <CheckCircle2 size={12} color="#8B3BFF" fill="#8B3BFF" style={{ flexShrink: 0 }} />}
                     </div>
                     <div
                       style={{
@@ -474,9 +474,9 @@ export const Rankings = () => {
                 setPage(1);
               }}
               style={{
-                background: pos === p ? '#ff5a2d' : '#111',
+                background: pos === p ? '#8B3BFF' : '#111',
                 border: '1px solid',
-                borderColor: pos === p ? '#ff5a2d' : 'rgba(255,255,255,0.08)',
+                borderColor: pos === p ? '#8B3BFF' : 'rgba(255,255,255,0.08)',
                 borderRadius: 7,
                 padding: '8px 12px',
                 color: pos === p ? '#fff' : '#666',
@@ -549,7 +549,7 @@ export const Rankings = () => {
                     fontSize: isMobile ? 22 : 28,
                     lineHeight: 1,
                     letterSpacing: '-0.01em',
-                    color: p.rank <= 3 ? '#FF7A52' : '#F4F4F5',
+                    color: p.rank <= 3 ? '#C4A3FF' : '#F4F4F5',
                   }}
                   aria-hidden="true"
                 >
@@ -575,7 +575,7 @@ export const Rankings = () => {
                     >
                       {p.name}
                     </span>
-                    {p.verified && <CheckCircle2 size={11} color="#FF5A2D" fill="#FF5A2D" />}
+                    {p.verified && <CheckCircle2 size={11} color="#8B3BFF" fill="#8B3BFF" />}
                   </div>
                   <div
                     style={{
@@ -596,8 +596,8 @@ export const Rankings = () => {
                 <div style={{ textAlign: 'center' }}>
                   <span
                     style={{
-                      background: 'rgba(255,90,45,0.10)',
-                      color: '#FF7A52',
+                      background: 'rgba(139,59,255,0.10)',
+                      color: '#C4A3FF',
                       fontSize: '0.65rem',
                       fontWeight: 700,
                       padding: '3px 8px',
@@ -631,7 +631,7 @@ export const Rankings = () => {
                     fontWeight: 800,
                     fontSize: isMobile ? 24 : 30,
                     lineHeight: 1,
-                    color: '#FF7A52',
+                    color: '#C4A3FF',
                   }}
                 >
                   {p.rating}

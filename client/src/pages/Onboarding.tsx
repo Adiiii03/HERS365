@@ -5,8 +5,8 @@ import { Target, Trophy, ChevronRight, ChevronLeft, Check, Zap, MapPin, Upload }
 import { useNotifications } from '../context/NotificationContext';
 import { FLAG_POSITIONS } from '../lib/positions';
 
-const FLAME   = '#ff5a2d';
-const FLAME_S = '#ff8c66';
+const FLAME   = '#8B3BFF';
+const FLAME_S = '#C4A3FF';
 const INK     = '#0a0a0a';
 const INK_2   = '#111111';
 const INK_3   = '#161616';
@@ -27,7 +27,7 @@ const STATES = [
 
 const TOTAL_STEPS = 4;
 
-const CONFETTI_COLORS = ['#ff5a2d', '#ff8c66', '#ffffff', '#ffd700', '#ff3399', '#4ade80'];
+const CONFETTI_COLORS = ['#8B3BFF', '#C4A3FF', '#ffffff', '#ffd700', '#ff3399', '#4ade80'];
 const CONFETTI = Array.from({ length: 52 }, (_, i) => ({
   id: i,
   x: (Math.random() - 0.5) * 720,
@@ -78,7 +78,7 @@ function StyledSelect({ label, value, onChange, children }: {
       <select
         value={value}
         onChange={e => onChange(e.target.value)}
-        onFocus={e => { e.target.style.borderColor = 'rgba(255,90,45,0.55)'; e.target.style.boxShadow = '0 0 0 3px rgba(255,90,45,0.09)'; }}
+        onFocus={e => { e.target.style.borderColor = 'rgba(139,59,255,0.55)'; e.target.style.boxShadow = '0 0 0 3px rgba(139,59,255,0.09)'; }}
         onBlur={e => { e.target.style.borderColor = LINE; e.target.style.boxShadow = 'none'; }}
         style={selectCls}
       >
@@ -173,8 +173,8 @@ function ProfilePreview({ form, step, userName }: {
         ].map(({ label, active }) => (
           <div key={label} style={{
             padding: '4px 10px', borderRadius: 9999,
-            background: active ? 'rgba(255,90,45,0.12)' : 'rgba(255,255,255,0.03)',
-            border: `1px solid ${active ? 'rgba(255,90,45,0.3)' : LINE}`,
+            background: active ? 'rgba(139,59,255,0.12)' : 'rgba(255,255,255,0.03)',
+            border: `1px solid ${active ? 'rgba(139,59,255,0.3)' : LINE}`,
             fontSize: '.62rem', fontFamily: DISP, fontWeight: 800,
             letterSpacing: '.1em', textTransform: 'uppercase',
             color: active ? FLAME_S : MUTED_2, transition: 'all 0.4s',
@@ -304,7 +304,7 @@ export function Onboarding() {
             <div key={s.num} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <motion.div
                 animate={{
-                  background: s.num < step ? FLAME : s.num === step ? 'rgba(255,90,45,0.25)' : 'rgba(255,255,255,0.08)',
+                  background: s.num < step ? FLAME : s.num === step ? 'rgba(139,59,255,0.25)' : 'rgba(255,255,255,0.08)',
                   borderColor: s.num <= step ? FLAME : LINE,
                   scale: s.num === step ? 1.15 : 1,
                 }}
@@ -379,11 +379,11 @@ export function Onboarding() {
                           style={{
                             padding: '14px 10px', borderRadius: 13, border: `1.5px solid`,
                             borderColor: form.sport === s ? FLAME : LINE,
-                            background: form.sport === s ? 'rgba(255,90,45,0.12)' : INK_3,
+                            background: form.sport === s ? 'rgba(139,59,255,0.12)' : INK_3,
                             color: form.sport === s ? '#f4f4f2' : MUTED,
                             fontFamily: DISP, fontWeight: 800, fontSize: '.88rem',
                             letterSpacing: '.04em', cursor: 'pointer', transition: 'all 0.18s',
-                            boxShadow: form.sport === s ? '0 4px 14px rgba(255,90,45,0.22)' : 'none',
+                            boxShadow: form.sport === s ? '0 4px 14px rgba(139,59,255,0.22)' : 'none',
                           }}
                         >{s}</button>
                       ))}
@@ -415,7 +415,7 @@ export function Onboarding() {
                     <button type="button" disabled={photoBusy} onClick={() => photoRef.current?.click()} style={{
                       width: '100%', padding: '24px', borderRadius: 13, cursor: 'pointer',
                       border: `2px dashed ${form.photoUploaded ? FLAME : LINE}`,
-                      background: form.photoUploaded ? 'rgba(255,90,45,0.08)' : INK_3,
+                      background: form.photoUploaded ? 'rgba(139,59,255,0.08)' : INK_3,
                       color: form.photoUploaded ? FLAME_S : MUTED, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                     }}>
                       <Upload size={18} />
@@ -429,7 +429,7 @@ export function Onboarding() {
                       onChange={e => set('achievements', e.target.value)}
                       placeholder="State champion, team captain, All-Conference..."
                       rows={5}
-                      onFocus={e => { e.target.style.borderColor = 'rgba(255,90,45,0.55)'; e.target.style.boxShadow = '0 0 0 3px rgba(255,90,45,0.09)'; }}
+                      onFocus={e => { e.target.style.borderColor = 'rgba(139,59,255,0.55)'; e.target.style.boxShadow = '0 0 0 3px rgba(139,59,255,0.09)'; }}
                       onBlur={e => { e.target.style.borderColor = LINE; e.target.style.boxShadow = 'none'; }}
                       style={{ ...inputCls, resize: 'none', display: 'block' }}
                     />
@@ -463,9 +463,9 @@ export function Onboarding() {
                     transition={{ type: 'spring', stiffness: 200, damping: 14, delay: 0.1 }}
                     style={{
                       width: 96, height: 96, borderRadius: '50%', margin: '0 auto 32px',
-                      background: `radial-gradient(circle,${FLAME},#cc3a12)`,
+                      background: `radial-gradient(circle,${FLAME},#5E1BC2)`,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      boxShadow: `0 0 0 0 rgba(255,90,45,0.5)`,
+                      boxShadow: `0 0 0 0 rgba(139,59,255,0.5)`,
                       animation: 'ob-pulse 2s ease-out 0.4s',
                     }}
                   >
@@ -513,10 +513,10 @@ export function Onboarding() {
                         borderRadius: 14, fontFamily: DISP, fontWeight: 900, fontSize: '1.05rem',
                         letterSpacing: '.1em', textTransform: 'uppercase', cursor: 'pointer',
                         display: 'flex', alignItems: 'center', gap: 10,
-                        boxShadow: '0 8px 28px rgba(255,90,45,.35)', transition: 'all .18s',
+                        boxShadow: '0 8px 28px rgba(139,59,255,.35)', transition: 'all .18s',
                       }}
-                      onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 14px 36px rgba(255,90,45,.5)'; }}
-                      onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 8px 28px rgba(255,90,45,.35)'; }}
+                      onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 14px 36px rgba(139,59,255,.5)'; }}
+                      onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 8px 28px rgba(139,59,255,.35)'; }}
                     >
                       View Your Profile <ChevronRight size={18} />
                     </button>
@@ -576,10 +576,10 @@ export function Onboarding() {
                     fontFamily: DISP, fontWeight: 900, fontSize: '1rem',
                     letterSpacing: '.1em', textTransform: 'uppercase',
                     cursor: canAdvance ? 'pointer' : 'not-allowed', transition: 'all .2s',
-                    boxShadow: canAdvance ? '0 6px 20px rgba(255,90,45,.3)' : 'none',
+                    boxShadow: canAdvance ? '0 6px 20px rgba(139,59,255,.3)' : 'none',
                   }}
-                  onMouseEnter={e => { if (canAdvance) { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 10px 28px rgba(255,90,45,.45)'; }}}
-                  onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = canAdvance ? '0 6px 20px rgba(255,90,45,.3)' : 'none'; }}
+                  onMouseEnter={e => { if (canAdvance) { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 10px 28px rgba(139,59,255,.45)'; }}}
+                  onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = canAdvance ? '0 6px 20px rgba(139,59,255,.3)' : 'none'; }}
                 >
                   Continue <ChevronRight size={16} />
                 </button>
@@ -593,7 +593,7 @@ export function Onboarding() {
                     fontFamily: DISP, fontWeight: 900, fontSize: '1rem',
                     letterSpacing: '.1em', textTransform: 'uppercase',
                     cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1,
-                    boxShadow: '0 6px 20px rgba(255,90,45,.3)', transition: 'all .2s',
+                    boxShadow: '0 6px 20px rgba(139,59,255,.3)', transition: 'all .2s',
                   }}
                 >
                   {saving
@@ -644,9 +644,9 @@ export function Onboarding() {
         }
         @keyframes auth-spin { to { transform: rotate(360deg); } }
         @keyframes ob-pulse {
-          0%   { box-shadow: 0 0 0 0 rgba(255,90,45,0.5); }
-          70%  { box-shadow: 0 0 0 18px rgba(255,90,45,0); }
-          100% { box-shadow: 0 0 0 0 rgba(255,90,45,0); }
+          0%   { box-shadow: 0 0 0 0 rgba(139,59,255,0.5); }
+          70%  { box-shadow: 0 0 0 18px rgba(139,59,255,0); }
+          100% { box-shadow: 0 0 0 0 rgba(139,59,255,0); }
         }
       `}</style>
     </div>

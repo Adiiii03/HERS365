@@ -64,12 +64,12 @@ export async function sendVerificationEmail(to: string, token: string) {
     subject: 'Confirm your H.E.R.S.365 email',
     html: `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background: #0f0f0f; padding: 32px; border-radius: 12px;">
-        <h1 style="color: #ff6b35; font-size: 24px; margin-bottom: 8px;">H.E.R.S.365</h1>
+        <h1 style="color: #A66BFF; font-size: 24px; margin-bottom: 8px;">H.E.R.S.365</h1>
         <h2 style="color: #ffffff; font-size: 20px; margin-bottom: 16px;">Confirm your email address</h2>
         <p style="color: #aaaaaa; margin-bottom: 24px;">
           One more step — confirm your email so coaches can find you in search.
         </p>
-        <a href="${verifyUrl}" style="display: inline-block; background: #ff6b35; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; margin-bottom: 24px;">
+        <a href="${verifyUrl}" style="display: inline-block; background: #8B3BFF; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; margin-bottom: 24px;">
           Confirm Email
         </a>
         <p style="color: #666666; font-size: 12px; margin-top: 24px;">
@@ -106,7 +106,7 @@ export async function sendNewsletterConfirm(to: string, name: string | null, con
     subject: 'Confirm your H.E.R.S.365 updates',
     html: `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background: #0f0f0f; padding: 32px; border-radius: 12px;">
-        <h1 style="color: #ff6b35; font-size: 24px; margin-bottom: 8px;">H.E.R.S.365</h1>
+        <h1 style="color: #A66BFF; font-size: 24px; margin-bottom: 8px;">H.E.R.S.365</h1>
         <h2 style="color: #ffffff; font-size: 20px; margin-bottom: 16px;">One quick confirmation</h2>
         <p style="color: #aaaaaa; margin-bottom: 16px;">${greeting}</p>
         <p style="color: #aaaaaa; margin-bottom: 16px;">
@@ -118,7 +118,7 @@ export async function sendNewsletterConfirm(to: string, name: string | null, con
           Click below to confirm. If you do not confirm, we will not send you anything else —
           this is the only email you will get.
         </p>
-        <a href="${confirmUrl}" style="display: inline-block; background: #ff6b35; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; margin-bottom: 24px;">
+        <a href="${confirmUrl}" style="display: inline-block; background: #8B3BFF; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; margin-bottom: 24px;">
           Yes, keep me posted
         </a>
         <p style="color: #666666; font-size: 12px; margin-top: 24px;">
@@ -136,7 +136,7 @@ export async function sendNewsletterWelcome(to: string, name: string | null) {
     subject: "You're on the H.E.R.S.365 list",
     html: `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background: #0f0f0f; padding: 32px; border-radius: 12px;">
-        <h1 style="color: #ff6b35; font-size: 24px; margin-bottom: 8px;">H.E.R.S.365</h1>
+        <h1 style="color: #A66BFF; font-size: 24px; margin-bottom: 8px;">H.E.R.S.365</h1>
         <h2 style="color: #ffffff; font-size: 20px; margin-bottom: 16px;">You're confirmed</h2>
         <p style="color: #aaaaaa; margin-bottom: 16px;">${greeting} You are on the list.</p>
         <p style="color: #aaaaaa; margin-bottom: 16px;">
@@ -166,7 +166,7 @@ export async function sendGuardianConsentEmail(
     subject: `${childName} asked to join H.E.R.S.365 — your approval is needed`,
     html: `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background: #0f0f0f; padding: 32px; border-radius: 12px;">
-        <h1 style="color: #ff6b35; font-size: 24px; margin-bottom: 8px;">H.E.R.S.365</h1>
+        <h1 style="color: #A66BFF; font-size: 24px; margin-bottom: 8px;">H.E.R.S.365</h1>
         <h2 style="color: #ffffff; font-size: 20px; margin-bottom: 16px;">Your approval is needed</h2>
         <p style="color: #aaaaaa; margin-bottom: 16px;">
           ${childName} asked to join HERS365, a safe community for girls who play flag football.
@@ -174,7 +174,7 @@ export async function sendGuardianConsentEmail(
         </p>
         <p style="color: #aaaaaa; margin-bottom: 8px;">Open your single-use approval link and enter this code:</p>
         <p style="color: #ffffff; font-size: 28px; letter-spacing: 4px; font-weight: bold; margin: 16px 0;">${code}</p>
-        <a href="${linkUrl}" style="display: inline-block; background: #ff6b35; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; margin-bottom: 24px;">
+        <a href="${linkUrl}" style="display: inline-block; background: #8B3BFF; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; margin-bottom: 24px;">
           Review and approve
         </a>
         <p style="color: #aaaaaa; margin-bottom: 16px;">

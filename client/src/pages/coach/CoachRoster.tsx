@@ -221,7 +221,7 @@ export function CoachRoster() {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh', gap: 16, color: '#555' }}>
         <span style={{ fontSize: '0.9rem' }}>Failed to load roster.</span>
-        <button onClick={() => window.location.reload()} style={{ background: '#ff5a2d', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 20px', cursor: 'pointer', fontWeight: 600, fontSize: '0.82rem' }}>Retry</button>
+        <button onClick={() => window.location.reload()} style={{ background: '#8B3BFF', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 20px', cursor: 'pointer', fontWeight: 600, fontSize: '0.82rem' }}>Retry</button>
       </div>
     );
   }

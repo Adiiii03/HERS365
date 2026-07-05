@@ -30,7 +30,7 @@ export const ParentLayout = () => {
             fontSize: '1.35rem', letterSpacing: '0.04em',
             textTransform: 'uppercase', color: '#fff',
           }}>
-            HERS<span style={{ color: '#ff5a2d' }}>365</span>
+            HERS<span style={{ color: '#8B3BFF' }}>365</span>
           </span>
         </Link>
         <span style={{
@@ -49,7 +49,7 @@ export const ParentLayout = () => {
             color: '#8a8a86', cursor: 'pointer',
             fontSize: '0.78rem', fontWeight: 700, letterSpacing: '0.04em',
           }}
-          onMouseEnter={e => { e.currentTarget.style.color = '#ff5a2d'; }}
+          onMouseEnter={e => { e.currentTarget.style.color = '#8B3BFF'; }}
           onMouseLeave={e => { e.currentTarget.style.color = '#8a8a86'; }}
         >
           <LogOut size={15} />

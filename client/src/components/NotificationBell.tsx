@@ -4,7 +4,7 @@ import { Bell, Check, Zap, MessageSquare, Heart, UserPlus, TrendingUp, Star } fr
 import { useNavigate } from 'react-router-dom';
 import { useNotifications, NOTIF_TYPE_LABELS, type Notification } from '../hooks/useNotifications';
 
-const FLAME = '#ff5a2d';
+const FLAME = '#8B3BFF';
 const LINE = 'rgba(255,255,255,0.07)';
 const MUTED = '#8a8a86';
 const MUTED_2 = '#5a5a56';
@@ -50,7 +50,7 @@ function NotifRow({ n, onRead, onNav }: { n: Notification; onRead: (id: number) 
       }}
       style={{
         display: 'flex', gap: 10, padding: '11px 14px',
-        background: n.read ? 'transparent' : 'rgba(255,90,45,0.05)',
+        background: n.read ? 'transparent' : 'rgba(139,59,255,0.05)',
         borderBottom: `1px solid ${LINE}`,
         cursor: 'pointer',
         transition: 'background 0.18s',
@@ -65,7 +65,7 @@ function NotifRow({ n, onRead, onNav }: { n: Notification; onRead: (id: number) 
         </div>
         <div style={{ fontSize: '0.65rem', color: MUTED_2, marginTop: 2 }}>{timeAgo(n.createdAt)}</div>
       </div>
-      {!n.read && <div style={{ width: 7, height: 7, borderRadius: '50%', background: FLAME, flexShrink: 0, marginTop: 4 }} />}
+      {!n.read && <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#FF2E93', flexShrink: 0, marginTop: 4 }} />}
     </motion.div>
   );
 }
@@ -94,7 +94,7 @@ export function NotificationBell() {
       <motion.button
         whileTap={{ scale: 0.88 }}
         onClick={handleOpen}
-        style={{ position: 'relative', width: 36, height: 36, borderRadius: '50%', background: open ? 'rgba(255,90,45,0.12)' : 'rgba(255,255,255,0.05)', border: `1px solid ${open ? 'rgba(255,90,45,0.3)' : LINE}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'background 0.18s, border-color 0.18s' }}
+        style={{ position: 'relative', width: 36, height: 36, borderRadius: '50%', background: open ? 'rgba(139,59,255,0.12)' : 'rgba(255,255,255,0.05)', border: `1px solid ${open ? 'rgba(139,59,255,0.3)' : LINE}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'background 0.18s, border-color 0.18s' }}
       >
         <Bell size={16} color={open ? FLAME : MUTED} />
         <AnimatePresence>
@@ -104,7 +104,7 @@ export function NotificationBell() {
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               exit={{ scale: 0 }}
-              style={{ position: 'absolute', top: -3, right: -3, width: 16, height: 16, borderRadius: '50%', background: FLAME, border: '1.5px solid #0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.5rem', fontWeight: 900, color: '#fff' }}
+              style={{ position: 'absolute', top: -3, right: -3, width: 16, height: 16, borderRadius: '50%', background: '#FF2E93', border: '1.5px solid #0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.5rem', fontWeight: 900, color: '#0A0A0C' }}
             >
               {unreadCount > 9 ? '9+' : unreadCount}
             </motion.div>

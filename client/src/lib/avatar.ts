@@ -1,5 +1,5 @@
 const PALETTE: ReadonlyArray<readonly [string, string]> = [
-  ['#ff5a2d', '#ff8a5a'],
+  ['#8B3BFF', '#ff8a5a'],
   ['#ff7a3d', '#c0431c'],
   ['#33373f', '#15171b'],
   ['#3b2a22', '#1a120d'],
