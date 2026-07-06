@@ -3,8 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { LayoutGrid, Trophy, User, Dumbbell, MessageSquare } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useHaptics } from '../lib/haptics';
-
-const FLAME = '#8B3BFF';
+import { colors, radii } from '../lib/tokens';
 
 const tabs = [
   { icon: LayoutGrid,    label: 'Grid',     path: '/feed' },
@@ -70,7 +69,7 @@ export const BottomTabBar: React.FC<BottomTabBarProps> = ({ unreadMessages = 0 }
               <div style={{ position: 'relative' }}>
                 <Icon
                   size={22}
-                  color={active ? FLAME : 'rgba(255,255,255,0.38)'}
+                  color={active ? colors.accent : 'rgba(255,255,255,0.38)'}
                   strokeWidth={active ? 2.2 : 1.8}
                   style={{ transition: 'color 0.18s, stroke 0.18s' }}
                 />
@@ -81,15 +80,15 @@ export const BottomTabBar: React.FC<BottomTabBarProps> = ({ unreadMessages = 0 }
                     right: -5,
                     minWidth: 14,
                     height: 14,
-                    borderRadius: 9999,
-                    background: FLAME,
-                    border: '1.5px solid #0a0a0a',
+                    borderRadius: radii.full,
+                    background: colors.accent,
+                    border: `1.5px solid ${colors.surface0}`,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     padding: '0 3px',
                   }}>
-                    <span style={{ fontSize: '0.52rem', fontWeight: 800, color: '#fff', lineHeight: 1 }}>
+                    <span style={{ fontSize: '0.52rem', fontWeight: 800, color: colors.accentOn, lineHeight: 1 }}>
                       {unreadMessages > 9 ? '9+' : unreadMessages}
                     </span>
                   </div>
@@ -100,7 +99,7 @@ export const BottomTabBar: React.FC<BottomTabBarProps> = ({ unreadMessages = 0 }
                 fontSize: '0.6rem',
                 fontWeight: active ? 700 : 500,
                 letterSpacing: '0.02em',
-                color: active ? FLAME : 'rgba(255,255,255,0.35)',
+                color: active ? colors.accent : 'rgba(255,255,255,0.35)',
                 transition: 'color 0.18s',
                 lineHeight: 1,
               }}>
@@ -117,8 +116,8 @@ export const BottomTabBar: React.FC<BottomTabBarProps> = ({ unreadMessages = 0 }
                     transform: 'translateX(-50%)',
                     width: 32,
                     height: 2,
-                    borderRadius: 9999,
-                    background: FLAME,
+                    borderRadius: radii.full,
+                    background: colors.accent,
                   }}
                   transition={{ type: 'spring', stiffness: 500, damping: 32 }}
                 />

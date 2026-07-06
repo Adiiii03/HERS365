@@ -1,35 +1,27 @@
-
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { tokens } from '../lib/tokens';
 
-const FLAME = '#8B3BFF';
-const INK = '#0a0a0a';
-const INK_2 = '#111111';
-const LINE = 'rgba(255,255,255,0.07)';
-const LINE_2 = 'rgba(255,255,255,0.12)';
-const MUTED = '#8a8a86';
-const MUTED_2 = '#5a5a56';
-const DISP = "'Barlow Condensed', sans-serif";
-const BODY = "'DM Sans', sans-serif";
+const { colors, text, type, radii } = tokens;
 
 const css = `
   *,*::before,*::after{box-sizing:border-box}
 
-  .pp-nav-link{color:${MUTED};font-weight:600;font-size:.84rem;text-decoration:none;
-    font-family:${DISP};text-transform:uppercase;letter-spacing:.08em;
+  .pp-nav-link{color:${text.secondary};font-weight:${type.weight.semibold};font-size:.84rem;text-decoration:none;
+    font-family:${type.font.display};text-transform:uppercase;letter-spacing:.08em;
     transition:color .22s}
-  .pp-nav-link:hover{color:#f4f4f2}
+  .pp-nav-link:hover{color:${text.primary}}
 
-  .pp-back{display:inline-flex;align-items:center;gap:7px;color:${MUTED};
-    font-family:${DISP};font-weight:700;font-size:.82rem;text-transform:uppercase;
+  .pp-back{display:inline-flex;align-items:center;gap:7px;color:${text.secondary};
+    font-family:${type.font.display};font-weight:${type.weight.bold};font-size:.82rem;text-transform:uppercase;
     letter-spacing:.1em;text-decoration:none;
-    border:1px solid ${LINE_2};border-radius:9999px;padding:8px 16px;
+    border:1px solid ${colors.borderStrong};border-radius:${radii.full};padding:8px 16px;
     transition:border-color .22s,color .22s,background .22s;background:none}
-  .pp-back:hover{color:${FLAME};border-color:rgba(139,59,255,.4);background:rgba(139,59,255,.05)}
+  .pp-back:hover{color:${colors.accent};border-color:rgba(139,59,255,.4);background:rgba(139,59,255,.05)}
 
-  .pp-section + .pp-section{margin-top:52px;padding-top:52px;border-top:1px solid ${LINE}}
+  .pp-section + .pp-section{margin-top:52px;padding-top:52px;border-top:1px solid ${colors.border}}
 
-  .pp-link{color:${FLAME};text-decoration:none;transition:opacity .2s}
+  .pp-link{color:${colors.accent};text-decoration:none;transition:opacity .2s}
   .pp-link:hover{opacity:.75}
 
   @media(max-width:700px){
@@ -44,32 +36,32 @@ const wrap: React.CSSProperties = {
 };
 
 const disp: React.CSSProperties = {
-  fontFamily: DISP,
+  fontFamily: type.font.display,
   textTransform: 'uppercase' as const,
   letterSpacing: '.01em',
 };
 
 const sectionHeading: React.CSSProperties = {
   ...disp,
-  fontWeight: 800,
+  fontWeight: type.weight.bold,
   fontSize: '1.55rem',
   letterSpacing: '.04em',
-  color: '#f4f4f2',
+  color: text.primary,
   margin: '0 0 16px',
   lineHeight: 1.1,
 };
 
 const body: React.CSSProperties = {
-  fontFamily: BODY,
-  color: MUTED,
+  fontFamily: type.font.body,
+  color: text.secondary,
   fontSize: '1rem',
   lineHeight: 1.75,
   margin: 0,
 };
 
 const bodyEmphasis: React.CSSProperties = {
-  fontFamily: BODY,
-  color: '#c8c8c4',
+  fontFamily: type.font.body,
+  color: text.primary,
   fontSize: '1rem',
   lineHeight: 1.75,
   margin: 0,
@@ -79,20 +71,20 @@ const pill: React.CSSProperties = {
   display: 'inline-block',
   background: 'rgba(139,59,255,.1)',
   border: '1px solid rgba(139,59,255,.28)',
-  borderRadius: 9999,
+  borderRadius: radii.full,
   padding: '4px 13px',
-  fontFamily: DISP,
-  fontWeight: 700,
+  fontFamily: type.font.display,
+  fontWeight: type.weight.bold,
   fontSize: '.72rem',
   letterSpacing: '.14em',
   textTransform: 'uppercase' as const,
-  color: FLAME,
+  color: colors.accent,
   marginBottom: 14,
 };
 
 const listStyle: React.CSSProperties = {
-  fontFamily: BODY,
-  color: MUTED,
+  fontFamily: type.font.body,
+  color: text.secondary,
   fontSize: '1rem',
   lineHeight: 1.75,
   margin: 0,
@@ -106,7 +98,7 @@ const listStyle: React.CSSProperties = {
 const coppaBox: React.CSSProperties = {
   background: 'rgba(139,59,255,.06)',
   border: '1px solid rgba(139,59,255,.22)',
-  borderRadius: 16,
+  borderRadius: radii.lg,
   padding: '24px 28px',
   marginTop: 20,
 };
@@ -117,7 +109,7 @@ export const Privacy = () => {
   const navigate = useNavigate();
 
   return (
-    <div style={{ background: INK, color: '#f4f4f2', fontFamily: BODY, fontSize: 16, lineHeight: 1.7, minHeight: '100vh' }}>
+    <div style={{ background: colors.surface0, color: text.primary, fontFamily: type.font.body, fontSize: 16, lineHeight: 1.7, minHeight: '100vh' }}>
       <style>{css}</style>
 
       {/* TOP BAR */}
@@ -126,13 +118,13 @@ export const Privacy = () => {
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '14px 28px',
         background: 'rgba(10,10,10,.92)', backdropFilter: 'blur(14px)',
-        borderBottom: `1px solid ${LINE}`,
+        borderBottom: `1px solid ${colors.border}`,
       }}>
         <Link
           to="/"
-          style={{ ...disp, fontWeight: 900, fontSize: '1.4rem', letterSpacing: '.04em', textDecoration: 'none', color: '#f4f4f2' }}
+          style={{ ...disp, fontWeight: type.weight.bold, fontSize: '1.4rem', letterSpacing: '.04em', textDecoration: 'none', color: text.primary }}
         >
-          HERS<b style={{ color: FLAME }}>365</b>
+          HERS<b style={{ color: colors.accent }}>365</b>
         </Link>
 
         <button
@@ -150,8 +142,8 @@ export const Privacy = () => {
       {/* PAGE HEADER */}
       <header style={{
         position: 'relative',
-        background: INK_2,
-        borderBottom: `1px solid ${LINE}`,
+        background: colors.surface1,
+        borderBottom: `1px solid ${colors.border}`,
         padding: '64px 28px 56px',
         overflow: 'hidden',
       }}>
@@ -164,7 +156,7 @@ export const Privacy = () => {
         }} />
         <div style={{
           position: 'absolute', inset: 0, opacity: 0.3, pointerEvents: 'none',
-          backgroundImage: `linear-gradient(${LINE} 1px,transparent 1px),linear-gradient(90deg,${LINE} 1px,transparent 1px)`,
+          backgroundImage: `linear-gradient(${colors.border} 1px,transparent 1px),linear-gradient(90deg,${colors.border} 1px,transparent 1px)`,
           backgroundSize: '52px 52px',
           maskImage: 'radial-gradient(ellipse 60% 100% at 90% 50%,#000 0%,transparent 80%)',
           WebkitMaskImage: 'radial-gradient(ellipse 60% 100% at 90% 50%,#000 0%,transparent 80%)',
@@ -174,22 +166,22 @@ export const Privacy = () => {
           <div style={pill}>Legal</div>
           <h1 style={{
             ...disp,
-            fontWeight: 900,
+            fontWeight: type.weight.bold,
             fontSize: 'clamp(2.8rem,7vw,5rem)',
             lineHeight: 0.92,
             margin: '0 0 20px',
           }}>
-            Privacy<br /><span style={{ color: FLAME }}>Policy</span>
+            Privacy<br /><span style={{ color: colors.accent }}>Policy</span>
           </h1>
-          <p style={{ ...body, fontSize: '1.05rem', maxWidth: 520, color: MUTED }}>
+          <p style={{ ...body, fontSize: '1.05rem', maxWidth: 520, color: text.secondary }}>
             How HERS365 collects, uses, and protects information about athletes, parents, and coaches on our platform.
           </p>
           <div style={{ marginTop: 22, display: 'flex', gap: 24, flexWrap: 'wrap' }}>
-            <span style={{ fontFamily: DISP, fontWeight: 700, fontSize: '.78rem', letterSpacing: '.12em', textTransform: 'uppercase', color: MUTED_2 }}>
-              Last Updated: <span style={{ color: MUTED }}>{LAST_UPDATED}</span>
+            <span style={{ fontFamily: type.font.display, fontWeight: type.weight.bold, fontSize: '.78rem', letterSpacing: '.12em', textTransform: 'uppercase', color: text.tertiary }}>
+              Last Updated: <span style={{ color: text.secondary }}>{LAST_UPDATED}</span>
             </span>
-            <span style={{ fontFamily: DISP, fontWeight: 700, fontSize: '.78rem', letterSpacing: '.12em', textTransform: 'uppercase', color: MUTED_2 }}>
-              Effective: <span style={{ color: MUTED }}>{LAST_UPDATED}</span>
+            <span style={{ fontFamily: type.font.display, fontWeight: type.weight.bold, fontSize: '.78rem', letterSpacing: '.12em', textTransform: 'uppercase', color: text.tertiary }}>
+              Effective: <span style={{ color: text.secondary }}>{LAST_UPDATED}</span>
             </span>
           </div>
         </div>
@@ -222,20 +214,20 @@ export const Privacy = () => {
 
           <p style={{ ...bodyEmphasis, marginTop: 22, fontWeight: 600 }}>Information You Provide</p>
           <ul style={listStyle}>
-            <li><b style={{ color: '#f4f4f2' }}>Account registration:</b> name, email address, password, date of birth, graduation year, and role (athlete, parent/guardian, or coach).</li>
-            <li><b style={{ color: '#f4f4f2' }}>Athlete profile:</b> position, school, team, height, weight, GPA, highlight video links, combine and drill results, and a profile photo.</li>
-            <li><b style={{ color: '#f4f4f2' }}>Contact information:</b> phone number and mailing address, provided optionally for recruiting correspondence.</li>
-            <li><b style={{ color: '#f4f4f2' }}>Parent/guardian information:</b> name, email address, and relationship to the athlete, required for accounts of athletes under 13.</li>
-            <li><b style={{ color: '#f4f4f2' }}>Coach/recruiter details:</b> institution name, sport, and coaching credentials for verified coach accounts.</li>
-            <li><b style={{ color: '#f4f4f2' }}>Communications:</b> messages sent through our in-platform messaging system, support requests, and feedback submissions.</li>
+            <li><b style={{ color: text.primary }}>Account registration:</b> name, email address, password, date of birth, graduation year, and role (athlete, parent/guardian, or coach).</li>
+            <li><b style={{ color: text.primary }}>Athlete profile:</b> position, school, team, height, weight, GPA, highlight video links, combine and drill results, and a profile photo.</li>
+            <li><b style={{ color: text.primary }}>Contact information:</b> phone number and mailing address, provided optionally for recruiting correspondence.</li>
+            <li><b style={{ color: text.primary }}>Parent/guardian information:</b> name, email address, and relationship to the athlete, required for accounts of athletes under 13.</li>
+            <li><b style={{ color: text.primary }}>Coach/recruiter details:</b> institution name, sport, and coaching credentials for verified coach accounts.</li>
+            <li><b style={{ color: text.primary }}>Communications:</b> messages sent through our in-platform messaging system, support requests, and feedback submissions.</li>
           </ul>
 
           <p style={{ ...bodyEmphasis, marginTop: 22, fontWeight: 600 }}>Information Collected Automatically</p>
           <ul style={listStyle}>
-            <li><b style={{ color: '#f4f4f2' }}>Usage data:</b> pages visited, features used, search queries, profile views, and interaction timestamps.</li>
-            <li><b style={{ color: '#f4f4f2' }}>Device data:</b> IP address, browser type and version, operating system, device identifiers, and screen resolution.</li>
-            <li><b style={{ color: '#f4f4f2' }}>Log data:</b> server logs including access times, referring URLs, and error reports.</li>
-            <li><b style={{ color: '#f4f4f2' }}>Cookies and tracking technologies:</b> see the <a href="#cookies" className="pp-link">Cookies</a> section for full details.</li>
+            <li><b style={{ color: text.primary }}>Usage data:</b> pages visited, features used, search queries, profile views, and interaction timestamps.</li>
+            <li><b style={{ color: text.primary }}>Device data:</b> IP address, browser type and version, operating system, device identifiers, and screen resolution.</li>
+            <li><b style={{ color: text.primary }}>Log data:</b> server logs including access times, referring URLs, and error reports.</li>
+            <li><b style={{ color: text.primary }}>Cookies and tracking technologies:</b> see the <a href="#cookies" className="pp-link">Cookies</a> section for full details.</li>
           </ul>
         </section>
 
@@ -269,10 +261,10 @@ export const Privacy = () => {
           </p>
 
           <div style={coppaBox}>
-            <p style={{ fontFamily: DISP, fontWeight: 800, fontSize: '1.05rem', letterSpacing: '.06em', textTransform: 'uppercase', color: FLAME, margin: '0 0 12px' }}>
+            <p style={{ fontFamily: type.font.display, fontWeight: type.weight.bold, fontSize: '1.05rem', letterSpacing: '.06em', textTransform: 'uppercase', color: colors.accent, margin: '0 0 12px' }}>
               Important — Users Under 13
             </p>
-            <p style={{ fontFamily: BODY, color: '#c8c8c4', fontSize: '1rem', lineHeight: 1.75, margin: 0 }}>
+            <p style={{ fontFamily: type.font.body, color: text.primary, fontSize: '1rem', lineHeight: 1.75, margin: 0 }}>
               Users under 13 require verifiable parental consent. We do not knowingly collect personal data from children under 13 without parental approval. Parents may request deletion of their child's data by contacting us at{' '}
               <a href="mailto:privacy@hers365.com" className="pp-link">privacy@hers365.com</a>.
             </p>
@@ -307,16 +299,16 @@ export const Privacy = () => {
           </p>
           <ul style={{ ...listStyle, marginTop: 16 }}>
             <li>
-              <b style={{ color: '#f4f4f2' }}>Verified coaches and recruiters:</b> Athlete profiles (name, position, school, recruiting class, stats, and highlight videos) are visible to verified college and university coaches who have registered on the platform. Personal contact information is shared only if an athlete or parent explicitly enables that setting.
+              <b style={{ color: text.primary }}>Verified coaches and recruiters:</b> Athlete profiles (name, position, school, recruiting class, stats, and highlight videos) are visible to verified college and university coaches who have registered on the platform. Personal contact information is shared only if an athlete or parent explicitly enables that setting.
             </li>
             <li>
-              <b style={{ color: '#f4f4f2' }}>Service providers:</b> We use trusted third-party vendors to operate the Service — cloud hosting, email delivery, payment processing, and analytics. These vendors access only the data necessary to perform their services and are contractually required to keep it confidential.
+              <b style={{ color: text.primary }}>Service providers:</b> We use trusted third-party vendors to operate the Service — cloud hosting, email delivery, payment processing, and analytics. These vendors access only the data necessary to perform their services and are contractually required to keep it confidential.
             </li>
             <li>
-              <b style={{ color: '#f4f4f2' }}>Legal requirements:</b> We may disclose information if required to do so by law, court order, or valid government request, or to protect the rights, property, or safety of HERS365, our users, or the public.
+              <b style={{ color: text.primary }}>Legal requirements:</b> We may disclose information if required to do so by law, court order, or valid government request, or to protect the rights, property, or safety of HERS365, our users, or the public.
             </li>
             <li>
-              <b style={{ color: '#f4f4f2' }}>Business transfers:</b> In the event of a merger, acquisition, or sale of all or a portion of our assets, user data may be transferred as part of that transaction. We will notify affected users before data is transferred and becomes subject to a different privacy policy.
+              <b style={{ color: text.primary }}>Business transfers:</b> In the event of a merger, acquisition, or sale of all or a portion of our assets, user data may be transferred as part of that transaction. We will notify affected users before data is transferred and becomes subject to a different privacy policy.
             </li>
           </ul>
           <p style={{ ...body, marginTop: 16 }}>
@@ -332,13 +324,13 @@ export const Privacy = () => {
           </p>
           <ul style={{ ...listStyle, marginTop: 16 }}>
             <li>
-              <b style={{ color: '#f4f4f2' }}>Strictly necessary cookies:</b> Required for the Service to function — authentication sessions, CSRF protection, and user preferences. These cannot be disabled without breaking the platform.
+              <b style={{ color: text.primary }}>Strictly necessary cookies:</b> Required for the Service to function — authentication sessions, CSRF protection, and user preferences. These cannot be disabled without breaking the platform.
             </li>
             <li>
-              <b style={{ color: '#f4f4f2' }}>Functional cookies:</b> Remember settings and preferences such as language, display mode, and notification choices.
+              <b style={{ color: text.primary }}>Functional cookies:</b> Remember settings and preferences such as language, display mode, and notification choices.
             </li>
             <li>
-              <b style={{ color: '#f4f4f2' }}>Analytics cookies:</b> First-party analytics to understand aggregate usage patterns, feature adoption, and performance. We do not use third-party advertising networks or retargeting pixels.
+              <b style={{ color: text.primary }}>Analytics cookies:</b> First-party analytics to understand aggregate usage patterns, feature adoption, and performance. We do not use third-party advertising networks or retargeting pixels.
             </li>
           </ul>
           <p style={{ ...body, marginTop: 16 }}>
@@ -353,13 +345,13 @@ export const Privacy = () => {
             Depending on your location, you may have the following rights with respect to your personal information:
           </p>
           <ul style={{ ...listStyle, marginTop: 16 }}>
-            <li><b style={{ color: '#f4f4f2' }}>Access:</b> Request a copy of the personal information we hold about you.</li>
-            <li><b style={{ color: '#f4f4f2' }}>Correction:</b> Request that we correct inaccurate or incomplete information.</li>
-            <li><b style={{ color: '#f4f4f2' }}>Deletion:</b> Request deletion of your account and personal information, subject to legal retention obligations.</li>
-            <li><b style={{ color: '#f4f4f2' }}>Portability:</b> Request your data in a structured, machine-readable format.</li>
-            <li><b style={{ color: '#f4f4f2' }}>Restriction:</b> Request that we limit how we process your information in certain circumstances.</li>
-            <li><b style={{ color: '#f4f4f2' }}>Objection:</b> Object to processing based on legitimate interests.</li>
-            <li><b style={{ color: '#f4f4f2' }}>Opt-out of marketing:</b> Unsubscribe from non-transactional emails at any time using the unsubscribe link in any email or by updating account settings.</li>
+            <li><b style={{ color: text.primary }}>Access:</b> Request a copy of the personal information we hold about you.</li>
+            <li><b style={{ color: text.primary }}>Correction:</b> Request that we correct inaccurate or incomplete information.</li>
+            <li><b style={{ color: text.primary }}>Deletion:</b> Request deletion of your account and personal information, subject to legal retention obligations.</li>
+            <li><b style={{ color: text.primary }}>Portability:</b> Request your data in a structured, machine-readable format.</li>
+            <li><b style={{ color: text.primary }}>Restriction:</b> Request that we limit how we process your information in certain circumstances.</li>
+            <li><b style={{ color: text.primary }}>Objection:</b> Object to processing based on legitimate interests.</li>
+            <li><b style={{ color: text.primary }}>Opt-out of marketing:</b> Unsubscribe from non-transactional emails at any time using the unsubscribe link in any email or by updating account settings.</li>
           </ul>
           <p style={{ ...body, marginTop: 16 }}>
             Residents of California have additional rights under the California Consumer Privacy Act (CCPA), including the right to know what personal information is sold or disclosed (we do neither) and the right to non-discrimination for exercising your privacy rights.
@@ -388,26 +380,26 @@ export const Privacy = () => {
           </p>
           <div style={{
             marginTop: 24,
-            background: INK_2,
-            border: `1px solid ${LINE_2}`,
-            borderRadius: 16,
+            background: colors.surface1,
+            border: `1px solid ${colors.borderStrong}`,
+            borderRadius: radii.lg,
             padding: '28px 32px',
             display: 'flex',
             flexDirection: 'column' as const,
             gap: 12,
           }}>
-            <div style={{ fontFamily: DISP, fontWeight: 900, fontSize: '1.2rem', letterSpacing: '.04em', textTransform: 'uppercase', color: '#f4f4f2' }}>
-              HERS<span style={{ color: FLAME }}>365</span> Privacy Team
+            <div style={{ fontFamily: type.font.display, fontWeight: type.weight.bold, fontSize: '1.2rem', letterSpacing: '.04em', textTransform: 'uppercase', color: text.primary }}>
+              HERS<span style={{ color: colors.accent }}>365</span> Privacy Team
             </div>
-            <div style={{ fontFamily: BODY, color: '#c8c8c4', fontSize: '1rem', lineHeight: 1.75 }}>
-              <b style={{ color: '#f4f4f2', fontFamily: DISP, letterSpacing: '.06em', textTransform: 'uppercase', fontSize: '.82rem' }}>Email&nbsp;&nbsp;</b>
+            <div style={{ fontFamily: type.font.body, color: text.primary, fontSize: '1rem', lineHeight: 1.75 }}>
+              <b style={{ color: text.primary, fontFamily: type.font.display, letterSpacing: '.06em', textTransform: 'uppercase', fontSize: '.82rem' }}>Email&nbsp;&nbsp;</b>
               <a href="mailto:privacy@hers365.com" className="pp-link">privacy@hers365.com</a>
             </div>
-            <div style={{ fontFamily: BODY, color: MUTED, fontSize: '.9rem', lineHeight: 1.7 }}>
+            <div style={{ fontFamily: type.font.body, color: text.secondary, fontSize: '.9rem', lineHeight: 1.7 }}>
               Response time: within 5 business days for COPPA requests, within 30 days for all other requests.
             </div>
           </div>
-          <p style={{ ...body, marginTop: 20, fontSize: '.9rem', color: MUTED_2 }}>
+          <p style={{ ...body, marginTop: 20, fontSize: '.9rem', color: text.tertiary }}>
             We may update this Privacy Policy from time to time. When we make material changes we will notify registered users by email and post the updated policy with a new effective date. Continued use of the Service after changes are posted constitutes acceptance of the updated policy.
           </p>
         </section>
@@ -415,17 +407,17 @@ export const Privacy = () => {
       </main>
 
       {/* FOOTER */}
-      <footer style={{ borderTop: `1px solid ${LINE}`, padding: '36px 28px' }}>
+      <footer style={{ borderTop: `1px solid ${colors.border}`, padding: '36px 28px' }}>
         <div style={{ ...wrap, padding: '0 28px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
-          <div style={{ fontFamily: DISP, fontWeight: 900, fontSize: '1.3rem', letterSpacing: '.04em', textTransform: 'uppercase' }}>
-            HERS<b style={{ color: FLAME }}>365</b>
+          <div style={{ fontFamily: type.font.display, fontWeight: type.weight.bold, fontSize: '1.3rem', letterSpacing: '.04em', textTransform: 'uppercase' }}>
+            HERS<b style={{ color: colors.accent }}>365</b>
           </div>
           <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
             <Link to="/" className="pp-nav-link">Home</Link>
             <Link to="/contact" className="pp-nav-link">Contact</Link>
-            <Link to="/privacy" className="pp-nav-link" style={{ color: FLAME }}>Privacy</Link>
+            <Link to="/privacy" className="pp-nav-link" style={{ color: colors.accent }}>Privacy</Link>
           </div>
-          <div style={{ color: MUTED_2, fontSize: '.78rem', fontFamily: BODY }}>
+          <div style={{ color: text.tertiary, fontSize: '.78rem', fontFamily: type.font.body }}>
             © 2026 HERS365 · Girls Flag Football Recruiting
           </div>
         </div>

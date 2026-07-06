@@ -23,11 +23,6 @@ import { springs, easing } from '../lib/motion';
 import { Badge, Stat } from '../components/ui';
 import { INK, INK_2, INK_3, LINE, LINE_2, reveal, glowBlob, kicker, disp } from '../lib/theme';
 
-const FLAME = colors.accent;
-const FLAME_SOFT = colors.accentHover;
-const MUTED = colors.textSecondary;
-const MUTED_2 = colors.textTertiary;
-const TEXT = colors.textPrimary;
 const DISP = t.font.display;
 const BODY = t.font.body;
 
@@ -167,7 +162,7 @@ const PostCard = ({
           left: 0,
           right: 0,
           height: 2,
-          background: `linear-gradient(90deg, transparent, ${FLAME}, ${FLAME_SOFT}, transparent)`,
+          background: `linear-gradient(90deg, transparent, ${colors.accent}, ${colors.accentHover}, transparent)`,
           opacity: hovered ? 0.9 : 0,
           transition: 'opacity .3s',
           pointerEvents: 'none',
@@ -203,7 +198,7 @@ const PostCard = ({
                 borderRadius: radii.full,
                 flexShrink: 0,
                 padding: 2,
-                background: `conic-gradient(from 140deg, ${FLAME}, ${FLAME_SOFT}, ${FLAME})`,
+                background: `conic-gradient(from 140deg, ${colors.accent}, ${colors.accentHover}, ${colors.accent})`,
                 display: 'block',
               }}
             >
@@ -221,7 +216,7 @@ const PostCard = ({
                   fontFamily: DISP,
                   fontWeight: 900,
                   fontSize: t.size.md,
-                  color: FLAME_SOFT,
+                  color: colors.accentHover,
                   letterSpacing: '.02em',
                 }}
               >
@@ -244,7 +239,7 @@ const PostCard = ({
                     ...disp,
                     fontWeight: 800,
                     fontSize: t.size.md,
-                    color: TEXT,
+                    color: colors.textPrimary,
                     letterSpacing: '.02em',
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
@@ -253,7 +248,7 @@ const PostCard = ({
                 >
                   {post.user.name}
                 </span>
-                <BadgeCheck size={15} style={{ color: FLAME, flexShrink: 0 }} fill="rgba(139,59,255,0.16)" />
+                <BadgeCheck size={15} style={{ color: colors.accent, flexShrink: 0 }} fill="rgba(139,59,255,0.16)" />
                 {/* rating chip */}
                 <Badge
                   tone="accent"
@@ -263,11 +258,11 @@ const PostCard = ({
                     fontFamily: DISP,
                     fontWeight: 900,
                     letterSpacing: '.08em',
-                    color: FLAME_SOFT,
+                    color: colors.accentHover,
                     flexShrink: 0,
                   }}
                 >
-                  <Flame size={10} style={{ color: FLAME }} fill={FLAME} />
+                  <Flame size={10} style={{ color: colors.accent }} fill={colors.accent} />
                   {rating}
                 </Badge>
               </span>
@@ -280,12 +275,12 @@ const PostCard = ({
                   fontWeight: 700,
                   letterSpacing: '.16em',
                   textTransform: 'uppercase',
-                  color: MUTED_2,
+                  color: colors.textTertiary,
                   marginTop: 3,
                   fontFamily: DISP,
                 }}
               >
-                <Clock size={11} style={{ color: MUTED_2 }} />
+                <Clock size={11} style={{ color: colors.textTertiary }} />
                 {post.time}
               </span>
             </span>
@@ -307,12 +302,12 @@ const PostCard = ({
                 borderRadius: radii.md,
                 background: menuOpen ? 'rgba(255,255,255,0.06)' : 'transparent',
                 border: 'none',
-                color: menuOpen ? TEXT : MUTED,
+                color: menuOpen ? colors.textPrimary : colors.textSecondary,
                 cursor: 'pointer',
                 transition: 'all .2s',
               }}
-              onMouseEnter={e => { e.currentTarget.style.color = TEXT; e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }}
-              onMouseLeave={e => { if (!menuOpen) { e.currentTarget.style.color = MUTED; e.currentTarget.style.background = 'transparent'; } }}
+              onMouseEnter={e => { e.currentTarget.style.color = colors.textPrimary; e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }}
+              onMouseLeave={e => { if (!menuOpen) { e.currentTarget.style.color = colors.textSecondary; e.currentTarget.style.background = 'transparent'; } }}
             >
               <MoreHorizontal size={20} />
             </button>
@@ -382,7 +377,7 @@ const PostCard = ({
                         borderRadius: radii.md,
                         border: 'none',
                         background: 'transparent',
-                        color: danger ? colors.pink : MUTED,
+                        color: danger ? colors.pink : colors.textSecondary,
                         fontSize: t.size.sm,
                         fontWeight: 600,
                         fontFamily: BODY,
@@ -391,11 +386,11 @@ const PostCard = ({
                       }}
                       onMouseEnter={e => {
                         e.currentTarget.style.background = danger ? 'rgba(255,46,147,0.1)' : 'rgba(255,255,255,0.05)';
-                        e.currentTarget.style.color = danger ? colors.pinkText : TEXT;
+                        e.currentTarget.style.color = danger ? colors.pinkText : colors.textPrimary;
                       }}
                       onMouseLeave={e => {
                         e.currentTarget.style.background = 'transparent';
-                        e.currentTarget.style.color = danger ? colors.pink : MUTED;
+                        e.currentTarget.style.color = danger ? colors.pink : colors.textSecondary;
                       }}
                     >
                       <Icon size={16} />
@@ -471,10 +466,10 @@ const PostCard = ({
                 fontSize: t.size.xs,
                 letterSpacing: '.16em',
                 textTransform: 'uppercase',
-                color: TEXT,
+                color: colors.textPrimary,
               }}
             >
-              <Flame size={11} style={{ color: FLAME }} fill={FLAME} />
+              <Flame size={11} style={{ color: colors.accent }} fill={colors.accent} />
               Highlight Reel
             </span>
 
@@ -505,7 +500,7 @@ const PostCard = ({
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  background: `radial-gradient(circle, ${FLAME}, rgb(94,27,194))`,
+                  background: `radial-gradient(circle, ${colors.accent}, rgb(94,27,194))`,
                   boxShadow: hovered
                     ? '0 0 0 10px rgba(139,59,255,0.12), 0 14px 34px rgba(139,59,255,0.5)'
                     : '0 10px 26px rgba(139,59,255,0.4)',
@@ -532,7 +527,7 @@ const PostCard = ({
                 fontWeight: 700,
                 fontSize: t.size.xs,
                 letterSpacing: '.06em',
-                color: MUTED,
+                color: colors.textSecondary,
               }}
             >
               0:42
@@ -586,12 +581,12 @@ const PostCard = ({
               borderRadius: radii.md,
               border: 'none',
               background: post.isLiked ? 'rgba(139,59,255,0.12)' : 'transparent',
-              color: post.isLiked ? FLAME : MUTED,
+              color: post.isLiked ? colors.accent : colors.textSecondary,
               cursor: 'pointer',
               transition: 'background .2s, color .2s',
             }}
-            onMouseEnter={e => { if (!post.isLiked) e.currentTarget.style.color = FLAME_SOFT; }}
-            onMouseLeave={e => { if (!post.isLiked) e.currentTarget.style.color = MUTED; }}
+            onMouseEnter={e => { if (!post.isLiked) e.currentTarget.style.color = colors.accentHover; }}
+            onMouseLeave={e => { if (!post.isLiked) e.currentTarget.style.color = colors.textSecondary; }}
           >
             <motion.span
               key={String(post.isLiked)}
@@ -600,7 +595,7 @@ const PostCard = ({
               transition={{ duration: 0.32, ease: easing.standard }}
               style={{ display: 'flex' }}
             >
-              <Heart size={18} fill={post.isLiked ? FLAME : 'transparent'} />
+              <Heart size={18} fill={post.isLiked ? colors.accent : 'transparent'} />
             </motion.span>
             <CountPulse value={post.likes} active={post.isLiked} />
           </button>
@@ -621,12 +616,12 @@ const PostCard = ({
               borderRadius: radii.md,
               border: 'none',
               background: 'transparent',
-              color: MUTED,
+              color: colors.textSecondary,
               cursor: 'pointer',
               transition: 'color .2s',
             }}
-            onMouseEnter={e => { e.currentTarget.style.color = TEXT; }}
-            onMouseLeave={e => { e.currentTarget.style.color = MUTED; }}
+            onMouseEnter={e => { e.currentTarget.style.color = colors.textPrimary; }}
+            onMouseLeave={e => { e.currentTarget.style.color = colors.textSecondary; }}
           >
             <MessageCircle size={18} />
             <CountPulse value={post.comments} />
@@ -648,13 +643,13 @@ const PostCard = ({
               borderRadius: radii.md,
               border: 'none',
               background: 'transparent',
-              color: MUTED,
+              color: colors.textSecondary,
               cursor: 'pointer',
               marginLeft: 'auto',
               transition: 'color .2s',
             }}
-            onMouseEnter={e => { e.currentTarget.style.color = TEXT; }}
-            onMouseLeave={e => { e.currentTarget.style.color = MUTED; }}
+            onMouseEnter={e => { e.currentTarget.style.color = colors.textPrimary; }}
+            onMouseLeave={e => { e.currentTarget.style.color = colors.textSecondary; }}
           >
             <Share2 size={18} />
           </button>
@@ -829,7 +824,7 @@ export const Feed = () => {
         maxWidth: 1060,
         margin: '0 auto',
         padding: '24px 24px 64px',
-        color: TEXT,
+        color: colors.textPrimary,
         fontFamily: BODY,
         display: 'flex',
         gap: 32,
@@ -860,14 +855,14 @@ export const Feed = () => {
             margin: 0,
           }}
         >
-          THE <span style={{ color: FLAME }}>GRID</span>
+          THE <span style={{ color: colors.accent }}>GRID</span>
         </h1>
-        <p style={{ color: MUTED, fontSize: t.size.md, margin: '10px 0 0', maxWidth: 460, lineHeight: 1.5 }}>
+        <p style={{ color: colors.textSecondary, fontSize: t.size.md, margin: '10px 0 0', maxWidth: 460, lineHeight: 1.5 }}>
           Every rep, every offer, every breakout moment — straight from the athletes on the rise.
         </p>
         {athleteCount !== null && (
           <p style={{
-            color: FLAME_SOFT,
+            color: colors.accentHover,
             fontSize: t.size.sm,
             fontFamily: DISP,
             fontWeight: 700,
@@ -925,14 +920,14 @@ export const Feed = () => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: FLAME,
+                color: colors.accent,
                 fontSize: t.size.xl,
                 fontFamily: DISP,
                 fontWeight: 400,
                 lineHeight: 1,
                 transition: 'border-color .2s, color .2s',
               }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = FLAME; }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = colors.accent; }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = LINE_2; }}
             >
               +
@@ -944,7 +939,7 @@ export const Feed = () => {
                 fontSize: t.size.xs,
                 letterSpacing: '.1em',
                 textTransform: 'uppercase',
-                color: MUTED,
+                color: colors.textSecondary,
               }}
             >
               You
@@ -982,7 +977,7 @@ export const Feed = () => {
                     height: 64,
                     borderRadius: radii.full,
                     padding: 2.5,
-                    background: `conic-gradient(from 120deg, ${FLAME}, ${FLAME_SOFT}, ${FLAME})`,
+                    background: `conic-gradient(from 120deg, ${colors.accent}, ${colors.accentHover}, ${colors.accent})`,
                     display: 'block',
                     boxShadow: '0 6px 18px rgba(139,59,255,0.28)',
                   }}
@@ -1017,14 +1012,14 @@ export const Feed = () => {
                     padding: '0 4px',
                     borderRadius: radii.full,
                     background: INK,
-                    border: `1.5px solid ${FLAME}`,
+                    border: `1.5px solid ${colors.accent}`,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     fontFamily: DISP,
                     fontWeight: 900,
                     fontSize: t.size.xs,
-                    color: FLAME_SOFT,
+                    color: colors.accentHover,
                     letterSpacing: '.02em',
                   }}
                 >
@@ -1053,7 +1048,7 @@ export const Feed = () => {
                   fontSize: t.size.xs,
                   letterSpacing: '.06em',
                   textTransform: 'uppercase',
-                  color: MUTED,
+                  color: colors.textSecondary,
                   whiteSpace: 'nowrap',
                   maxWidth: 72,
                   overflow: 'hidden',
@@ -1081,7 +1076,7 @@ export const Feed = () => {
           marginBottom: 20,
         }}
       >
-        <h2 style={{ ...disp, fontWeight: 900, fontSize: t.size.xl, color: TEXT, margin: 0 }}>
+        <h2 style={{ ...disp, fontWeight: 900, fontSize: t.size.xl, color: colors.textPrimary, margin: 0 }}>
           Latest Drops
         </h2>
         <div
@@ -1111,7 +1106,7 @@ export const Feed = () => {
                   border: 'none',
                   cursor: 'pointer',
                   background: 'transparent',
-                  color: active ? colors.accentOn : MUTED,
+                  color: active ? colors.accentOn : colors.textSecondary,
                   fontFamily: DISP,
                   fontWeight: 800,
                   fontSize: t.size.xs,
@@ -1128,7 +1123,7 @@ export const Feed = () => {
                       position: 'absolute',
                       inset: 0,
                       borderRadius: radii.full,
-                      background: FLAME,
+                      background: colors.accent,
                       boxShadow: '0 4px 14px rgba(139,59,255,0.34)',
                       zIndex: 0,
                     }}
@@ -1184,11 +1179,11 @@ export const Feed = () => {
             <div style={{
               fontFamily: DISP, fontWeight: 800, fontSize: t.size['2xl'],
               textTransform: 'uppercase', letterSpacing: '.02em',
-              color: TEXT, marginBottom: 10,
+              color: colors.textPrimary, marginBottom: 10,
             }}>
               The grid is quiet
             </div>
-            <div style={{ fontSize: t.size.base, color: MUTED, maxWidth: 340, margin: '0 auto', lineHeight: 1.5 }}>
+            <div style={{ fontSize: t.size.base, color: colors.textSecondary, maxWidth: 340, margin: '0 auto', lineHeight: 1.5 }}>
               No highlights have dropped yet. Post your first rep and get on the board.
             </div>
           </motion.div>
@@ -1203,7 +1198,7 @@ export const Feed = () => {
             alignItems: 'center',
             gap: 14,
             margin: '8px 0 0',
-            color: MUTED_2,
+            color: colors.textTertiary,
           }}
         >
           <span style={{ flex: 1, height: 1, background: LINE }} />
@@ -1264,14 +1259,14 @@ export const Feed = () => {
             gap: 8,
             marginBottom: 16,
           }}>
-            <Trophy size={15} style={{ color: FLAME }} />
+            <Trophy size={15} style={{ color: colors.accent }} />
             <span style={{
               fontFamily: DISP,
               fontWeight: 900,
               fontSize: t.size.xs,
               letterSpacing: '.14em',
               textTransform: 'uppercase',
-              color: FLAME_SOFT,
+              color: colors.accentHover,
             }}>
               Top Athletes
             </span>
@@ -1292,7 +1287,7 @@ export const Feed = () => {
           )}
 
           {!topLoading && topAthletes.length === 0 && (
-            <p style={{ fontSize: t.size.base, color: MUTED, margin: 0, lineHeight: 1.5 }}>
+            <p style={{ fontSize: t.size.base, color: colors.textSecondary, margin: 0, lineHeight: 1.5 }}>
               Rankings coming soon — check back once athletes are rated.
             </p>
           )}
@@ -1318,7 +1313,7 @@ export const Feed = () => {
                 fontFamily: DISP,
                 fontWeight: 900,
                 fontSize: t.size.sm,
-                color: i === 0 ? FLAME : MUTED_2,
+                color: i === 0 ? colors.accent : colors.textTertiary,
                 width: 18,
                 flexShrink: 0,
                 letterSpacing: '.04em',
@@ -1329,7 +1324,7 @@ export const Feed = () => {
                 width: 32,
                 height: 32,
                 borderRadius: radii.full,
-                background: `conic-gradient(from 120deg, ${FLAME}, ${FLAME_SOFT}, ${FLAME})`,
+                background: `conic-gradient(from 120deg, ${colors.accent}, ${colors.accentHover}, ${colors.accent})`,
                 padding: 2,
                 flexShrink: 0,
                 display: 'block',
@@ -1346,7 +1341,7 @@ export const Feed = () => {
                   fontFamily: DISP,
                   fontWeight: 900,
                   fontSize: t.size.xs,
-                  color: FLAME_SOFT,
+                  color: colors.accentHover,
                 }}>
                   {initials(a.name ?? '')}
                 </span>
@@ -1357,7 +1352,7 @@ export const Feed = () => {
                   fontFamily: DISP,
                   fontWeight: 800,
                   fontSize: t.size.base,
-                  color: TEXT,
+                  color: colors.textPrimary,
                   letterSpacing: '.02em',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
@@ -1369,7 +1364,7 @@ export const Feed = () => {
                   <span style={{
                     display: 'block',
                     fontSize: t.size.xs,
-                    color: MUTED_2,
+                    color: colors.textTertiary,
                     fontFamily: DISP,
                     fontWeight: 700,
                     letterSpacing: '.08em',
@@ -1391,11 +1386,11 @@ export const Feed = () => {
                     fontFamily: DISP,
                     fontWeight: 900,
                     letterSpacing: '.06em',
-                    color: FLAME_SOFT,
+                    color: colors.accentHover,
                     flexShrink: 0,
                   }}
                 >
-                  <Flame size={9} style={{ color: FLAME }} fill={FLAME} />
+                  <Flame size={9} style={{ color: colors.accent }} fill={colors.accent} />
                   {a.rating ?? a.score}
                 </Badge>
               )}

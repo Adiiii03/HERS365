@@ -17,9 +17,6 @@ import { colors, type as t, radii } from '../lib/tokens';
 import { Button, Card, Input } from '../components/ui';
 
 const DISP = t.font.display;
-const HAIRLINE = 'rgba(255,255,255,0.06)';
-const HAIRLINE_2 = 'rgba(255,255,255,0.04)';
-const ACCENT_SOFT = 'rgba(139,59,255,0.1)';
 
 interface ApiProfile {
   id: number;
@@ -408,7 +405,7 @@ export const Profile = () => {
   return (
     <div style={{ padding: '24px', maxWidth: 1000, margin: '0 auto', position: 'relative' }}>
       {viewAsCoach && (
-        <div style={{ marginBottom: 14, display: 'flex', alignItems: 'center', gap: 10, background: ACCENT_SOFT, border: `1px solid ${colors.borderStrong}`, borderRadius: radii.md, padding: '10px 14px' }}>
+        <div style={{ marginBottom: 14, display: 'flex', alignItems: 'center', gap: 10, background: 'rgba(139,59,255,0.1)', border: `1px solid ${colors.borderStrong}`, borderRadius: radii.md, padding: '10px 14px' }}>
           <Eye size={14} color={colors.accentText} />
           <span style={{ fontSize: t.size.sm, color: colors.accentText, fontWeight: t.weight.semibold }}>Viewing as Coach — edit controls hidden</span>
           <button onClick={() => setViewAsCoach(false)} style={{ marginLeft: 'auto', background: 'transparent', border: 'none', color: colors.accentText, cursor: 'pointer', display: 'flex' }}><X size={14} /></button>
@@ -481,7 +478,7 @@ export const Profile = () => {
               <div>
                 <h1 style={{ fontFamily: DISP, fontWeight: 800, fontSize: t.size.xl, textTransform: 'uppercase', color: colors.textPrimary, lineHeight: 1, marginBottom: 4 }}>{profile.name}</h1>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                  <span style={{ background: ACCENT_SOFT, color: colors.accent, fontSize: t.size.xs, fontWeight: t.weight.bold, padding: '2px 8px', borderRadius: 4, letterSpacing: '0.06em' }}>{profile.position}</span>
+                  <span style={{ background: 'rgba(139,59,255,0.1)', color: colors.accent, fontSize: t.size.xs, fontWeight: t.weight.bold, padding: '2px 8px', borderRadius: 4, letterSpacing: '0.06em' }}>{profile.position}</span>
                   <span style={{ fontSize: t.size.sm, color: colors.textSecondary }}>{profile.school}</span>
                   <span style={{ fontSize: t.size.sm, color: colors.textTertiary }}>·</span>
                   <span style={{ fontSize: t.size.sm, color: colors.textSecondary }}>Class of {profile.gradYear}</span>
@@ -587,7 +584,7 @@ export const Profile = () => {
                                 const dataUrl = await toPng(node, {
                                   pixelRatio: 2,
                                   cacheBust: true,
-                                  backgroundColor: '#0E0E11',
+                                  backgroundColor: colors.surface0,
                                 });
                                 const blob = await (await fetch(dataUrl)).blob();
                                 const file = new File([blob], 'my-hers-rating.png', { type: 'image/png' });
@@ -638,14 +635,14 @@ export const Profile = () => {
         </div>
 
         {/* Stat strip */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 0, marginTop: 20, paddingTop: 20, borderTop: `1px solid ${HAIRLINE}` }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 0, marginTop: 20, paddingTop: 20, borderTop: `1px solid ${'rgba(255,255,255,0.06)'}` }}>
           {[
             { label: '40YD', value: combineStats?.fortyDash ?? '--' },
             { label: 'GPA', value: profile.gpa ?? '--' },
             { label: 'HGT', value: fmtHeight(profile.heightIn) },
             { label: 'WGT', value: profile.weightLbs ? `${profile.weightLbs} lbs` : '--' },
           ].map(({ label, value }, i, arr) => (
-            <div key={label} style={{ textAlign: 'center', borderRight: i < arr.length - 1 ? `1px solid ${HAIRLINE}` : 'none', padding: '0 8px' }}>
+            <div key={label} style={{ textAlign: 'center', borderRight: i < arr.length - 1 ? `1px solid ${'rgba(255,255,255,0.06)'}` : 'none', padding: '0 8px' }}>
               <div style={{ fontSize: '0.62rem', fontWeight: t.weight.bold, letterSpacing: '0.1em', textTransform: 'uppercase', color: colors.textTertiary, marginBottom: 4 }}>{label}</div>
               <div style={{ fontFamily: DISP, fontWeight: 800, fontSize: t.size.lg, color: colors.textPrimary }}>{value}</div>
             </div>
@@ -680,7 +677,7 @@ export const Profile = () => {
                 {doneCount}/{steps.length}
               </span>
             </div>
-            <div style={{ height: 6, borderRadius: radii.full, background: HAIRLINE, overflow: 'hidden', marginBottom: 14 }}>
+            <div style={{ height: 6, borderRadius: radii.full, background: 'rgba(255,255,255,0.06)', overflow: 'hidden', marginBottom: 14 }}>
               <div style={{ width: `${pct}%`, height: '100%', background: `linear-gradient(90deg,${colors.accent},${colors.accentText})`, transition: 'width .4s' }} />
             </div>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -732,7 +729,7 @@ export const Profile = () => {
                     { label: 'Flag Pulls', value: totals.flagPulls },
                     { label: 'INT', value: totals.interceptionsCaught },
                   ].map(({ label, value }) => (
-                    <div key={label} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: `1px solid ${HAIRLINE_2}` }}>
+                    <div key={label} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: `1px solid ${'rgba(255,255,255,0.04)'}` }}>
                       <span style={{ fontSize: t.size.sm, color: colors.textSecondary }}>{label}</span>
                       <span style={{ fontFamily: DISP, fontWeight: t.weight.bold, fontSize: t.size.md, color: colors.textPrimary }}>{value ?? '--'}</span>
                     </div>
@@ -749,7 +746,7 @@ export const Profile = () => {
               {achievementList.length > 0 ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {achievementList.map((a, i) => (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: `1px solid ${HAIRLINE_2}` }}>
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: `1px solid ${'rgba(255,255,255,0.04)'}` }}>
                       <div style={{ width: 6, height: 6, borderRadius: '50%', background: colors.accent, flexShrink: 0 }} />
                       <span style={{ fontSize: t.size.base, color: colors.textPrimary }}>{a}</span>
                     </div>
@@ -797,7 +794,7 @@ export const Profile = () => {
                   { label: 'Broad Jump', value: combineStats?.broadJump ?? '--' },
                   { label: '3-Cone', value: combineStats?.threeCone ?? '--' },
                 ].map(({ label, value }, i, arr) => (
-                  <div key={label} style={{ textAlign: 'center', borderRight: i < arr.length - 1 ? `1px solid ${HAIRLINE}` : 'none', padding: '0 8px' }}>
+                  <div key={label} style={{ textAlign: 'center', borderRight: i < arr.length - 1 ? `1px solid ${'rgba(255,255,255,0.06)'}` : 'none', padding: '0 8px' }}>
                     <div style={{ fontSize: '0.6rem', color: colors.textTertiary, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>{label}</div>
                     <div style={{ fontFamily: DISP, fontWeight: 800, fontSize: t.size.xl, color: colors.textPrimary }}>{value}</div>
                   </div>
@@ -842,7 +839,7 @@ export const Profile = () => {
                         <div key={section}>
                           <div style={{ fontSize: '0.62rem', fontWeight: t.weight.bold, color: colors.accent, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>{section}</div>
                           {items.map(({ label, value }) => (
-                            <div key={label} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: `1px solid ${HAIRLINE_2}` }}>
+                            <div key={label} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: `1px solid ${'rgba(255,255,255,0.04)'}` }}>
                               <span style={{ fontSize: t.size.xs, color: colors.textSecondary }}>{label}</span>
                               <span style={{ fontFamily: DISP, fontWeight: t.weight.bold, fontSize: t.size.base, color: value ? colors.textPrimary : colors.textTertiary }}>{value ?? '--'}</span>
                             </div>
@@ -855,7 +852,7 @@ export const Profile = () => {
 
                 {/* Per-game log */}
                 <Card style={{ overflow: 'hidden' }}>
-                  <div style={{ padding: '14px 16px', borderBottom: `1px solid ${HAIRLINE}`, fontSize: '0.65rem', fontWeight: t.weight.bold, letterSpacing: '0.12em', textTransform: 'uppercase', color: colors.textTertiary }}>Game Log</div>
+                  <div style={{ padding: '14px 16px', borderBottom: `1px solid ${'rgba(255,255,255,0.06)'}`, fontSize: '0.65rem', fontWeight: t.weight.bold, letterSpacing: '0.12em', textTransform: 'uppercase', color: colors.textTertiary }}>Game Log</div>
                   <div style={{ overflowX: 'auto' }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: t.size.sm }}>
                       <thead>
@@ -867,7 +864,7 @@ export const Profile = () => {
                       </thead>
                       <tbody>
                         {gameStats.map((g, i) => (
-                          <tr key={i} style={{ borderTop: `1px solid ${HAIRLINE_2}` }}>
+                          <tr key={i} style={{ borderTop: `1px solid ${'rgba(255,255,255,0.04)'}` }}>
                             <td style={{ padding: '8px 12px', textAlign: 'center', color: colors.textTertiary, fontWeight: t.weight.bold }}>G{i + 1}</td>
                             <td style={{ padding: '8px 12px', textAlign: 'center', color: colors.textPrimary }}>{g.passingYards ?? '--'}</td>
                             <td style={{ padding: '8px 12px', textAlign: 'center', color: colors.textPrimary }}>{g.passingTds ?? '--'}</td>
@@ -965,8 +962,8 @@ export const Profile = () => {
             {profile.nilPoints || profile.archetype ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {profile.archetype && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: `1px solid ${HAIRLINE_2}` }}>
-                    <div style={{ width: 32, height: 32, borderRadius: '50%', background: ACCENT_SOFT, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Trophy size={14} color={colors.accent} /></div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: `1px solid ${'rgba(255,255,255,0.04)'}` }}>
+                    <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(139,59,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Trophy size={14} color={colors.accent} /></div>
                     <div>
                       <div style={{ fontSize: t.size.base, color: colors.textPrimary, fontWeight: t.weight.semibold }}>Archetype: {profile.archetype}</div>
                       <div style={{ fontSize: t.size.xs, color: colors.textTertiary }}>Playing style identified</div>
@@ -974,7 +971,7 @@ export const Profile = () => {
                   </div>
                 )}
                 {(profile.nilPoints ?? 0) > 0 && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: `1px solid ${HAIRLINE_2}` }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: `1px solid ${'rgba(255,255,255,0.04)'}` }}>
                     <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(74,222,128,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Zap size={14} color={colors.success} /></div>
                     <div>
                       <div style={{ fontSize: t.size.base, color: colors.textPrimary, fontWeight: t.weight.semibold }}>{profile.nilPoints} NIL Points earned</div>
@@ -1043,7 +1040,7 @@ export const Profile = () => {
               </div>
 
               {editError && (
-                <div style={{ marginTop: 14, padding: '10px 12px', background: ACCENT_SOFT, border: `1px solid ${colors.borderStrong}`, borderRadius: radii.sm, color: colors.accentText, fontSize: t.size.base }}>{editError}</div>
+                <div style={{ marginTop: 14, padding: '10px 12px', background: 'rgba(139,59,255,0.1)', border: `1px solid ${colors.borderStrong}`, borderRadius: radii.sm, color: colors.accentText, fontSize: t.size.base }}>{editError}</div>
               )}
 
               <div style={{ display: 'flex', gap: 10, marginTop: 22, justifyContent: 'flex-end' }}>

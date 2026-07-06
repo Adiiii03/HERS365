@@ -1,12 +1,9 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Users, Shield, Clock, CreditCard, BarChart2, AlertTriangle } from 'lucide-react';
+import { colors, type as t, radii } from '../lib/tokens';
 
-const FLAME = '#8B3BFF';
 const LINE = 'rgba(255,255,255,0.07)';
-const MUTED = '#8a8a86';
-const MUTED_2 = '#5a5a56';
-const DISP = "'Barlow Condensed', sans-serif";
 
 type Stats = {
   totalAthletes: number;
@@ -52,28 +49,28 @@ export const AdminDashboard = () => {
           label: 'Total Athletes',
           val: stats.totalAthletes,
           icon: <Users size={18} />,
-          color: FLAME,
+          color: colors.accent,
           border: LINE,
         },
         {
           label: 'Total Coaches',
           val: stats.totalCoaches,
           icon: <Shield size={18} />,
-          color: '#60a5fa',
+          color: colors.accentText,
           border: LINE,
         },
         {
           label: 'Pending Verifications',
           val: stats.pendingVerifications,
           icon: <Clock size={18} />,
-          color: stats.pendingVerifications > 0 ? '#f59e0b' : MUTED,
-          border: stats.pendingVerifications > 0 ? `1px solid ${FLAME}` : `1px solid ${LINE}`,
+          color: stats.pendingVerifications > 0 ? colors.pink : colors.textSecondary,
+          border: stats.pendingVerifications > 0 ? `1px solid ${colors.pink}` : `1px solid ${LINE}`,
         },
         {
           label: 'Active Subscriptions',
           val: stats.activeSubscriptions,
           icon: <CreditCard size={18} />,
-          color: '#4ade80',
+          color: colors.success,
           border: LINE,
         },
       ]
@@ -101,14 +98,14 @@ export const AdminDashboard = () => {
             fontWeight: 800,
             letterSpacing: '0.12em',
             textTransform: 'uppercase',
-            color: FLAME,
+            color: colors.accent,
           }}
         >
           <BarChart2 size={13} /> ADMIN DASHBOARD
         </div>
         <h1
           style={{
-            fontFamily: DISP,
+            fontFamily: t.font.display,
             fontSize: '2.2rem',
             fontWeight: 900,
             textTransform: 'uppercase',
@@ -124,11 +121,11 @@ export const AdminDashboard = () => {
       {error && (
         <div
           style={{
-            background: 'rgba(239,68,68,0.08)',
-            border: '1px solid rgba(239,68,68,0.25)',
-            borderRadius: 10,
+            background: 'rgba(255,90,90,0.08)',
+            border: '1px solid rgba(255,90,90,0.25)',
+            borderRadius: radii.sm,
             padding: '12px 16px',
-            color: '#f87171',
+            color: colors.dangerText,
             fontSize: '0.82rem',
             marginBottom: 24,
           }}
@@ -138,7 +135,7 @@ export const AdminDashboard = () => {
       )}
 
       {!stats && !error && (
-        <div style={{ color: MUTED_2, fontSize: '0.85rem', padding: '24px' }}>Loading stats...</div>
+        <div style={{ color: colors.textTertiary, fontSize: '0.85rem', padding: '24px' }}>Loading stats...</div>
       )}
 
       {stats && (
@@ -156,20 +153,20 @@ export const AdminDashboard = () => {
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               style={{
-                background: '#111111',
+                background: colors.surface1,
                 border: typeof c.border === 'string' && c.border.startsWith('1px') ? c.border : `1px solid ${c.border}`,
-                borderRadius: 14,
+                borderRadius: radii.md,
                 padding: '18px 16px',
               }}
             >
               <div style={{ color: c.color, marginBottom: 8 }}>{c.icon}</div>
               <div
                 style={{
-                  fontFamily: DISP,
+                  fontFamily: t.font.display,
                   fontSize: '2rem',
                   fontWeight: 900,
                   lineHeight: 1,
-                  color: '#f4f4f2',
+                  color: colors.textPrimary,
                 }}
               >
                 {c.val.toLocaleString()}
@@ -177,7 +174,7 @@ export const AdminDashboard = () => {
               <div
                 style={{
                   fontSize: '0.65rem',
-                  color: MUTED,
+                  color: colors.textSecondary,
                   fontWeight: 700,
                   textTransform: 'uppercase',
                   letterSpacing: '0.08em',
@@ -199,7 +196,7 @@ export const AdminDashboard = () => {
               fontWeight: 800,
               letterSpacing: '0.1em',
               textTransform: 'uppercase',
-              color: MUTED,
+              color: colors.textSecondary,
               marginBottom: 12,
             }}
           >
@@ -207,9 +204,9 @@ export const AdminDashboard = () => {
           </div>
           <div
             style={{
-              background: '#111111',
+              background: colors.surface1,
               border: `1px solid ${LINE}`,
-              borderRadius: 14,
+              borderRadius: radii.md,
               overflow: 'hidden',
             }}
           >
@@ -226,7 +223,7 @@ export const AdminDashboard = () => {
                         fontWeight: 800,
                         letterSpacing: '0.1em',
                         textTransform: 'uppercase',
-                        color: MUTED_2,
+                        color: colors.textTertiary,
                       }}
                     >
                       {h}
@@ -242,16 +239,16 @@ export const AdminDashboard = () => {
                       borderBottom: i < signups.length - 1 ? `1px solid ${LINE}` : 'none',
                     }}
                   >
-                    <td style={{ padding: '10px 16px', fontSize: '0.82rem', color: '#f4f4f2', fontWeight: 600 }}>
+                    <td style={{ padding: '10px 16px', fontSize: '0.82rem', color: colors.textPrimary, fontWeight: 600 }}>
                       {s.name}
                     </td>
-                    <td style={{ padding: '10px 16px', fontSize: '0.78rem', color: MUTED }}>
+                    <td style={{ padding: '10px 16px', fontSize: '0.78rem', color: colors.textSecondary }}>
                       {s.position ?? 'Unknown'}
                     </td>
-                    <td style={{ padding: '10px 16px', fontSize: '0.78rem', color: MUTED }}>
+                    <td style={{ padding: '10px 16px', fontSize: '0.78rem', color: colors.textSecondary }}>
                       {s.state ?? 'Unknown'}
                     </td>
-                    <td style={{ padding: '10px 16px', fontSize: '0.75rem', color: MUTED_2 }}>
+                    <td style={{ padding: '10px 16px', fontSize: '0.75rem', color: colors.textTertiary }}>
                       {formatDate(s.createdAt)}
                     </td>
                   </tr>
@@ -264,9 +261,9 @@ export const AdminDashboard = () => {
 
       <div
         style={{
-          background: 'rgba(245,158,11,0.07)',
-          border: '1px solid rgba(245,158,11,0.2)',
-          borderRadius: 12,
+          background: 'rgba(255,46,147,0.07)',
+          border: '1px solid rgba(255,46,147,0.2)',
+          borderRadius: radii.md,
           padding: '14px 16px',
           display: 'flex',
           alignItems: 'center',
@@ -274,8 +271,8 @@ export const AdminDashboard = () => {
           marginTop: 32,
         }}
       >
-        <AlertTriangle size={15} color="#f59e0b" />
-        <span style={{ fontSize: '0.8rem', color: '#fcd34d' }}>
+        <AlertTriangle size={15} color={colors.pink} />
+        <span style={{ fontSize: '0.8rem', color: colors.pinkText }}>
           Admin actions are logged. All moderation decisions are auditable.
         </span>
       </div>

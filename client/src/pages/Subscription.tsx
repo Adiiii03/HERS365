@@ -3,14 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Check, Zap, Star, Shield, ArrowRight, Flame } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';
+import { colors, type as t, radii } from '../lib/tokens';
 
-const FLAME = '#8B3BFF';
-const INK = '#0a0a0a';
-const INK_2 = '#111111';
-const LINE = 'rgba(255,255,255,0.07)';
-const MUTED = '#8a8a86';
-const MUTED_2 = '#5a5a56';
-const DISP = "'Barlow Condensed', sans-serif";
+const DISP = t.font.display;
 
 interface Plan {
   id: number;
@@ -28,7 +23,7 @@ const PLAN_META: Record<string, {
 }> = {
   free: {
     icon: <Shield size={18} />,
-    accent: MUTED,
+    accent: colors.textSecondary,
     tagline: 'Get on the grid',
     features: [
       'Athlete profile (public)',
@@ -40,7 +35,7 @@ const PLAN_META: Record<string, {
   },
   pro: {
     icon: <Zap size={18} />,
-    accent: FLAME,
+    accent: colors.accent,
     badge: 'Most Popular',
     tagline: 'Get seen. Get recruited.',
     features: [
@@ -54,7 +49,7 @@ const PLAN_META: Record<string, {
   },
   elite: {
     icon: <Star size={18} />,
-    accent: '#a78bfa',
+    accent: colors.pink,
     tagline: 'Your dedicated recruiting edge',
     features: [
       'Everything in Pro',
@@ -135,28 +130,28 @@ export const Subscription = () => {
   if (loading) {
     return (
       <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ color: MUTED, fontSize: '0.85rem' }}>Loading plans…</div>
+        <div style={{ color: colors.textSecondary, fontSize: t.size.base }}>Loading plans…</div>
       </div>
     );
   }
 
   return (
-    <div style={{ background: INK, minHeight: '100vh', color: '#f4f4f2', fontFamily: "'DM Sans', sans-serif", padding: '0 0 120px' }}>
+    <div style={{ background: colors.surface0, minHeight: '100vh', color: colors.textPrimary, fontFamily: t.font.body, padding: '0 0 120px' }}>
       {/* BG gradient */}
       <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', background: 'radial-gradient(ellipse 80% 40% at 50% 0%, rgba(139,59,255,.12) 0%, transparent 65%)' }} />
 
       <div style={{ maxWidth: 1020, margin: '0 auto', padding: '52px 20px 0', position: 'relative' }}>
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} style={{ textAlign: 'center', marginBottom: 48 }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '5px 14px', borderRadius: 99, background: `${FLAME}15`, border: `1px solid ${FLAME}35`, marginBottom: 18 }}>
-            <Flame size={12} color={FLAME} fill={FLAME} />
-            <span style={{ fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: FLAME }}>HERS365 MEMBERSHIP</span>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '5px 14px', borderRadius: radii.pill, background: `${colors.accent}15`, border: `1px solid ${colors.accent}35`, marginBottom: 18 }}>
+            <Flame size={12} color={colors.accent} fill={colors.accent} />
+            <span style={{ fontSize: t.size.xs, fontWeight: t.weight.bold, letterSpacing: '0.12em', textTransform: 'uppercase', color: colors.accent }}>HERS365 MEMBERSHIP</span>
           </div>
-          <h1 style={{ fontFamily: DISP, fontSize: 'clamp(2.6rem, 6vw, 4rem)', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.02em', margin: '0 0 14px', lineHeight: 0.95 }}>
+          <h1 style={{ fontFamily: DISP, fontSize: 'clamp(2.6rem, 6vw, 4rem)', fontWeight: t.weight.bold, textTransform: 'uppercase', letterSpacing: '-0.02em', margin: '0 0 14px', lineHeight: 0.95 }}>
             Get On The Grid.<br />
-            <em style={{ color: FLAME, fontStyle: 'normal' }}>Get Recruited.</em>
+            <em style={{ color: colors.accent, fontStyle: 'normal' }}>Get Recruited.</em>
           </h1>
-          <p style={{ color: MUTED, fontSize: '0.95rem', maxWidth: 480, margin: '0 auto', lineHeight: 1.6 }}>
+          <p style={{ color: colors.textSecondary, fontSize: t.size.md, maxWidth: 480, margin: '0 auto', lineHeight: 1.6 }}>
             Every coach on HERS365 is looking for their next athlete. Your tier determines how visible you are.
           </p>
         </motion.div>
@@ -164,12 +159,12 @@ export const Subscription = () => {
         {/* Error / cancel banners */}
         <AnimatePresence>
           {cancelledMsg && (
-            <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.25)', borderRadius: 10, padding: '12px 16px', marginBottom: 20, textAlign: 'center', fontSize: '0.82rem', color: '#fcd34d' }}>
+            <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} style={{ background: `${colors.pink}1a`, border: `1px solid ${colors.pink}40`, borderRadius: radii.sm, padding: '12px 16px', marginBottom: 20, textAlign: 'center', fontSize: t.size.base, color: colors.pinkText }}>
               {cancelledMsg}
             </motion.div>
           )}
           {error && (
-            <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} style={{ background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.25)', borderRadius: 10, padding: '12px 16px', marginBottom: 20, textAlign: 'center', fontSize: '0.82rem', color: '#f87171' }}>
+            <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} style={{ background: `${colors.danger}1a`, border: `1px solid ${colors.danger}40`, borderRadius: radii.sm, padding: '12px 16px', marginBottom: 20, textAlign: 'center', fontSize: t.size.base, color: colors.dangerText }}>
               {error}
             </motion.div>
           )}
@@ -196,8 +191,8 @@ export const Subscription = () => {
                   background: isPro
                     ? `linear-gradient(145deg, rgba(139,59,255,.1) 0%, rgba(139,59,255,.04) 100%)`
                     : 'rgba(255,255,255,0.03)',
-                  border: `1px solid ${isPro ? `${FLAME}50` : isHovered ? `rgba(255,255,255,0.12)` : LINE}`,
-                  borderRadius: 18,
+                  border: `1px solid ${isPro ? `${colors.accent}50` : isHovered ? `rgba(255,255,255,0.12)` : colors.border}`,
+                  borderRadius: radii.lg,
                   padding: '28px 26px 26px',
                   transform: isHovered && !isBusy ? 'translateY(-4px)' : isPro ? 'translateY(-8px)' : 'none',
                   transition: 'transform 0.25s ease, border-color 0.2s, box-shadow 0.25s',
@@ -206,7 +201,7 @@ export const Subscription = () => {
               >
                 {/* Popular badge */}
                 {meta.badge && (
-                  <div style={{ position: 'absolute', top: -13, left: '50%', transform: 'translateX(-50%)', background: FLAME, color: '#fff', padding: '4px 14px', borderRadius: 99, fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+                  <div style={{ position: 'absolute', top: -13, left: '50%', transform: 'translateX(-50%)', background: colors.accent, color: colors.accentOn, padding: '4px 14px', borderRadius: radii.pill, fontSize: t.size.xs, fontWeight: t.weight.bold, letterSpacing: '0.1em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
                     {meta.badge}
                   </div>
                 )}
@@ -216,24 +211,24 @@ export const Subscription = () => {
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 7, color: meta.accent, marginBottom: 5 }}>
                       {meta.icon}
-                      <span style={{ fontFamily: DISP, fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase' }}>{plan.name}</span>
+                      <span style={{ fontFamily: DISP, fontSize: t.size.base, fontWeight: t.weight.bold, letterSpacing: '0.1em', textTransform: 'uppercase' }}>{plan.name}</span>
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: MUTED_2, lineHeight: 1.3 }}>{meta.tagline}</div>
+                    <div style={{ fontSize: t.size.base, color: colors.textTertiary, lineHeight: 1.3 }}>{meta.tagline}</div>
                   </div>
                   <div style={{ textAlign: 'right' }}>
                     {plan.price === 0 ? (
-                      <div style={{ fontFamily: DISP, fontSize: '2rem', fontWeight: 900, lineHeight: 1, color: '#f4f4f2' }}>Free</div>
+                      <div style={{ fontFamily: DISP, fontSize: t.size['2xl'], fontWeight: t.weight.bold, lineHeight: 1, color: colors.textPrimary }}>Free</div>
                     ) : (
                       <>
-                        <div style={{ fontFamily: DISP, fontSize: '2.2rem', fontWeight: 900, lineHeight: 1, color: '#f4f4f2' }}>${(plan.price / 100).toFixed(0)}</div>
-                        <div style={{ fontSize: '0.65rem', color: MUTED_2, marginTop: 2 }}>per month</div>
+                        <div style={{ fontFamily: DISP, fontSize: t.size['3xl'], fontWeight: t.weight.bold, lineHeight: 1, color: colors.textPrimary }}>${(plan.price / 100).toFixed(0)}</div>
+                        <div style={{ fontSize: t.size.xs, color: colors.textTertiary, marginTop: 2 }}>per month</div>
                       </>
                     )}
                   </div>
                 </div>
 
                 {/* Divider */}
-                <div style={{ height: 1, background: LINE, marginBottom: 18 }} />
+                <div style={{ height: 1, background: colors.border, marginBottom: 18 }} />
 
                 {/* Features */}
                 <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 24px', display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -242,7 +237,7 @@ export const Subscription = () => {
                       <div style={{ width: 16, height: 16, borderRadius: '50%', background: `${meta.accent}20`, border: `1px solid ${meta.accent}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
                         <Check size={9} color={meta.accent} strokeWidth={3} />
                       </div>
-                      <span style={{ fontSize: '0.82rem', color: '#d4d4d0', lineHeight: 1.4 }}>{f}</span>
+                      <span style={{ fontSize: t.size.base, color: colors.textSecondary, lineHeight: 1.4 }}>{f}</span>
                     </li>
                   ))}
                 </ul>
@@ -255,13 +250,13 @@ export const Subscription = () => {
                     style={{
                       width: '100%',
                       padding: '13px 20px',
-                      borderRadius: 10,
-                      border: isPro ? 'none' : `1px solid ${LINE}`,
-                      background: isPro ? FLAME : 'rgba(167,139,250,0.12)',
-                      color: '#fff',
+                      borderRadius: radii.sm,
+                      border: isPro ? 'none' : `1px solid ${colors.border}`,
+                      background: isPro ? colors.accent : `${colors.pink}1f`,
+                      color: colors.accentOn,
                       fontFamily: DISP,
-                      fontWeight: 800,
-                      fontSize: '0.9rem',
+                      fontWeight: t.weight.bold,
+                      fontSize: t.size.md,
                       letterSpacing: '0.06em',
                       textTransform: 'uppercase',
                       cursor: 'pointer',
@@ -277,7 +272,7 @@ export const Subscription = () => {
                     <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       Subscribe at hers365.com<ArrowRight size={15} />
                     </span>
-                    <span style={{ fontSize: '0.62rem', fontWeight: 600, letterSpacing: '0.08em', opacity: 0.8 }}>Opens in Safari</span>
+                    <span style={{ fontSize: t.size.xs, fontWeight: t.weight.semibold, letterSpacing: '0.08em', opacity: 0.8 }}>Opens in Safari</span>
                   </motion.button>
                 ) : (
                   <motion.button
@@ -287,13 +282,13 @@ export const Subscription = () => {
                     style={{
                       width: '100%',
                       padding: '13px 20px',
-                      borderRadius: 10,
-                      border: isPro ? 'none' : `1px solid ${LINE}`,
-                      background: isPro ? FLAME : plan.price === 0 ? 'rgba(255,255,255,0.05)' : 'rgba(167,139,250,0.12)',
-                      color: '#fff',
+                      borderRadius: radii.sm,
+                      border: isPro ? 'none' : `1px solid ${colors.border}`,
+                      background: isPro ? colors.accent : plan.price === 0 ? 'rgba(255,255,255,0.05)' : `${colors.pink}1f`,
+                      color: colors.accentOn,
                       fontFamily: DISP,
-                      fontWeight: 800,
-                      fontSize: '0.9rem',
+                      fontWeight: t.weight.bold,
+                      fontSize: t.size.md,
                       letterSpacing: '0.06em',
                       textTransform: 'uppercase',
                       cursor: isBusy ? 'not-allowed' : 'pointer',
@@ -307,7 +302,7 @@ export const Subscription = () => {
                     }}
                   >
                     {isBusy ? (
-                      <><span style={{ display: 'inline-block', width: 14, height: 14, borderRadius: '50%', border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', animation: 'spin 0.8s linear infinite' }} />Redirecting…</>
+                      <><span style={{ display: 'inline-block', width: 14, height: 14, borderRadius: '50%', border: '2px solid rgba(255,255,255,0.3)', borderTopColor: colors.accentOn, animation: 'spin 0.8s linear infinite' }} />Redirecting…</>
                     ) : (
                       <>{plan.price === 0 ? 'Start Free' : `Get ${plan.name}`}<ArrowRight size={15} /></>
                     )}
@@ -324,16 +319,16 @@ export const Subscription = () => {
             { icon: <Shield size={13} />, text: 'Cancel anytime' },
             { icon: <Check size={13} />, text: 'Secure checkout via Stripe' },
             { icon: <Zap size={13} />, text: 'Instant access on signup' },
-          ].map((t) => (
-            <div key={t.text} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.72rem', color: MUTED_2 }}>
-              {t.icon}{t.text}
+          ].map((item) => (
+            <div key={item.text} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: t.size.sm, color: colors.textTertiary }}>
+              {item.icon}{item.text}
             </div>
           ))}
         </motion.div>
 
         {/* Social proof */}
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }} style={{ marginTop: 52, background: INK_2, border: `1px solid ${LINE}`, borderRadius: 16, padding: '28px 32px' }}>
-          <div style={{ fontFamily: DISP, fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: MUTED_2, marginBottom: 18 }}>Why athletes upgrade</div>
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }} style={{ marginTop: 52, background: colors.surface1, border: `1px solid ${colors.border}`, borderRadius: radii.lg, padding: '28px 32px' }}>
+          <div style={{ fontFamily: DISP, fontSize: t.size.base, fontWeight: t.weight.bold, letterSpacing: '0.12em', textTransform: 'uppercase', color: colors.textTertiary, marginBottom: 18 }}>Why athletes upgrade</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 20 }}>
             {[
               { stat: '3.4×', label: 'more coach views on Pro profiles' },
@@ -341,8 +336,8 @@ export const Subscription = () => {
               { stat: '12k+', label: 'athletes already on the grid' },
             ].map((s) => (
               <div key={s.label} style={{ textAlign: 'center' }}>
-                <div style={{ fontFamily: DISP, fontSize: '2.2rem', fontWeight: 900, color: FLAME, lineHeight: 1 }}>{s.stat}</div>
-                <div style={{ fontSize: '0.78rem', color: MUTED, marginTop: 5, lineHeight: 1.4 }}>{s.label}</div>
+                <div style={{ fontFamily: DISP, fontSize: t.size['3xl'], fontWeight: t.weight.bold, color: colors.accent, lineHeight: 1 }}>{s.stat}</div>
+                <div style={{ fontSize: t.size.base, color: colors.textSecondary, marginTop: 5, lineHeight: 1.4 }}>{s.label}</div>
               </div>
             ))}
           </div>
