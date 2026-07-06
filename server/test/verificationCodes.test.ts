@@ -206,7 +206,7 @@ describe('verificationCodes', () => {
       destination: 'same@test.local',
       purpose: 'link_consent',
     });
-    expect(capped).toEqual({ ok: false, reason: 'lifetime_cap' });
+    expect(capped).toEqual({ ok: false, reason: 'daily_cap' });
   });
 
   it('replay of a used code fails', async () => {

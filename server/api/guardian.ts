@@ -1,10 +1,11 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
-import rateLimit from 'express-rate-limit';
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import { and, desc, eq } from 'drizzle-orm';
 import { db } from '../db';
 import * as schema from '../schema';
 import { issueCode, verifyCode } from '../lib/verificationCodes';
+import { appendConsentAudit } from '../lib/auditChain';
 import { sendGuardianConsentEmail } from '../email';
 import { makeLimiterStore } from '../lib/limiterStore';
 
@@ -41,7 +42,12 @@ const resendLimiter = rateLimit({
 
 const statusLimiter = rateLimit({
   windowMs: 60 * 1000,
-  max: 60,
+  max: 240,
+  keyGenerator: (req) => {
+    const pendingToken =
+      typeof req.query.pendingToken === 'string' ? req.query.pendingToken : '';
+    return pendingToken || ipKeyGenerator(req.ip ?? 'unknown');
+  },
   store: makeLimiterStore('guardian-status'),
   standardHeaders: true,
   legacyHeaders: false,
@@ -210,7 +216,7 @@ guardianRouter.post('/verify', verifyLimiter, async (req, res) => {
         { ...auditBase, action: 'granted' },
       ];
       if (selfApproval) auditRows.push({ ...auditBase, action: 'self_approval_flagged' });
-      await tx.insert(schema.consentAuditLog).values(auditRows);
+      await appendConsentAudit(tx, auditRows);
     });
 
     return res.json({ activated: true });
@@ -263,7 +269,7 @@ guardianRouter.post('/resend', resendLimiter, async (req, res) => {
       return res.json({ ok: true });
     }
 
-    const linkUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/guardian/verify?token=${issued.linkToken}`;
+    const linkUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/guardian-verify?token=${issued.linkToken}`;
     await sendGuardianConsentEmail(destination, {
       childName: player.name,
       code: issued.code,

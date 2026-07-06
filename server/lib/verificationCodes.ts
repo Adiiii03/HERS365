@@ -56,7 +56,7 @@ export type IssueCodeInput = {
 
 export type IssueCodeResult =
   | { ok: true; code: string; linkToken?: string }
-  | { ok: false; reason: 'lifetime_cap' | 'hourly_cap' }
+  | { ok: false; reason: 'lifetime_cap' | 'daily_cap' | 'hourly_cap' }
   | { ok: false; reason: 'cooldown'; retryAfterSeconds: number };
 
 const gvc = guardianVerificationCodes;
@@ -77,7 +77,7 @@ export async function issueCode(input: IssueCodeInput): Promise<IssueCodeResult>
     .from(gvc)
     .where(and(eq(gvc.destination, destination), gt(gvc.createdAt, sql`now() - interval '24 hours'`)));
   if (daily.count >= DAILY_CAP_PER_DESTINATION) {
-    return { ok: false, reason: 'lifetime_cap' };
+    return { ok: false, reason: 'daily_cap' };
   }
 
   const [recent] = await db

@@ -2,7 +2,7 @@ import express from 'express';
 import crypto from 'crypto';
 import rateLimit from 'express-rate-limit';
 import { z } from 'zod';
-import { eq } from 'drizzle-orm';
+import { eq, gte } from 'drizzle-orm';
 import { db } from '../db';
 import * as schema from '../schema';
 import { validateBody } from '../middleware/validate';
@@ -22,10 +22,47 @@ const subscribeLimiter = rateLimit({
   message: { error: 'Too many requests from this network — try again later' },
 });
 
-// Per-destination cap: at most one confirmation send every 8 hours, so a
-// victim inbox sees at most 3 confirmation emails in any 24h window even
-// across IPs. Enforced off consent_at in the table, not memory.
+// Per-destination cap: at most one confirmation send every 8 hours to a given
+// pending row, plus a hard ceiling of MAX_SENDS_PER_WINDOW confirmation emails
+// per real inbox per 24h. The inbox is identified by a normalized rate-limit
+// key (see normalizeRateKey) that folds plus-tag and gmail-dot variants, so
+// victim@gmail.com / victim+1@gmail.com / v.i.c.t.i.m@gmail.com all count as
+// the same inbox and cannot be used to multiply the cap across rows or IPs.
+// Enforced off consent_at (the last-send marker) in the table, not memory.
 const RESEND_COOLDOWN_MS = 8 * 60 * 60 * 1000;
+const SEND_WINDOW_MS = 24 * 60 * 60 * 1000;
+const MAX_SENDS_PER_WINDOW = 3;
+
+const GMAIL_DOMAINS = new Set(['gmail.com', 'googlemail.com']);
+
+// Fold abuse variants that all deliver to the same physical inbox. Strips any
+// plus-tag (local part from '+' up to '@') and, for gmail/googlemail, removes
+// dots from the local part. Used ONLY for the send cap key — the stored email
+// stays exact so distinct legitimate non-gmail addresses never collide.
+function normalizeRateKey(email: string): string {
+  const at = email.lastIndexOf('@');
+  if (at <= 0) return email;
+  let local = email.slice(0, at);
+  const domain = email.slice(at + 1);
+  const plus = local.indexOf('+');
+  if (plus !== -1) local = local.slice(0, plus);
+  if (GMAIL_DOMAINS.has(domain)) local = local.replace(/\./g, '');
+  return `${local}@${domain}`;
+}
+
+// Count confirmation sends to this inbox in the last 24h by normalizing every
+// recently-touched row's stored email to the same key. consent_at is bumped on
+// every send, so rows with a consent_at inside the window represent sends.
+async function sendsInWindow(email: string): Promise<number> {
+  const key = normalizeRateKey(email);
+  const since = new Date(Date.now() - SEND_WINDOW_MS);
+  const rows = await db.select({
+    email: schema.newsletterSubscribers.email,
+    consentAt: schema.newsletterSubscribers.consentAt,
+  }).from(schema.newsletterSubscribers)
+    .where(gte(schema.newsletterSubscribers.consentAt, since));
+  return rows.filter((r) => r.consentAt && normalizeRateKey(r.email) === key).length;
+}
 
 const subscribeSchema = z.object({
   email: z.string().trim().toLowerCase().email().max(254),
@@ -68,7 +105,8 @@ router.post('/subscribe', subscribeLimiter, validateBody(subscribeSchema), async
     if (existing) {
       if (existing.status === 'pending' && existing.confirmToken) {
         const lastSend = existing.consentAt ?? existing.createdAt;
-        if (!lastSend || Date.now() - new Date(lastSend).getTime() > RESEND_COOLDOWN_MS) {
+        const cooledDown = !lastSend || Date.now() - new Date(lastSend).getTime() > RESEND_COOLDOWN_MS;
+        if (cooledDown && await sendsInWindow(email) < MAX_SENDS_PER_WINDOW) {
           await db.update(schema.newsletterSubscribers)
             .set({ consentAt: new Date() })
             .where(eq(schema.newsletterSubscribers.id, existing.id));
@@ -79,6 +117,7 @@ router.post('/subscribe', subscribeLimiter, validateBody(subscribeSchema), async
     }
 
     const confirmToken = newToken();
+    const capReached = await sendsInWindow(email) >= MAX_SENDS_PER_WINDOW;
     await db.insert(schema.newsletterSubscribers).values({
       email,
       name: name ?? null,
@@ -86,9 +125,13 @@ router.post('/subscribe', subscribeLimiter, validateBody(subscribeSchema), async
       status: 'pending',
       confirmToken,
       unsubscribeToken: newToken(),
-      consentAt: new Date(),
+      // consent_at doubles as the last-send marker. Leave it unset when the
+      // per-inbox cap suppresses the send so the row is not counted as a send.
+      consentAt: capReached ? null : new Date(),
     });
-    await sendNewsletterConfirm(email, name ?? null, confirmUrlFor(confirmToken));
+    if (!capReached) {
+      await sendNewsletterConfirm(email, name ?? null, confirmUrlFor(confirmToken));
+    }
 
     res.json({ ok: true });
   } catch (err) {

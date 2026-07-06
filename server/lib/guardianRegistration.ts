@@ -4,6 +4,7 @@ import { db } from '../db';
 import * as schema from '../schema';
 import { validateAthleteSignup } from './athleteGate';
 import { issueCode } from './verificationCodes';
+import { appendConsentAudit } from './auditChain';
 import { sendGuardianConsentEmail } from '../email';
 
 const CODE_EXPIRY_MINUTES = 15;
@@ -26,6 +27,7 @@ export type CreatePendingAthleteResult =
   | { ok: false; code: 'VALIDATION'; error: string }
   | { ok: false; code: 'GUARDIAN_EMAIL_IS_SELF' }
   | { ok: false; code: 'CODE_LIFETIME_CAP' }
+  | { ok: false; code: 'CODE_DAILY_CAP' }
   | { ok: false; code: 'CODE_RATE_LIMITED'; retryAfterSeconds?: number };
 
 function normalize(email: string): string {
@@ -51,6 +53,8 @@ export function guardianFailureResponse(
       return { status: 400, body: { code: 'GUARDIAN_EMAIL_IS_SELF', error: 'The guardian email cannot be the same as the athlete email.' } };
     case 'CODE_LIFETIME_CAP':
       return { status: 429, body: { code: 'CODE_LIFETIME_CAP', error: 'Too many verification codes have been sent for this signup. Please contact support.' } };
+    case 'CODE_DAILY_CAP':
+      return { status: 429, body: { code: 'CODE_DAILY_CAP', error: 'Too many verification codes have been sent to this email today. Please try again tomorrow.' } };
     case 'CODE_RATE_LIMITED':
       return {
         status: 429,
@@ -127,6 +131,7 @@ export async function createPendingAthlete(input: CreatePendingAthleteInput): Pr
     }
     await db.delete(schema.players).where(eq(schema.players.id, player.id));
     if (issued.reason === 'lifetime_cap') return { ok: false, code: 'CODE_LIFETIME_CAP' };
+    if (issued.reason === 'daily_cap') return { ok: false, code: 'CODE_DAILY_CAP' };
     return {
       ok: false,
       code: 'CODE_RATE_LIMITED',
@@ -150,10 +155,12 @@ export async function createPendingAthlete(input: CreatePendingAthleteInput): Pr
     ipAddress: input.signupIp,
     userAgent: input.signupUserAgent,
   };
-  await db.insert(schema.consentAuditLog).values([
-    { ...auditBase, action: 'code_sent', detail: { channel: 'email', purpose: 'link_consent', same_domain: sameDomain } },
-    { ...auditBase, action: 'link_created', detail: { purpose: 'link_consent' } },
-  ]);
+  await db.transaction(async (tx) => {
+    await appendConsentAudit(tx, [
+      { ...auditBase, action: 'code_sent', detail: { channel: 'email', purpose: 'link_consent', same_domain: sameDomain } },
+      { ...auditBase, action: 'link_created', detail: { purpose: 'link_consent' } },
+    ]);
+  });
 
   return { ok: true, pendingToken, guardianEmailMasked: maskEmail(guardianEmail) };
 }

@@ -13,6 +13,7 @@ import { sendPasswordResetEmail, sendVerificationEmail } from './email';
 import * as auth from './auth';
 import { isRegistrationEnabled } from './lib/registration';
 import { createPendingAthlete, guardianFailureResponse, maskEmail } from './lib/guardianRegistration';
+import { validateAthleteSignup } from './lib/athleteGate';
 import { issueCode, verifyCode, hashCode, type CodePurpose } from './lib/verificationCodes';
 import { makeLimiterStore } from './lib/limiterStore';
 
@@ -137,6 +138,21 @@ router.post('/register', registerLimiter, async (req, res) => {
 
   try {
     const normalizedEmail = email.toLowerCase().trim();
+
+    // Validate DOB/age and the self-guardian rule BEFORE branching on whether
+    // the email exists, so a bad-DOB probe gets the identical error whether or
+    // not the account is real. Otherwise the early existing-email return (202)
+    // vs createPendingAthlete's 400 would itself be an enumeration oracle,
+    // defeating the defense below. Mirrors validateAthleteSignup and the
+    // GUARDIAN_EMAIL_IS_SELF check createPendingAthlete applies for new emails.
+    const gate = validateAthleteSignup(dob, rawGuardianEmail);
+    if (!gate.ok) {
+      return res.status(400).json({ error: gate.error });
+    }
+    if (normalizedEmail === rawGuardianEmail.toLowerCase().trim()) {
+      return res.status(400).json({ code: 'GUARDIAN_EMAIL_IS_SELF', error: 'The guardian email cannot be the same as the athlete email.' });
+    }
+
     const existing = await db
       .select()
       .from(schema.players)
@@ -317,6 +333,7 @@ router.post('/verify-email', verifyEmailLimiter, async (req, res) => {
 // the same file). Mirrors the _resetMessageRateLimitForTests pattern used by
 // server/middleware/messageRateLimit.ts.
 export const _emailAuthLimitersForTests = {
+  register: registerLimiter,
   login: loginLimiter,
   passwordReset: passwordResetLimiter,
   verifyEmail: verifyEmailLimiter,
