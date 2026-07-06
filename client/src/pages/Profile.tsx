@@ -13,6 +13,13 @@ import { athleteAvatar } from '../lib/avatar';
 import { useRatingReveal } from '../hooks/useRatingReveal';
 import { ShareCard } from '../components/ShareCard';
 import { toShareCard, type ShareCardData } from '../lib/shareCard';
+import { colors, type as t, radii } from '../lib/tokens';
+import { Button, Card, Input } from '../components/ui';
+
+const DISP = t.font.display;
+const HAIRLINE = 'rgba(255,255,255,0.06)';
+const HAIRLINE_2 = 'rgba(255,255,255,0.04)';
+const ACCENT_SOFT = 'rgba(139,59,255,0.1)';
 
 interface ApiProfile {
   id: number;
@@ -353,9 +360,9 @@ export const Profile = () => {
 
   if (isLoading) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#0a0a0a', color: '#888', gap: 16 }}>
-        <Loader2 size={40} color="#8B3BFF" style={{ animation: 'spin 1s linear infinite' }} />
-        <p style={{ fontSize: '0.9rem', letterSpacing: '0.05em' }}>Loading profile...</p>
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: colors.surface0, color: colors.textSecondary, gap: 16 }}>
+        <Loader2 size={40} color={colors.accent} style={{ animation: 'spin 1s linear infinite' }} />
+        <p style={{ fontSize: t.size.md, letterSpacing: '0.05em' }}>Loading profile...</p>
         <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
       </div>
     );
@@ -363,12 +370,12 @@ export const Profile = () => {
 
   if (isError && !profile) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#0a0a0a', color: '#888', gap: 16, padding: 24 }}>
-        <AlertTriangle size={48} color="#444" />
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: colors.surface0, color: colors.textSecondary, gap: 16, padding: 24 }}>
+        <AlertTriangle size={48} color={colors.textTertiary} />
         <div style={{ textAlign: 'center' }}>
-          <p style={{ fontSize: '1.1rem', fontWeight: 700, color: '#ccc', marginBottom: 6 }}>Something went wrong</p>
-          <p style={{ fontSize: '0.85rem', color: '#555', marginBottom: 16 }}>Unable to load this profile. Please try again.</p>
-          <button onClick={() => window.location.reload()} className="k-btn k-btn-primary">Retry</button>
+          <p style={{ fontSize: t.size.lg, fontWeight: t.weight.bold, color: colors.textPrimary, marginBottom: 6 }}>Something went wrong</p>
+          <p style={{ fontSize: t.size.base, color: colors.textTertiary, marginBottom: 16 }}>Unable to load this profile. Please try again.</p>
+          <Button onClick={() => window.location.reload()}>Retry</Button>
         </div>
       </div>
     );
@@ -376,11 +383,11 @@ export const Profile = () => {
 
   if (isEmpty) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#0a0a0a', color: '#888', gap: 16, padding: 24 }}>
-        <UserX size={48} color="#444" />
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: colors.surface0, color: colors.textSecondary, gap: 16, padding: 24 }}>
+        <UserX size={48} color={colors.textTertiary} />
         <div style={{ textAlign: 'center' }}>
-          <p style={{ fontSize: '1.1rem', fontWeight: 700, color: '#ccc', marginBottom: 6 }}>No profile data found</p>
-          <p style={{ fontSize: '0.85rem', color: '#555' }}>This athlete hasn't set up their profile yet.</p>
+          <p style={{ fontSize: t.size.lg, fontWeight: t.weight.bold, color: colors.textPrimary, marginBottom: 6 }}>No profile data found</p>
+          <p style={{ fontSize: t.size.base, color: colors.textTertiary }}>This athlete hasn't set up their profile yet.</p>
         </div>
       </div>
     );
@@ -401,17 +408,17 @@ export const Profile = () => {
   return (
     <div style={{ padding: '24px', maxWidth: 1000, margin: '0 auto', position: 'relative' }}>
       {viewAsCoach && (
-        <div style={{ marginBottom: 14, display: 'flex', alignItems: 'center', gap: 10, background: 'rgba(167,139,250,0.1)', border: '1px solid rgba(167,139,250,0.3)', borderRadius: 10, padding: '10px 14px' }}>
-          <Eye size={14} color="#a78bfa" />
-          <span style={{ fontSize: '0.78rem', color: '#a78bfa', fontWeight: 600 }}>Viewing as Coach — edit controls hidden</span>
-          <button onClick={() => setViewAsCoach(false)} style={{ marginLeft: 'auto', background: 'transparent', border: 'none', color: '#a78bfa', cursor: 'pointer', display: 'flex' }}><X size={14} /></button>
+        <div style={{ marginBottom: 14, display: 'flex', alignItems: 'center', gap: 10, background: ACCENT_SOFT, border: `1px solid ${colors.borderStrong}`, borderRadius: radii.md, padding: '10px 14px' }}>
+          <Eye size={14} color={colors.accentText} />
+          <span style={{ fontSize: t.size.sm, color: colors.accentText, fontWeight: t.weight.semibold }}>Viewing as Coach — edit controls hidden</span>
+          <button onClick={() => setViewAsCoach(false)} style={{ marginLeft: 'auto', background: 'transparent', border: 'none', color: colors.accentText, cursor: 'pointer', display: 'flex' }}><X size={14} /></button>
         </div>
       )}
 
       {/* Hero card */}
-      <div className="k-card" style={{ padding: '28px 24px', marginBottom: 20, position: 'relative', overflow: 'hidden' }}>
+      <Card style={{ padding: '28px 24px', marginBottom: 20, position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', top: -80, right: -80, width: 280, height: 280, background: 'radial-gradient(circle, rgba(139,59,255,0.12) 0%, transparent 65%)', pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px)', backgroundSize: '32px 32px', pointerEvents: 'none', borderRadius: 12 }} />
+        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px)', backgroundSize: '32px 32px', pointerEvents: 'none', borderRadius: radii.md }} />
 
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 20, position: 'relative' }}>
           <div style={{ position: 'relative', flexShrink: 0 }}>
@@ -419,8 +426,8 @@ export const Profile = () => {
               src={profile.profileImage || athleteAvatar(profile.name)}
               alt={profile.name}
               style={{
-                width: 80, height: 80, borderRadius: '50%', background: '#1c1c1c',
-                border: '2px solid rgba(139,59,255,0.3)', objectFit: 'cover',
+                width: 80, height: 80, borderRadius: '50%', background: colors.surface2,
+                border: `2px solid ${colors.borderStrong}`, objectFit: 'cover',
                 opacity: photoUploading ? 0.5 : 1, transition: 'opacity .2s',
               }}
             />
@@ -446,9 +453,9 @@ export const Profile = () => {
                   style={{
                     position: 'absolute', bottom: -2, left: -2,
                     width: 26, height: 26, borderRadius: '50%',
-                    background: '#8B3BFF', border: '2px solid #111',
+                    background: colors.accent, border: `2px solid ${colors.surface1}`,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    cursor: photoUploading ? 'wait' : 'pointer', color: '#fff',
+                    cursor: photoUploading ? 'wait' : 'pointer', color: colors.accentOn,
                     boxShadow: '0 2px 8px rgba(0,0,0,.5)',
                   }}
                 >
@@ -460,10 +467,10 @@ export const Profile = () => {
               <div style={{ position: 'absolute', bottom: 2, right: 2 }}>
                 <CheckCircle2
                   size={18}
-                  color="#8B3BFF"
-                  fill="#8B3BFF"
+                  color={colors.accent}
+                  fill={colors.accent}
                   className={revealing ? 'hers-badge' : undefined}
-                  style={{ background: '#111', borderRadius: '50%' }}
+                  style={{ background: colors.surface1, borderRadius: '50%' }}
                 />
               </div>
             )}
@@ -472,21 +479,21 @@ export const Profile = () => {
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 4 }}>
               <div>
-                <h1 style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 800, fontSize: '1.6rem', textTransform: 'uppercase', color: '#fff', lineHeight: 1, marginBottom: 4 }}>{profile.name}</h1>
+                <h1 style={{ fontFamily: DISP, fontWeight: 800, fontSize: t.size.xl, textTransform: 'uppercase', color: colors.textPrimary, lineHeight: 1, marginBottom: 4 }}>{profile.name}</h1>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                  <span style={{ background: 'rgba(139,59,255,0.1)', color: '#8B3BFF', fontSize: '0.72rem', fontWeight: 700, padding: '2px 8px', borderRadius: 4, letterSpacing: '0.06em' }}>{profile.position}</span>
-                  <span style={{ fontSize: '0.78rem', color: '#666' }}>{profile.school}</span>
-                  <span style={{ fontSize: '0.78rem', color: '#444' }}>·</span>
-                  <span style={{ fontSize: '0.78rem', color: '#666' }}>Class of {profile.gradYear}</span>
+                  <span style={{ background: ACCENT_SOFT, color: colors.accent, fontSize: t.size.xs, fontWeight: t.weight.bold, padding: '2px 8px', borderRadius: 4, letterSpacing: '0.06em' }}>{profile.position}</span>
+                  <span style={{ fontSize: t.size.sm, color: colors.textSecondary }}>{profile.school}</span>
+                  <span style={{ fontSize: t.size.sm, color: colors.textTertiary }}>·</span>
+                  <span style={{ fontSize: t.size.sm, color: colors.textSecondary }}>Class of {profile.gradYear}</span>
                 </div>
                 {location && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 6 }}>
-                    <MapPin size={12} color="#444" />
-                    <span style={{ fontSize: '0.72rem', color: '#555' }}>{location}</span>
+                    <MapPin size={12} color={colors.textTertiary} />
+                    <span style={{ fontSize: t.size.xs, color: colors.textTertiary }}>{location}</span>
                   </div>
                 )}
                 {profile.bio && (
-                  <p style={{ fontSize: '0.8rem', color: '#888', marginTop: 8, maxWidth: 420, lineHeight: 1.5 }}>{profile.bio}</p>
+                  <p style={{ fontSize: t.size.sm, color: colors.textSecondary, marginTop: 8, maxWidth: 420, lineHeight: 1.5 }}>{profile.bio}</p>
                 )}
               </div>
 
@@ -502,29 +509,29 @@ export const Profile = () => {
                 <div
                   className="hers-rating-number"
                   style={{
-                    fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 800, fontSize: '3.5rem',
-                    color: '#8B3BFF', lineHeight: 1, textShadow: '0 0 30px rgba(139,59,255,0.5)',
+                    fontFamily: DISP, fontWeight: 800, fontSize: '3.5rem',
+                    color: colors.accent, lineHeight: 1, textShadow: '0 0 30px rgba(139,59,255,0.5)',
                     position: 'relative',
                   }}
                 >
                   {score}
                 </div>
-                <div style={{ fontSize: '0.6rem', color: '#444', textTransform: 'uppercase', letterSpacing: '0.12em', marginTop: 2, position: 'relative' }}>HERS Score</div>
+                <div style={{ fontSize: '0.6rem', color: colors.textTertiary, textTransform: 'uppercase', letterSpacing: '0.12em', marginTop: 2, position: 'relative' }}>HERS Score</div>
               </div>
             </div>
 
             <div style={{ display: 'flex', gap: 8, marginTop: 16, flexWrap: 'wrap' }}>
               {!isOwnProfile && (
-                <button onClick={() => navigate('/messages')} className="k-btn k-btn-primary"><MessageSquare size={14} /> Message</button>
+                <Button size="sm" onClick={() => navigate('/messages')}><MessageSquare size={14} /> Message</Button>
               )}
               {effectiveCanEdit && (
-                <button className="k-btn k-btn-primary" onClick={openEdit}><Edit3 size={14} /> Edit Profile</button>
+                <Button size="sm" onClick={openEdit}><Edit3 size={14} /> Edit Profile</Button>
               )}
               {isOwnProfile && !viewAsCoach && (
-                <button className="k-btn k-btn-ghost" onClick={() => setViewAsCoach(true)}><Eye size={14} /> View As Coach</button>
+                <Button size="sm" variant="ghost" onClick={() => setViewAsCoach(true)}><Eye size={14} /> View As Coach</Button>
               )}
               <div ref={shareRef} style={{ position: 'relative' }}>
-                <button className="k-btn k-btn-ghost" onClick={() => setShareOpen(v => !v)}><Share2 size={14} /> Share</button>
+                <Button size="sm" variant="ghost" onClick={() => setShareOpen(v => !v)}><Share2 size={14} /> Share</Button>
                 <AnimatePresence>
                   {shareOpen && (
                     <motion.div
@@ -532,14 +539,14 @@ export const Profile = () => {
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: -6, scale: 0.97 }}
                       transition={{ duration: 0.12 }}
-                      style={{ position: 'absolute', top: 'calc(100% + 8px)', left: 0, zIndex: 50, background: '#161616', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, padding: '6px', minWidth: 230, boxShadow: '0 8px 32px rgba(0,0,0,0.6)' }}
+                      style={{ position: 'absolute', top: 'calc(100% + 8px)', left: 0, zIndex: 50, background: colors.surface1, border: `1px solid ${colors.border}`, borderRadius: radii.md, padding: '6px', minWidth: 230, boxShadow: '0 8px 32px rgba(0,0,0,0.6)' }}
                     >
-                      <ShareItem icon={<Link2 size={15} color="#8B3BFF" />} label="Copy Link" onClick={() => { navigator.clipboard.writeText(profileUrl); showNotification('success', 'Link copied!', profileUrl); setShareOpen(false); }} />
-                      <ShareItem icon={<svg width="15" height="15" viewBox="0 0 24 24" fill="#ccc"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.857L1.254 2.25H8.08l4.253 5.622 5.911-5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>} label="Share on X" onClick={() => { window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent('Check out my HERS365 profile')}&url=${encodeURIComponent(profileUrl)}`, '_blank', 'noopener,noreferrer'); setShareOpen(false); }} />
-                      <ShareItem icon={<Instagram size={15} color="#e1306c" />} label="Share on Instagram" onClick={() => { showNotification('info', 'Instagram', 'Copy the link and paste it in your Instagram bio.'); setShareOpen(false); }} />
+                      <ShareItem icon={<Link2 size={15} color={colors.accent} />} label="Copy Link" onClick={() => { navigator.clipboard.writeText(profileUrl); showNotification('success', 'Link copied!', profileUrl); setShareOpen(false); }} />
+                      <ShareItem icon={<svg width="15" height="15" viewBox="0 0 24 24" fill={colors.textPrimary}><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.857L1.254 2.25H8.08l4.253 5.622 5.911-5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>} label="Share on X" onClick={() => { window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent('Check out my HERS365 profile')}&url=${encodeURIComponent(profileUrl)}`, '_blank', 'noopener,noreferrer'); setShareOpen(false); }} />
+                      <ShareItem icon={<Instagram size={15} color={colors.pink} />} label="Share on Instagram" onClick={() => { showNotification('info', 'Instagram', 'Copy the link and paste it in your Instagram bio.'); setShareOpen(false); }} />
                       {isOwnProfile && profile && (
                         <ShareItem
-                          icon={<Trophy size={15} color="#8B3BFF" />}
+                          icon={<Trophy size={15} color={colors.accent} />}
                           label={exportingCard ? 'Building card…' : 'Share my rating card'}
                           onClick={() => {
                             if (exportingCard) return;
@@ -631,20 +638,20 @@ export const Profile = () => {
         </div>
 
         {/* Stat strip */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 0, marginTop: 20, paddingTop: 20, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 0, marginTop: 20, paddingTop: 20, borderTop: `1px solid ${HAIRLINE}` }}>
           {[
             { label: '40YD', value: combineStats?.fortyDash ?? '--' },
             { label: 'GPA', value: profile.gpa ?? '--' },
             { label: 'HGT', value: fmtHeight(profile.heightIn) },
             { label: 'WGT', value: profile.weightLbs ? `${profile.weightLbs} lbs` : '--' },
           ].map(({ label, value }, i, arr) => (
-            <div key={label} style={{ textAlign: 'center', borderRight: i < arr.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none', padding: '0 8px' }}>
-              <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#444', marginBottom: 4 }}>{label}</div>
-              <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 800, fontSize: '1.2rem', color: '#ddd' }}>{value}</div>
+            <div key={label} style={{ textAlign: 'center', borderRight: i < arr.length - 1 ? `1px solid ${HAIRLINE}` : 'none', padding: '0 8px' }}>
+              <div style={{ fontSize: '0.62rem', fontWeight: t.weight.bold, letterSpacing: '0.1em', textTransform: 'uppercase', color: colors.textTertiary, marginBottom: 4 }}>{label}</div>
+              <div style={{ fontFamily: DISP, fontWeight: 800, fontSize: t.size.lg, color: colors.textPrimary }}>{value}</div>
             </div>
           ))}
         </div>
-      </div>
+      </Card>
 
       {/* Profile completion bar — only on the owner's view, only while incomplete. */}
       {isOwnProfile && !viewAsCoach && (() => {
@@ -659,22 +666,22 @@ export const Profile = () => {
         const pct = Math.round((doneCount / steps.length) * 100);
         if (pct === 100) return null;
         return (
-          <div className="k-card" style={{ padding: '16px 20px', marginBottom: 20 }}>
+          <Card style={{ padding: '16px 20px', marginBottom: 20 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, gap: 12, flexWrap: 'wrap' }}>
               <div>
-                <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 800, fontSize: '0.78rem', letterSpacing: '0.16em', textTransform: 'uppercase', color: '#8B3BFF' }}>
+                <div style={{ fontFamily: DISP, fontWeight: 800, fontSize: t.size.sm, letterSpacing: '0.16em', textTransform: 'uppercase', color: colors.accent }}>
                   Profile {pct}% Complete
                 </div>
-                <div style={{ fontSize: '0.78rem', color: '#888', marginTop: 4 }}>
+                <div style={{ fontSize: t.size.sm, color: colors.textSecondary, marginTop: 4 }}>
                   Complete profiles get 4x more coach views.
                 </div>
               </div>
-              <span style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 800, fontSize: '1rem', color: '#ddd' }}>
+              <span style={{ fontFamily: DISP, fontWeight: 800, fontSize: t.size.md, color: colors.textPrimary }}>
                 {doneCount}/{steps.length}
               </span>
             </div>
-            <div style={{ height: 6, borderRadius: 9999, background: 'rgba(255,255,255,0.06)', overflow: 'hidden', marginBottom: 14 }}>
-              <div style={{ width: `${pct}%`, height: '100%', background: 'linear-gradient(90deg,#8B3BFF,#C4A3FF)', transition: 'width .4s' }} />
+            <div style={{ height: 6, borderRadius: radii.full, background: HAIRLINE, overflow: 'hidden', marginBottom: 14 }}>
+              <div style={{ width: `${pct}%`, height: '100%', background: `linear-gradient(90deg,${colors.accent},${colors.accentText})`, transition: 'width .4s' }} />
             </div>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {steps.filter(s => !s.done).slice(0, 3).map(s => (
@@ -682,9 +689,9 @@ export const Profile = () => {
                   key={s.key}
                   onClick={s.action}
                   style={{
-                    background: 'rgba(139,59,255,0.08)', border: '1px solid rgba(139,59,255,0.25)',
-                    color: '#ffb091', borderRadius: 9999, padding: '7px 14px', fontSize: '0.74rem',
-                    fontWeight: 700, cursor: 'pointer', transition: 'all .18s',
+                    background: 'rgba(139,59,255,0.08)', border: `1px solid ${colors.borderStrong}`,
+                    color: colors.accentText, borderRadius: radii.full, padding: '7px 14px', fontSize: t.size.xs,
+                    fontWeight: t.weight.bold, cursor: 'pointer', transition: 'all .18s',
                   }}
                   onMouseEnter={e => { e.currentTarget.style.background = 'rgba(139,59,255,0.16)'; }}
                   onMouseLeave={e => { e.currentTarget.style.background = 'rgba(139,59,255,0.08)'; }}
@@ -693,14 +700,14 @@ export const Profile = () => {
                 </button>
               ))}
             </div>
-          </div>
+          </Card>
         );
       })()}
 
       {/* Tabs */}
       <div style={{ display: 'flex', gap: 4, marginBottom: 16 }}>
         {tabs.map(tab => (
-          <button key={tab} onClick={() => setActiveTab(tab)} style={{ background: activeTab === tab ? '#8B3BFF' : 'transparent', border: '1px solid', borderColor: activeTab === tab ? '#8B3BFF' : 'rgba(255,255,255,0.08)', borderRadius: 7, padding: '7px 16px', color: activeTab === tab ? '#fff' : '#666', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s' }}>{tab}</button>
+          <button key={tab} onClick={() => setActiveTab(tab)} style={{ background: activeTab === tab ? colors.accent : 'transparent', border: '1px solid', borderColor: activeTab === tab ? colors.accent : colors.border, borderRadius: radii.sm, padding: '7px 16px', color: activeTab === tab ? colors.accentOn : colors.textSecondary, fontSize: t.size.sm, fontWeight: t.weight.bold, cursor: 'pointer', transition: 'all 0.15s' }}>{tab}</button>
         ))}
       </div>
 
@@ -711,10 +718,10 @@ export const Profile = () => {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
             {/* Season totals */}
-            <div className="k-card" style={{ padding: '18px 16px' }}>
-              <div style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#555', marginBottom: 14 }}>Season Totals</div>
+            <Card style={{ padding: '18px 16px' }}>
+              <div style={{ fontSize: '0.65rem', fontWeight: t.weight.bold, letterSpacing: '0.12em', textTransform: 'uppercase', color: colors.textTertiary, marginBottom: 14 }}>Season Totals</div>
               {statsLoading ? (
-                <div style={{ color: '#444', fontSize: '0.82rem' }}>Loading...</div>
+                <div style={{ color: colors.textTertiary, fontSize: t.size.base }}>Loading...</div>
               ) : totals ? (
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                   {[
@@ -725,54 +732,54 @@ export const Profile = () => {
                     { label: 'Flag Pulls', value: totals.flagPulls },
                     { label: 'INT', value: totals.interceptionsCaught },
                   ].map(({ label, value }) => (
-                    <div key={label} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                      <span style={{ fontSize: '0.75rem', color: '#666' }}>{label}</span>
-                      <span style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '0.95rem', color: '#ddd' }}>{value ?? '--'}</span>
+                    <div key={label} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: `1px solid ${HAIRLINE_2}` }}>
+                      <span style={{ fontSize: t.size.sm, color: colors.textSecondary }}>{label}</span>
+                      <span style={{ fontFamily: DISP, fontWeight: t.weight.bold, fontSize: t.size.md, color: colors.textPrimary }}>{value ?? '--'}</span>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p style={{ fontSize: '0.82rem', color: '#555' }}>No game stats recorded yet.</p>
+                <p style={{ fontSize: t.size.base, color: colors.textTertiary }}>No game stats recorded yet.</p>
               )}
-            </div>
+            </Card>
 
             {/* Achievements */}
-            <div className="k-card" style={{ padding: '18px 16px' }}>
-              <div style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#555', marginBottom: 14 }}>Achievements</div>
+            <Card style={{ padding: '18px 16px' }}>
+              <div style={{ fontSize: '0.65rem', fontWeight: t.weight.bold, letterSpacing: '0.12em', textTransform: 'uppercase', color: colors.textTertiary, marginBottom: 14 }}>Achievements</div>
               {achievementList.length > 0 ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {achievementList.map((a, i) => (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                      <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#8B3BFF', flexShrink: 0 }} />
-                      <span style={{ fontSize: '0.82rem', color: '#ccc' }}>{a}</span>
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: `1px solid ${HAIRLINE_2}` }}>
+                      <div style={{ width: 6, height: 6, borderRadius: '50%', background: colors.accent, flexShrink: 0 }} />
+                      <span style={{ fontSize: t.size.base, color: colors.textPrimary }}>{a}</span>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p style={{ fontSize: '0.82rem', color: '#555' }}>No achievements listed yet.</p>
+                <p style={{ fontSize: t.size.base, color: colors.textTertiary }}>No achievements listed yet.</p>
               )}
-            </div>
+            </Card>
           </div>
 
             {/* Badges */}
-            <div className="k-card" style={{ padding: '18px 16px' }}>
-              <div style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#555', marginBottom: 14 }}>Badges</div>
+            <Card style={{ padding: '18px 16px' }}>
+              <div style={{ fontSize: '0.65rem', fontWeight: t.weight.bold, letterSpacing: '0.12em', textTransform: 'uppercase', color: colors.textTertiary, marginBottom: 14 }}>Badges</div>
               {badges.length > 0 ? (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
                   {badges.map(b => (
-                    <div key={b.id} title={b.description ?? b.name} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(139,59,255,0.07)', border: '1px solid rgba(139,59,255,0.2)', borderRadius: 8, padding: '8px 12px' }}>
+                    <div key={b.id} title={b.description ?? b.name} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(139,59,255,0.07)', border: `1px solid ${colors.borderStrong}`, borderRadius: radii.sm, padding: '8px 12px' }}>
                       <BadgeIcon icon={b.icon} />
                       <div>
-                        <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#ddd' }}>{b.name}</div>
-                        {b.category && <div style={{ fontSize: '0.62rem', color: '#555', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{b.category}</div>}
+                        <div style={{ fontSize: t.size.sm, fontWeight: t.weight.bold, color: colors.textPrimary }}>{b.name}</div>
+                        {b.category && <div style={{ fontSize: '0.62rem', color: colors.textTertiary, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{b.category}</div>}
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p style={{ fontSize: '0.82rem', color: '#555' }}>Complete drills to earn your first badge.</p>
+                <p style={{ fontSize: t.size.base, color: colors.textTertiary }}>Complete drills to earn your first badge.</p>
               )}
-            </div>
+            </Card>
           </div>
         )}
 
@@ -780,8 +787,8 @@ export const Profile = () => {
         {activeTab === 'Stats' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {/* Combine */}
-            <div className="k-card" style={{ padding: '18px 16px' }}>
-              <div style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#555', marginBottom: 14 }}>Combine / Measurables</div>
+            <Card style={{ padding: '18px 16px' }}>
+              <div style={{ fontSize: '0.65rem', fontWeight: t.weight.bold, letterSpacing: '0.12em', textTransform: 'uppercase', color: colors.textTertiary, marginBottom: 14 }}>Combine / Measurables</div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 0 }}>
                 {[
                   { label: '40 Yard', value: combineStats?.fortyDash ?? '--' },
@@ -790,22 +797,22 @@ export const Profile = () => {
                   { label: 'Broad Jump', value: combineStats?.broadJump ?? '--' },
                   { label: '3-Cone', value: combineStats?.threeCone ?? '--' },
                 ].map(({ label, value }, i, arr) => (
-                  <div key={label} style={{ textAlign: 'center', borderRight: i < arr.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none', padding: '0 8px' }}>
-                    <div style={{ fontSize: '0.6rem', color: '#444', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>{label}</div>
-                    <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 800, fontSize: '1.3rem', color: '#ddd' }}>{value}</div>
+                  <div key={label} style={{ textAlign: 'center', borderRight: i < arr.length - 1 ? `1px solid ${HAIRLINE}` : 'none', padding: '0 8px' }}>
+                    <div style={{ fontSize: '0.6rem', color: colors.textTertiary, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>{label}</div>
+                    <div style={{ fontFamily: DISP, fontWeight: 800, fontSize: t.size.xl, color: colors.textPrimary }}>{value}</div>
                   </div>
                 ))}
               </div>
-            </div>
+            </Card>
 
             {/* Game stats */}
             {statsLoading ? (
-              <div className="k-card" style={{ padding: '32px', textAlign: 'center', color: '#555' }}>Loading stats...</div>
+              <Card style={{ padding: '32px', textAlign: 'center', color: colors.textTertiary }}>Loading stats...</Card>
             ) : gameStats.length > 0 ? (
               <>
                 {totals && (
-                  <div className="k-card" style={{ padding: '18px 16px' }}>
-                    <div style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#555', marginBottom: 14 }}>Season Totals ({gameStats.length} games)</div>
+                  <Card style={{ padding: '18px 16px' }}>
+                    <div style={{ fontSize: '0.65rem', fontWeight: t.weight.bold, letterSpacing: '0.12em', textTransform: 'uppercase', color: colors.textTertiary, marginBottom: 14 }}>Season Totals ({gameStats.length} games)</div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
                       {[
                         { section: 'Passing', items: [
@@ -833,53 +840,53 @@ export const Profile = () => {
                         ]},
                       ].map(({ section, items }) => (
                         <div key={section}>
-                          <div style={{ fontSize: '0.62rem', fontWeight: 700, color: '#8B3BFF', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>{section}</div>
+                          <div style={{ fontSize: '0.62rem', fontWeight: t.weight.bold, color: colors.accent, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>{section}</div>
                           {items.map(({ label, value }) => (
-                            <div key={label} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                              <span style={{ fontSize: '0.74rem', color: '#666' }}>{label}</span>
-                              <span style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '0.9rem', color: value ? '#ddd' : '#444' }}>{value ?? '--'}</span>
+                            <div key={label} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: `1px solid ${HAIRLINE_2}` }}>
+                              <span style={{ fontSize: t.size.xs, color: colors.textSecondary }}>{label}</span>
+                              <span style={{ fontFamily: DISP, fontWeight: t.weight.bold, fontSize: t.size.base, color: value ? colors.textPrimary : colors.textTertiary }}>{value ?? '--'}</span>
                             </div>
                           ))}
                         </div>
                       ))}
                     </div>
-                  </div>
+                  </Card>
                 )}
 
                 {/* Per-game log */}
-                <div className="k-card" style={{ overflow: 'hidden' }}>
-                  <div style={{ padding: '14px 16px', borderBottom: '1px solid rgba(255,255,255,0.06)', fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#555' }}>Game Log</div>
+                <Card style={{ overflow: 'hidden' }}>
+                  <div style={{ padding: '14px 16px', borderBottom: `1px solid ${HAIRLINE}`, fontSize: '0.65rem', fontWeight: t.weight.bold, letterSpacing: '0.12em', textTransform: 'uppercase', color: colors.textTertiary }}>Game Log</div>
                   <div style={{ overflowX: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.78rem' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: t.size.sm }}>
                       <thead>
                         <tr>
                           {['#', 'Pass YDS', 'Pass TD', 'Rush YDS', 'Rec YDS', 'Flag Pulls'].map(h => (
-                            <th key={h} style={{ padding: '8px 12px', textAlign: 'center', fontSize: '0.6rem', fontWeight: 700, color: '#444', textTransform: 'uppercase', letterSpacing: '0.08em', whiteSpace: 'nowrap' }}>{h}</th>
+                            <th key={h} style={{ padding: '8px 12px', textAlign: 'center', fontSize: '0.6rem', fontWeight: t.weight.bold, color: colors.textTertiary, textTransform: 'uppercase', letterSpacing: '0.08em', whiteSpace: 'nowrap' }}>{h}</th>
                           ))}
                         </tr>
                       </thead>
                       <tbody>
                         {gameStats.map((g, i) => (
-                          <tr key={i} style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}>
-                            <td style={{ padding: '8px 12px', textAlign: 'center', color: '#555', fontWeight: 700 }}>G{i + 1}</td>
-                            <td style={{ padding: '8px 12px', textAlign: 'center', color: '#ddd' }}>{g.passingYards ?? '--'}</td>
-                            <td style={{ padding: '8px 12px', textAlign: 'center', color: '#ddd' }}>{g.passingTds ?? '--'}</td>
-                            <td style={{ padding: '8px 12px', textAlign: 'center', color: '#ddd' }}>{g.rushingYards ?? '--'}</td>
-                            <td style={{ padding: '8px 12px', textAlign: 'center', color: '#ddd' }}>{g.receivingYards ?? '--'}</td>
-                            <td style={{ padding: '8px 12px', textAlign: 'center', color: '#ddd' }}>{g.flagPulls ?? '--'}</td>
+                          <tr key={i} style={{ borderTop: `1px solid ${HAIRLINE_2}` }}>
+                            <td style={{ padding: '8px 12px', textAlign: 'center', color: colors.textTertiary, fontWeight: t.weight.bold }}>G{i + 1}</td>
+                            <td style={{ padding: '8px 12px', textAlign: 'center', color: colors.textPrimary }}>{g.passingYards ?? '--'}</td>
+                            <td style={{ padding: '8px 12px', textAlign: 'center', color: colors.textPrimary }}>{g.passingTds ?? '--'}</td>
+                            <td style={{ padding: '8px 12px', textAlign: 'center', color: colors.textPrimary }}>{g.rushingYards ?? '--'}</td>
+                            <td style={{ padding: '8px 12px', textAlign: 'center', color: colors.textPrimary }}>{g.receivingYards ?? '--'}</td>
+                            <td style={{ padding: '8px 12px', textAlign: 'center', color: colors.textPrimary }}>{g.flagPulls ?? '--'}</td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
                   </div>
-                </div>
+                </Card>
               </>
             ) : (
-              <div className="k-card" style={{ padding: '48px', textAlign: 'center' }}>
-                <Zap size={32} color="#333" style={{ marginBottom: 12 }} />
-                <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontSize: '1.1rem', fontWeight: 700, textTransform: 'uppercase', color: '#444', marginBottom: 6 }}>No game stats yet</div>
-                <div style={{ fontSize: '0.82rem', color: '#555' }}>Stats will appear here once games are logged.</div>
-              </div>
+              <Card style={{ padding: '48px', textAlign: 'center' }}>
+                <Zap size={32} color={colors.textTertiary} style={{ marginBottom: 12 }} />
+                <div style={{ fontFamily: DISP, fontSize: t.size.lg, fontWeight: t.weight.bold, textTransform: 'uppercase', color: colors.textTertiary, marginBottom: 6 }}>No game stats yet</div>
+                <div style={{ fontSize: t.size.base, color: colors.textTertiary }}>Stats will appear here once games are logged.</div>
+              </Card>
             )}
           </div>
         )}
@@ -896,91 +903,90 @@ export const Profile = () => {
                   style={{ display: 'none' }}
                   onChange={e => { const f = e.target.files?.[0]; if (f) handleHighlightUpload(f); e.target.value = ''; }}
                 />
-                <button
-                  className="k-btn k-btn-primary"
+                <Button
                   onClick={() => highlightInputRef.current?.click()}
                   disabled={uploadingHighlight}
                   style={{ opacity: uploadingHighlight ? 0.6 : 1 }}
                 >
                   {uploadingHighlight ? <><Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> Uploading...</> : <><Upload size={14} /> Upload Highlight</>}
-                </button>
+                </Button>
                 <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
               </div>
             )}
 
             {highlightsLoading ? (
-              <div className="k-card" style={{ padding: '32px', textAlign: 'center', color: '#555' }}>Loading highlights...</div>
+              <Card style={{ padding: '32px', textAlign: 'center', color: colors.textTertiary }}>Loading highlights...</Card>
             ) : highlights.length > 0 ? (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
                 {highlights.map(h => (
-                  <div key={h.id} className="k-card" style={{ overflow: 'hidden', cursor: 'pointer', position: 'relative' }}
+                  <Card key={h.id} style={{ overflow: 'hidden', cursor: 'pointer', position: 'relative' }}
                     onClick={() => h.videoUrl && window.open(h.videoUrl, '_blank', 'noopener,noreferrer')}>
-                    <div style={{ aspectRatio: '16/9', background: '#1a1a1a', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+                    <div style={{ aspectRatio: '16/9', background: colors.surface2, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
                       {h.thumbnailUrl ? (
                         <img src={h.thumbnailUrl} style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0 }} alt="Highlight" />
                       ) : null}
                       {h.videoUrl ? (
                         <div style={{ position: 'relative', zIndex: 1, background: 'rgba(0,0,0,0.5)', borderRadius: '50%', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <Play size={18} color="#fff" fill="#fff" />
+                          <Play size={18} color={colors.textPrimary} fill={colors.textPrimary} />
                         </div>
                       ) : (
-                        <Image size={24} color="#444" />
+                        <Image size={24} color={colors.textTertiary} />
                       )}
                     </div>
                     <div style={{ padding: '10px 12px' }}>
-                      <div style={{ fontSize: '0.72rem', color: '#666' }}>
+                      <div style={{ fontSize: t.size.xs, color: colors.textSecondary }}>
                         {h.videoUrl ? <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Film size={11} /> Video</span> : <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Image size={11} /> Photo</span>}
                       </div>
-                      {h.season && <div style={{ fontSize: '0.65rem', color: '#444', marginTop: 2 }}>{h.season}</div>}
+                      {h.season && <div style={{ fontSize: '0.65rem', color: colors.textTertiary, marginTop: 2 }}>{h.season}</div>}
                     </div>
-                  </div>
+                  </Card>
                 ))}
               </div>
             ) : (
-              <div className="k-card" style={{ padding: '48px', textAlign: 'center' }}>
-                <Film size={32} color="#333" style={{ marginBottom: 12 }} />
-                <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontSize: '1.1rem', fontWeight: 700, textTransform: 'uppercase', color: '#444', marginBottom: 6 }}>No highlights yet</div>
+              <Card style={{ padding: '48px', textAlign: 'center' }}>
+                <Film size={32} color={colors.textTertiary} style={{ marginBottom: 12 }} />
+                <div style={{ fontFamily: DISP, fontSize: t.size.lg, fontWeight: t.weight.bold, textTransform: 'uppercase', color: colors.textTertiary, marginBottom: 6 }}>No highlights yet</div>
                 {effectiveCanEdit ? (
-                  <div style={{ fontSize: '0.82rem', color: '#555' }}>Upload a video or photo to get started.</div>
+                  <div style={{ fontSize: t.size.base, color: colors.textTertiary }}>Upload a video or photo to get started.</div>
                 ) : (
-                  <div style={{ fontSize: '0.82rem', color: '#555' }}>This athlete hasn't uploaded highlights yet.</div>
+                  <div style={{ fontSize: t.size.base, color: colors.textTertiary }}>This athlete hasn't uploaded highlights yet.</div>
                 )}
-              </div>
+              </Card>
             )}
           </div>
         )}
 
         {/* ACTIVITY */}
         {activeTab === 'Activity' && (
-          <div className="k-card" style={{ padding: '18px 16px' }}>
-            <div style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#555', marginBottom: 14 }}>
+          <Card style={{ padding: '18px 16px' }}>
+            <div style={{ fontSize: '0.65rem', fontWeight: t.weight.bold, letterSpacing: '0.12em', textTransform: 'uppercase', color: colors.textTertiary, marginBottom: 14 }}>
               <Activity size={12} style={{ display: 'inline', marginRight: 6 }} />Recent Activity
             </div>
             {profile.nilPoints || profile.archetype ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {profile.archetype && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                    <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(139,59,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Trophy size={14} color="#8B3BFF" /></div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: `1px solid ${HAIRLINE_2}` }}>
+                    <div style={{ width: 32, height: 32, borderRadius: '50%', background: ACCENT_SOFT, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Trophy size={14} color={colors.accent} /></div>
                     <div>
-                      <div style={{ fontSize: '0.82rem', color: '#ccc', fontWeight: 600 }}>Archetype: {profile.archetype}</div>
-                      <div style={{ fontSize: '0.7rem', color: '#555' }}>Playing style identified</div>
+                      <div style={{ fontSize: t.size.base, color: colors.textPrimary, fontWeight: t.weight.semibold }}>Archetype: {profile.archetype}</div>
+                      <div style={{ fontSize: t.size.xs, color: colors.textTertiary }}>Playing style identified</div>
                     </div>
                   </div>
                 )}
                 {(profile.nilPoints ?? 0) > 0 && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                    <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(74,222,128,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Zap size={14} color="#4ade80" /></div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: `1px solid ${HAIRLINE_2}` }}>
+                    <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(74,222,128,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Zap size={14} color={colors.success} /></div>
                     <div>
-                      <div style={{ fontSize: '0.82rem', color: '#ccc', fontWeight: 600 }}>{profile.nilPoints} NIL Points earned</div>
-                      <div style={{ fontSize: '0.7rem', color: '#555' }}>NIL activity</div>
+                      <div style={{ fontSize: t.size.base, color: colors.textPrimary, fontWeight: t.weight.semibold }}>{profile.nilPoints} NIL Points earned</div>
+                      <div style={{ fontSize: t.size.xs, color: colors.textTertiary }}>NIL activity</div>
                     </div>
                   </div>
                 )}
               </div>
             ) : (
-              <p style={{ fontSize: '0.82rem', color: '#555' }}>No recent activity yet.</p>
+              <p style={{ fontSize: t.size.base, color: colors.textTertiary }}>No recent activity yet.</p>
             )}
-          </div>
+          </Card>
         )}
       </motion.div>
 
@@ -995,11 +1001,11 @@ export const Profile = () => {
             <motion.div
               initial={{ opacity: 0, y: 12, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 12, scale: 0.97 }} transition={{ duration: 0.15 }}
               role="dialog" aria-modal="true" aria-labelledby="edit-profile-title"
-              style={{ background: '#111', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 14, padding: '28px 24px', width: '100%', maxWidth: 520, boxShadow: '0 24px 64px rgba(0,0,0,0.8)', maxHeight: '90vh', overflowY: 'auto' }}
+              style={{ background: colors.surface1, border: `1px solid ${colors.border}`, borderRadius: radii.lg, padding: '28px 24px', width: '100%', maxWidth: 520, boxShadow: '0 24px 64px rgba(0,0,0,0.8)', maxHeight: '90vh', overflowY: 'auto' }}
             >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22 }}>
-                <h2 id="edit-profile-title" style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 800, fontSize: '1.3rem', textTransform: 'uppercase', color: '#fff', margin: 0 }}>Edit Profile</h2>
-                <button onClick={() => setEditOpen(false)} style={{ background: 'transparent', border: 'none', color: '#555', cursor: 'pointer', padding: 4, lineHeight: 1, fontSize: '1.2rem' }}>✕</button>
+                <h2 id="edit-profile-title" style={{ fontFamily: DISP, fontWeight: 800, fontSize: t.size.xl, textTransform: 'uppercase', color: colors.textPrimary, margin: 0 }}>Edit Profile</h2>
+                <button onClick={() => setEditOpen(false)} style={{ background: 'transparent', border: 'none', color: colors.textTertiary, cursor: 'pointer', padding: 4, lineHeight: 1, fontSize: t.size.lg }}>✕</button>
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -1012,44 +1018,37 @@ export const Profile = () => {
                   { label: 'Height (inches)', key: 'heightIn', placeholder: 'e.g. 68 (for 5\'8")', inputMode: 'numeric' as const },
                   { label: 'Weight (lbs)', key: 'weightLbs', placeholder: 'e.g. 145', inputMode: 'numeric' as const },
                 ].map(({ label, key, placeholder, inputMode }) => (
-                  <div key={key}>
-                    <label style={{ display: 'block', fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#555', marginBottom: 6 }}>{label}</label>
-                    <input
-                      ref={key === 'name' ? nameInputRef : undefined}
-                      value={editForm[key as keyof EditForm]}
-                      onChange={e => { setEditForm(f => ({ ...f, [key]: e.target.value })); setEditError(null); }}
-                      placeholder={placeholder}
-                      inputMode={inputMode}
-                      style={{ width: '100%', background: '#1a1a1a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '10px 12px', color: '#fff', fontSize: '0.88rem', outline: 'none', boxSizing: 'border-box' }}
-                      onFocus={e => (e.currentTarget.style.borderColor = 'rgba(139,59,255,0.5)')}
-                      onBlur={e => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
-                    />
-                  </div>
+                  <Input
+                    key={key}
+                    ref={key === 'name' ? nameInputRef : undefined}
+                    label={label}
+                    value={editForm[key as keyof EditForm]}
+                    onChange={e => { setEditForm(f => ({ ...f, [key]: e.target.value })); setEditError(null); }}
+                    placeholder={placeholder}
+                    inputMode={inputMode}
+                  />
                 ))}
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#555', marginBottom: 6 }}>Bio</label>
+                  <label style={{ display: 'block', fontSize: t.size.xs, fontWeight: t.weight.semibold, letterSpacing: '0.08em', textTransform: 'uppercase', color: colors.textSecondary, marginBottom: 6 }}>Bio</label>
                   <textarea
                     value={editForm.bio}
                     onChange={e => { setEditForm(f => ({ ...f, bio: e.target.value })); setEditError(null); }}
                     placeholder="A short bio about yourself"
                     rows={3}
-                    style={{ width: '100%', background: '#1a1a1a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '10px 12px', color: '#fff', fontSize: '0.88rem', outline: 'none', resize: 'vertical', boxSizing: 'border-box', fontFamily: 'inherit' }}
-                    onFocus={e => (e.currentTarget.style.borderColor = 'rgba(139,59,255,0.5)')}
-                    onBlur={e => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
+                    className="k-input"
+                    style={{ width: '100%', padding: '10px 12px', resize: 'vertical', boxSizing: 'border-box', fontFamily: 'inherit' }}
                   />
                 </div>
               </div>
 
               {editError && (
-                <div style={{ marginTop: 14, padding: '10px 12px', background: 'rgba(139,59,255,0.1)', border: '1px solid rgba(139,59,255,0.3)', borderRadius: 8, color: '#8B3BFF', fontSize: '0.82rem' }}>{editError}</div>
+                <div style={{ marginTop: 14, padding: '10px 12px', background: ACCENT_SOFT, border: `1px solid ${colors.borderStrong}`, borderRadius: radii.sm, color: colors.accentText, fontSize: t.size.base }}>{editError}</div>
               )}
 
               <div style={{ display: 'flex', gap: 10, marginTop: 22, justifyContent: 'flex-end' }}>
-                <button onClick={() => setEditOpen(false)} className="k-btn k-btn-ghost" disabled={editSaving}>Cancel</button>
-                <button onClick={saveEdit} className="k-btn k-btn-primary" disabled={editSaving} style={{ opacity: editSaving ? 0.6 : 1 }}>
-                  {editSaving ? <><Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> Saving…</> : 'Save Changes'}
-                </button>
+                <Button variant="ghost" onClick={() => setEditOpen(false)} disabled={editSaving}>Cancel</Button>
+                <Button onClick={saveEdit} disabled={editSaving} loading={editSaving}>Save Changes</Button>
               </div>
             </motion.div>
           </motion.div>
@@ -1073,7 +1072,7 @@ export const Profile = () => {
 };
 
 function BadgeIcon({ icon }: { icon: string | null }) {
-  const s = { size: 16, color: '#8B3BFF' };
+  const s = { size: 16, color: colors.accent };
   switch ((icon ?? '').toLowerCase()) {
     case 'star': return <Star {...s} />;
     case 'shield': return <Shield {...s} />;
@@ -1090,7 +1089,7 @@ function ShareItem({ icon, label, onClick }: { icon: React.ReactNode; label: str
   return (
     <button
       onClick={onClick}
-      style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', background: 'transparent', border: 'none', borderRadius: 7, padding: '9px 12px', color: '#ccc', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer', textAlign: 'left' }}
+      style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', background: 'transparent', border: 'none', borderRadius: radii.sm, padding: '9px 12px', color: colors.textPrimary, fontSize: t.size.base, fontWeight: t.weight.semibold, cursor: 'pointer', textAlign: 'left' }}
       onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.05)')}
       onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
     >

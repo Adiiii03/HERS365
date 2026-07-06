@@ -1,21 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Target, Trophy, ChevronRight, ChevronLeft, Check, Zap, MapPin, Upload } from 'lucide-react';
 import { useNotifications } from '../context/NotificationContext';
 import { FLAG_POSITIONS } from '../lib/positions';
+import { colors, type as t, radii } from '../lib/tokens';
+import { springs, easing } from '../lib/motion';
+import { haptics } from '../lib/haptics';
 
-const FLAME   = '#8B3BFF';
-const FLAME_S = '#C4A3FF';
-const INK     = '#0a0a0a';
-const INK_2   = '#111111';
-const INK_3   = '#161616';
-const LINE    = 'rgba(255,255,255,0.07)';
-const MUTED   = '#8a8a86';
-const MUTED_2 = '#8a8a85';
-const DISP    = "'Barlow Condensed', sans-serif";
-const BODY    = "'DM Sans', sans-serif";
-const GRAIN   = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`;
+const GRAIN = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`;
 
 const SPORTS    = ['Flag Football', '7v7 Flag', 'Tackle Football'];
 const POSITIONS = FLAG_POSITIONS;
@@ -27,7 +20,7 @@ const STATES = [
 
 const TOTAL_STEPS = 4;
 
-const CONFETTI_COLORS = ['#8B3BFF', '#C4A3FF', '#ffffff', '#ffd700', '#ff3399', '#4ade80'];
+const CONFETTI_COLORS = [colors.accent, colors.accentText, colors.accentOn, colors.neon, colors.pink, colors.success];
 const CONFETTI = Array.from({ length: 52 }, (_, i) => ({
   id: i,
   x: (Math.random() - 0.5) * 720,
@@ -49,24 +42,24 @@ const steps = [
 ];
 
 const selectCls: React.CSSProperties = {
-  width: '100%', background: INK_3, border: `1px solid ${LINE}`,
-  borderRadius: 13, padding: '13px 16px', fontSize: '0.95rem',
-  color: '#f4f4f2', fontFamily: BODY, outline: 'none',
+  width: '100%', background: colors.surface2, border: `1px solid ${colors.border}`,
+  borderRadius: radii.md, padding: '13px 16px', fontSize: t.size.md,
+  color: colors.textPrimary, fontFamily: t.font.body, outline: 'none',
   cursor: 'pointer', appearance: 'none', WebkitAppearance: 'none',
   transition: 'border-color 0.2s',
 };
 
 const inputCls: React.CSSProperties = {
-  width: '100%', background: INK_3, border: `1px solid ${LINE}`,
-  borderRadius: 13, padding: '13px 16px', fontSize: '0.95rem',
-  color: '#f4f4f2', fontFamily: BODY, outline: 'none',
+  width: '100%', background: colors.surface2, border: `1px solid ${colors.border}`,
+  borderRadius: radii.md, padding: '13px 16px', fontSize: t.size.md,
+  color: colors.textPrimary, fontFamily: t.font.body, outline: 'none',
   transition: 'border-color 0.2s',
 };
 
 const labelCls: React.CSSProperties = {
-  display: 'block', fontFamily: DISP, fontWeight: 800,
-  fontSize: '.66rem', letterSpacing: '.18em', textTransform: 'uppercase',
-  color: MUTED, marginBottom: 8,
+  display: 'block', fontFamily: t.font.display, fontWeight: t.weight.bold,
+  fontSize: t.size.xs, letterSpacing: '.18em', textTransform: 'uppercase',
+  color: colors.textSecondary, marginBottom: 8,
 };
 
 function StyledSelect({ label, value, onChange, children }: {
@@ -79,7 +72,7 @@ function StyledSelect({ label, value, onChange, children }: {
         value={value}
         onChange={e => onChange(e.target.value)}
         onFocus={e => { e.target.style.borderColor = 'rgba(139,59,255,0.55)'; e.target.style.boxShadow = '0 0 0 3px rgba(139,59,255,0.09)'; }}
-        onBlur={e => { e.target.style.borderColor = LINE; e.target.style.boxShadow = 'none'; }}
+        onBlur={e => { e.target.style.borderColor = colors.border; e.target.style.boxShadow = 'none'; }}
         style={selectCls}
       >
         {children}
@@ -106,14 +99,14 @@ function ProfilePreview({ form, step, userName }: {
   const rating = projectedRating(form, step);
   return (
     <div style={{
-      background: `linear-gradient(160deg, ${INK_3}, ${INK_2})`,
-      border: `1px solid ${LINE}`, borderRadius: 20, padding: 22,
+      background: `linear-gradient(160deg, ${colors.surface2}, ${colors.surface1})`,
+      border: `1px solid ${colors.border}`, borderRadius: radii.lg, padding: 22,
       boxShadow: '0 24px 64px rgba(0,0,0,.6)',
     }}>
       {/* Header badge */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 18 }}>
         <div>
-          <div style={{ fontFamily: DISP, fontWeight: 900, fontSize: '1.1rem', letterSpacing: '.02em', color: '#f4f4f2' }}>
+          <div style={{ fontFamily: t.font.display, fontWeight: t.weight.bold, fontSize: t.size.lg, letterSpacing: '.02em', color: colors.textPrimary }}>
             {userName || 'Your Name'}
           </div>
           <AnimatePresence>
@@ -121,7 +114,7 @@ function ProfilePreview({ form, step, userName }: {
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
-                style={{ fontSize: '.76rem', color: MUTED, marginTop: 3, fontWeight: 600 }}
+                style={{ fontSize: t.size.sm, color: colors.textSecondary, marginTop: 3, fontWeight: t.weight.semibold }}
               >
                 {form.position} · {form.sport}
               </motion.div>
@@ -129,12 +122,12 @@ function ProfilePreview({ form, step, userName }: {
           </AnimatePresence>
         </div>
         <motion.div
-          animate={{ color: step >= 3 ? FLAME : MUTED_2 }}
+          animate={{ color: step >= 3 ? colors.accent : colors.textTertiary }}
           transition={{ duration: 0.4 }}
-          style={{ fontFamily: DISP, fontWeight: 900, fontSize: '2rem', lineHeight: 1, textAlign: 'right' }}
+          style={{ fontFamily: t.font.display, fontWeight: t.weight.bold, fontSize: t.size['2xl'], lineHeight: 1, textAlign: 'right' }}
         >
           {rating}
-          <small style={{ display: 'block', fontSize: '.52rem', letterSpacing: '.16em', color: MUTED_2, fontWeight: 700 }}>PROJECTED RATING</small>
+          <small style={{ display: 'block', fontSize: t.size.xs, letterSpacing: '.16em', color: colors.textTertiary, fontWeight: t.weight.bold }}>PROJECTED RATING</small>
         </motion.div>
       </div>
 
@@ -145,23 +138,23 @@ function ProfilePreview({ form, step, userName }: {
           { icon: Trophy, text: form.achievements ? 'Highlights added' : 'Highlights optional', unlocked: step >= 3 },
         ].map(({ icon: Icon, text, unlocked }) => (
           <div key={text} style={{ display: 'flex', gap: 9, alignItems: 'center' }}>
-            <Icon size={13} style={{ color: unlocked ? FLAME_S : MUTED_2, flexShrink: 0, transition: 'color 0.4s' }} />
-            <span style={{ fontSize: '.8rem', color: unlocked ? MUTED : MUTED_2, transition: 'color 0.4s' }}>{text}</span>
+            <Icon size={13} style={{ color: unlocked ? colors.accentText : colors.textTertiary, flexShrink: 0, transition: 'color 0.4s' }} />
+            <span style={{ fontSize: t.size.sm, color: unlocked ? colors.textSecondary : colors.textTertiary, transition: 'color 0.4s' }}>{text}</span>
           </div>
         ))}
       </div>
 
       {/* Progress bar */}
-      <div style={{ height: 6, borderRadius: 9999, background: 'rgba(255,255,255,0.06)', overflow: 'hidden', marginBottom: 8 }}>
+      <div style={{ height: 6, borderRadius: radii.full, background: 'rgba(255,255,255,0.06)', overflow: 'hidden', marginBottom: 8 }}>
         <motion.div
           animate={{ width: `${(step - 1) * 33.3}%` }}
-          transition={{ duration: 0.6, ease: [0.2, 0.8, 0.2, 1] }}
-          style={{ height: '100%', borderRadius: 9999, background: `linear-gradient(90deg,${FLAME},${FLAME_S})` }}
+          transition={{ duration: 0.6, ease: easing.standard }}
+          style={{ height: '100%', borderRadius: radii.full, background: `linear-gradient(90deg,${colors.accent},${colors.accentText})` }}
         />
       </div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '.66rem', color: MUTED_2, fontWeight: 700, fontFamily: DISP, letterSpacing: '.08em', textTransform: 'uppercase' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: t.size.xs, color: colors.textTertiary, fontWeight: t.weight.bold, fontFamily: t.font.display, letterSpacing: '.08em', textTransform: 'uppercase' }}>
         <span>Profile Completion</span>
-        <span style={{ color: FLAME }}>{(step - 1) * 33}%</span>
+        <span style={{ color: colors.accent }}>{(step - 1) * 33}%</span>
       </div>
 
       {/* Unlock badges */}
@@ -172,12 +165,12 @@ function ProfilePreview({ form, step, userName }: {
           { label: 'Profile Live',    active: step > 3 },
         ].map(({ label, active }) => (
           <div key={label} style={{
-            padding: '4px 10px', borderRadius: 9999,
+            padding: '4px 10px', borderRadius: radii.full,
             background: active ? 'rgba(139,59,255,0.12)' : 'rgba(255,255,255,0.03)',
-            border: `1px solid ${active ? 'rgba(139,59,255,0.3)' : LINE}`,
-            fontSize: '.62rem', fontFamily: DISP, fontWeight: 800,
+            border: `1px solid ${active ? 'rgba(139,59,255,0.3)' : colors.border}`,
+            fontSize: t.size.xs, fontFamily: t.font.display, fontWeight: t.weight.bold,
             letterSpacing: '.1em', textTransform: 'uppercase',
-            color: active ? FLAME_S : MUTED_2, transition: 'all 0.4s',
+            color: active ? colors.accentText : colors.textTertiary, transition: 'all 0.4s',
           }}>
             {active && <span style={{ marginRight: 4 }}>✓</span>}{label}
           </div>
@@ -190,6 +183,7 @@ function ProfilePreview({ form, step, userName }: {
 export function Onboarding() {
   const navigate = useNavigate();
   const { showNotification } = useNotifications();
+  const reduceMotion = useReducedMotion();
   const [step,   setStep]   = useState(1);
   const [saving, setSaving] = useState(false);
   const [dir,    setDir]    = useState<1 | -1>(1);
@@ -208,6 +202,12 @@ export function Onboarding() {
       if (u?.name) setUserName(u.name);
     } catch { /* noop */ }
   }, []);
+
+  // Signature moment #3 — completion: fire a success notification haptic once
+  // the athlete lands on the live-profile step, so finishing feels earned.
+  useEffect(() => {
+    if (step === 4) void haptics.notify();
+  }, [step]);
 
   const set = (key: string, value: string | boolean) => setForm(f => ({ ...f, [key]: value }));
 
@@ -278,24 +278,30 @@ export function Onboarding() {
     }
   };
 
-  const variants = {
-    enter: (d: number) => ({ opacity: 0, x: d * 36 }),
+  // Signature moment #3 — step-to-step choreography. A directional slide driven
+  // by motion.ts easing; collapses to a plain fade under reduced-motion.
+  const slideOffset = reduceMotion ? 0 : 36;
+  const stepVariants = {
+    enter:  (d: number) => ({ opacity: 0, x: d * slideOffset }),
     center: { opacity: 1, x: 0 },
-    exit:  (d: number) => ({ opacity: 0, x: d * -36 }),
+    exit:   (d: number) => ({ opacity: 0, x: d * -slideOffset }),
   };
+  const stepTransition = reduceMotion
+    ? { duration: 0 }
+    : { duration: 0.28, ease: easing.standard };
 
   return (
-    <div style={{ minHeight: '100vh', background: INK, color: '#f4f4f2', fontFamily: BODY, overflowX: 'hidden', position: 'relative' }}>
+    <div style={{ minHeight: '100vh', background: colors.surface0, color: colors.textPrimary, fontFamily: t.font.body, overflowX: 'hidden', position: 'relative' }}>
       {/* Grain */}
       <div style={{ position: 'fixed', inset: 0, zIndex: 60, pointerEvents: 'none', opacity: 0.04, backgroundImage: GRAIN }} />
 
       {/* Glow blob */}
-      <div style={{ position: 'fixed', width: 600, height: 600, borderRadius: '50%', filter: 'blur(100px)', opacity: 0.18, top: '20%', left: '50%', transform: 'translate(-50%,-50%)', background: `radial-gradient(circle,${FLAME},transparent 65%)`, pointerEvents: 'none' }} />
+      <div style={{ position: 'fixed', width: 600, height: 600, borderRadius: '50%', filter: 'blur(100px)', opacity: 0.18, top: '20%', left: '50%', transform: 'translate(-50%,-50%)', background: `radial-gradient(circle,${colors.accent},transparent 65%)`, pointerEvents: 'none' }} />
 
       {/* Header */}
-      <header style={{ position: 'relative', zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '24px 32px', borderBottom: `1px solid ${LINE}` }}>
-        <div style={{ fontFamily: DISP, fontWeight: 900, fontSize: '1.4rem', letterSpacing: '.04em', textTransform: 'uppercase', cursor: 'pointer' }} onClick={() => navigate('/')}>
-          HERS<span style={{ color: FLAME }}>365</span>
+      <header style={{ position: 'relative', zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '24px 32px', borderBottom: `1px solid ${colors.border}` }}>
+        <div style={{ fontFamily: t.font.display, fontWeight: t.weight.bold, fontSize: t.size.xl, letterSpacing: '.04em', textTransform: 'uppercase', cursor: 'pointer' }} onClick={() => navigate('/')}>
+          HERS<span style={{ color: colors.accent }}>365</span>
         </div>
 
         {/* Step dots */}
@@ -304,32 +310,32 @@ export function Onboarding() {
             <div key={s.num} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <motion.div
                 animate={{
-                  background: s.num < step ? FLAME : s.num === step ? 'rgba(139,59,255,0.25)' : 'rgba(255,255,255,0.08)',
-                  borderColor: s.num <= step ? FLAME : LINE,
+                  background: s.num < step ? colors.accent : s.num === step ? 'rgba(139,59,255,0.25)' : 'rgba(255,255,255,0.08)',
+                  borderColor: s.num <= step ? colors.accent : colors.border,
                   scale: s.num === step ? 1.15 : 1,
                 }}
                 transition={{ duration: 0.3 }}
                 style={{
                   width: 28, height: 28, borderRadius: '50%',
                   border: `1.5px solid`, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontFamily: DISP, fontWeight: 900, fontSize: '.72rem', letterSpacing: '.04em',
-                  color: s.num < step ? '#fff' : s.num === step ? FLAME : MUTED_2,
+                  fontFamily: t.font.display, fontWeight: t.weight.bold, fontSize: t.size.xs, letterSpacing: '.04em',
+                  color: s.num < step ? colors.accentOn : s.num === step ? colors.accent : colors.textTertiary,
                 }}
               >
                 {s.num < step ? <Check size={12} strokeWidth={3} /> : s.num}
               </motion.div>
               {s.num < 4 && (
                 <motion.div
-                  animate={{ background: s.num < step ? `linear-gradient(90deg,${FLAME},${FLAME_S})` : LINE }}
+                  animate={{ background: s.num < step ? `linear-gradient(90deg,${colors.accent},${colors.accentText})` : colors.border }}
                   transition={{ duration: 0.4 }}
-                  style={{ width: 24, height: 1.5, borderRadius: 9999 }}
+                  style={{ width: 24, height: 1.5, borderRadius: radii.full }}
                 />
               )}
             </div>
           ))}
         </div>
 
-        <div style={{ fontFamily: DISP, fontWeight: 700, fontSize: '.78rem', letterSpacing: '.16em', textTransform: 'uppercase', color: MUTED_2 }}>
+        <div style={{ fontFamily: t.font.display, fontWeight: t.weight.bold, fontSize: t.size.sm, letterSpacing: '.16em', textTransform: 'uppercase', color: colors.textTertiary }}>
           Step {step} of {TOTAL_STEPS}
         </div>
       </header>
@@ -342,15 +348,15 @@ export function Onboarding() {
           {step < 4 && (
             <div style={{ marginBottom: 32 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                {(() => { const S = steps[step - 1]; return <S.icon size={18} color={FLAME} />; })()}
-                <span style={{ fontFamily: DISP, fontWeight: 800, fontSize: '.78rem', letterSpacing: '.18em', textTransform: 'uppercase', color: FLAME }}>
+                {(() => { const S = steps[step - 1]; return <S.icon size={18} color={colors.accent} />; })()}
+                <span style={{ fontFamily: t.font.display, fontWeight: t.weight.bold, fontSize: t.size.sm, letterSpacing: '.18em', textTransform: 'uppercase', color: colors.accent }}>
                   Step {step} — {steps[step - 1].label}
                 </span>
               </div>
-              <h2 style={{ fontFamily: DISP, fontWeight: 900, fontSize: 'clamp(2rem,4vw,3rem)', textTransform: 'uppercase', lineHeight: 0.9, margin: 0, letterSpacing: '.01em' }}>
-                {step === 1 && <>Tell us<br />about your<br /><span style={{ color: FLAME }}>Game.</span></>}
-                {step === 2 && <>Where do<br />you<br /><span style={{ color: FLAME }}>Play?</span></>}
-                {step === 3 && <>Make them<br />notice<br /><span style={{ color: FLAME }}>You.</span></>}
+              <h2 style={{ fontFamily: t.font.display, fontWeight: t.weight.bold, fontSize: 'clamp(2rem,4vw,3rem)', textTransform: 'uppercase', lineHeight: 0.9, margin: 0, letterSpacing: '.01em' }}>
+                {step === 1 && <>Tell us<br />about your<br /><span style={{ color: colors.accent }}>Game.</span></>}
+                {step === 2 && <>Where do<br />you<br /><span style={{ color: colors.accent }}>Play?</span></>}
+                {step === 3 && <>Make them<br />notice<br /><span style={{ color: colors.accent }}>You.</span></>}
               </h2>
             </div>
           )}
@@ -359,11 +365,11 @@ export function Onboarding() {
             <motion.div
               key={step}
               custom={dir}
-              variants={variants}
+              variants={stepVariants}
               initial="enter"
               animate="center"
               exit="exit"
-              transition={{ duration: 0.28, ease: [0.4, 0, 0.2, 1] }}
+              transition={stepTransition}
             >
               {/* ── STEP 1 ── */}
               {step === 1 && (
@@ -377,11 +383,12 @@ export function Onboarding() {
                           type="button"
                           onClick={() => set('sport', s)}
                           style={{
-                            padding: '14px 10px', borderRadius: 13, border: `1.5px solid`,
-                            borderColor: form.sport === s ? FLAME : LINE,
-                            background: form.sport === s ? 'rgba(139,59,255,0.12)' : INK_3,
-                            color: form.sport === s ? '#f4f4f2' : MUTED,
-                            fontFamily: DISP, fontWeight: 800, fontSize: '.88rem',
+                            minHeight: 44,
+                            padding: '14px 10px', borderRadius: radii.md, border: `1.5px solid`,
+                            borderColor: form.sport === s ? colors.accent : colors.border,
+                            background: form.sport === s ? 'rgba(139,59,255,0.12)' : colors.surface2,
+                            color: form.sport === s ? colors.textPrimary : colors.textSecondary,
+                            fontFamily: t.font.display, fontWeight: t.weight.bold, fontSize: t.size.base,
                             letterSpacing: '.04em', cursor: 'pointer', transition: 'all 0.18s',
                             boxShadow: form.sport === s ? '0 4px 14px rgba(139,59,255,0.22)' : 'none',
                           }}
@@ -410,27 +417,27 @@ export function Onboarding() {
               {step === 3 && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
                   <div>
-                    <label style={labelCls}>Profile photo <span style={{ color: MUTED_2, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
+                    <label style={labelCls}>Profile photo <span style={{ color: colors.textTertiary, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
                     <input ref={photoRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={e => { const f = e.target.files?.[0]; if (f) uploadPhoto(f); e.target.value = ''; }} />
                     <button type="button" disabled={photoBusy} onClick={() => photoRef.current?.click()} style={{
-                      width: '100%', padding: '24px', borderRadius: 13, cursor: 'pointer',
-                      border: `2px dashed ${form.photoUploaded ? FLAME : LINE}`,
-                      background: form.photoUploaded ? 'rgba(139,59,255,0.08)' : INK_3,
-                      color: form.photoUploaded ? FLAME_S : MUTED, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                      width: '100%', minHeight: 44, padding: '24px', borderRadius: radii.md, cursor: 'pointer',
+                      border: `2px dashed ${form.photoUploaded ? colors.accent : colors.border}`,
+                      background: form.photoUploaded ? 'rgba(139,59,255,0.08)' : colors.surface2,
+                      color: form.photoUploaded ? colors.accentText : colors.textSecondary, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                     }}>
                       <Upload size={18} />
                       {photoBusy ? 'Uploading…' : form.photoUploaded ? 'Photo added' : 'Upload photo'}
                     </button>
                   </div>
                   <div>
-                    <label style={labelCls}>Achievements <span style={{ color: MUTED_2, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
+                    <label style={labelCls}>Achievements <span style={{ color: colors.textTertiary, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
                     <textarea
                       value={form.achievements}
                       onChange={e => set('achievements', e.target.value)}
                       placeholder="State champion, team captain, All-Conference..."
                       rows={5}
                       onFocus={e => { e.target.style.borderColor = 'rgba(139,59,255,0.55)'; e.target.style.boxShadow = '0 0 0 3px rgba(139,59,255,0.09)'; }}
-                      onBlur={e => { e.target.style.borderColor = LINE; e.target.style.boxShadow = 'none'; }}
+                      onBlur={e => { e.target.style.borderColor = colors.border; e.target.style.boxShadow = 'none'; }}
                       style={{ ...inputCls, resize: 'none', display: 'block' }}
                     />
                   </div>
@@ -440,77 +447,96 @@ export function Onboarding() {
               {/* ── STEP 4 — CELEBRATION ── */}
               {step === 4 && (
                 <div style={{ textAlign: 'center', padding: '20px 0 40px', position: 'relative' }}>
-                  {/* Confetti */}
-                  <div style={{ position: 'fixed', top: '50%', left: '50%', pointerEvents: 'none', zIndex: 50 }}>
-                    {CONFETTI.map(p => (
-                      <motion.div
-                        key={p.id}
-                        initial={{ x: 0, y: 0, opacity: 1, scale: p.scl, rotate: 0 }}
-                        animate={{ x: p.x, y: p.y, opacity: 0, scale: p.scl * 0.6, rotate: p.rx }}
-                        transition={{ duration: 1.4, delay: p.delay, ease: [0.2, 0, 0.8, 1] }}
-                        style={{
-                          position: 'absolute', width: p.w, height: p.h,
-                          borderRadius: 2, background: p.color, transformOrigin: 'center',
-                        }}
-                      />
-                    ))}
-                  </div>
+                  {/* Confetti — suppressed under reduced-motion */}
+                  {!reduceMotion && (
+                    <div style={{ position: 'fixed', top: '50%', left: '50%', pointerEvents: 'none', zIndex: 50 }}>
+                      {CONFETTI.map(p => (
+                        <motion.div
+                          key={p.id}
+                          initial={{ x: 0, y: 0, opacity: 1, scale: p.scl, rotate: 0 }}
+                          animate={{ x: p.x, y: p.y, opacity: 0, scale: p.scl * 0.6, rotate: p.rx }}
+                          transition={{ duration: 1.4, delay: p.delay, ease: [0.2, 0, 0.8, 1] }}
+                          style={{
+                            position: 'absolute', width: p.w, height: p.h,
+                            borderRadius: 2, background: p.color, transformOrigin: 'center',
+                          }}
+                        />
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Signature #3 neon flourish — an expanding neon ring behind the
+                      check, the earned "you made it" beat. Reduced-motion skips it. */}
+                  {!reduceMotion && (
+                    <motion.div
+                      initial={{ scale: 0.2, opacity: 0.9 }}
+                      animate={{ scale: 2.4, opacity: 0 }}
+                      transition={{ duration: 1.1, delay: 0.15, ease: easing.out }}
+                      style={{
+                        position: 'absolute', top: 0, left: '50%', width: 96, height: 96,
+                        marginLeft: -48, borderRadius: '50%', pointerEvents: 'none',
+                        border: `2px solid ${colors.neon}`,
+                        boxShadow: `0 0 24px ${colors.neon}`,
+                      }}
+                    />
+                  )}
 
                   {/* Check circle */}
                   <motion.div
                     initial={{ scale: 0, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    transition={{ type: 'spring', stiffness: 200, damping: 14, delay: 0.1 }}
+                    transition={reduceMotion ? { duration: 0 } : springs.snappy}
                     style={{
                       width: 96, height: 96, borderRadius: '50%', margin: '0 auto 32px',
-                      background: `radial-gradient(circle,${FLAME},#5E1BC2)`,
+                      background: `radial-gradient(circle,${colors.accent},${colors.accentHover})`,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       boxShadow: `0 0 0 0 rgba(139,59,255,0.5)`,
-                      animation: 'ob-pulse 2s ease-out 0.4s',
+                      animation: reduceMotion ? 'none' : 'ob-pulse 2s ease-out 0.4s',
                     }}
                   >
-                    <Check size={44} color="#fff" strokeWidth={2.5} />
+                    <Check size={44} color={colors.accentOn} strokeWidth={2.5} />
                   </motion.div>
 
                   <motion.div
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: reduceMotion ? 0 : 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.3 }}
+                    transition={reduceMotion ? { duration: 0 } : { duration: 0.5, delay: 0.3 }}
                   >
-                    <h2 style={{ fontFamily: DISP, fontWeight: 900, fontSize: 'clamp(2.8rem,6vw,4.2rem)', textTransform: 'uppercase', lineHeight: 0.88, letterSpacing: '.01em', margin: '0 0 14px' }}>
-                      YOU'RE ON<br /><span style={{ color: FLAME }}>THE GRID.</span>
+                    <h2 style={{ fontFamily: t.font.display, fontWeight: t.weight.bold, fontSize: 'clamp(2.8rem,6vw,4.2rem)', textTransform: 'uppercase', lineHeight: 0.88, letterSpacing: '.01em', margin: '0 0 14px' }}>
+                      YOU'RE ON<br /><span style={{ color: colors.accent }}>THE GRID.</span>
                     </h2>
-                    <p style={{ color: MUTED, fontSize: '1.1rem', maxWidth: 420, margin: '0 auto 36px', lineHeight: 1.65 }}>
+                    <p style={{ color: colors.textSecondary, fontSize: t.size.lg, maxWidth: 420, margin: '0 auto 36px', lineHeight: 1.65 }}>
                       Your profile is live. Share your highlights, cheer on your friends, and have fun out there.
                     </p>
                   </motion.div>
 
                   {/* Stat strip */}
                   <motion.div
-                    initial={{ opacity: 0, y: 16 }}
+                    initial={{ opacity: 0, y: reduceMotion ? 0 : 16 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.5 }}
+                    transition={reduceMotion ? { duration: 0 } : { duration: 0.5, delay: 0.5 }}
                     style={{ display: 'flex', justifyContent: 'center', gap: 40, marginBottom: 40 }}
                   >
                     {[{ n: '1', l: 'Profile, all yours' }, { n: '52', l: 'Weeks to grow' }, { n: '365', l: 'Days a year' }].map(s => (
                       <div key={s.l} style={{ textAlign: 'center' }}>
-                        <div style={{ fontFamily: DISP, fontWeight: 900, fontSize: '1.8rem', color: FLAME, lineHeight: 1 }}>{s.n}</div>
-                        <div style={{ fontSize: '.68rem', fontWeight: 700, letterSpacing: '.12em', textTransform: 'uppercase', color: MUTED_2, marginTop: 4 }}>{s.l}</div>
+                        <div style={{ fontFamily: t.font.display, fontWeight: t.weight.bold, fontSize: t.size['2xl'], color: colors.accent, lineHeight: 1 }}>{s.n}</div>
+                        <div style={{ fontSize: t.size.xs, fontWeight: t.weight.bold, letterSpacing: '.12em', textTransform: 'uppercase', color: colors.textTertiary, marginTop: 4 }}>{s.l}</div>
                       </div>
                     ))}
                   </motion.div>
 
                   <motion.div
-                    initial={{ opacity: 0, y: 12 }}
+                    initial={{ opacity: 0, y: reduceMotion ? 0 : 12 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: 0.7 }}
+                    transition={reduceMotion ? { duration: 0 } : { duration: 0.4, delay: 0.7 }}
                     style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}
                   >
                     <button
                       onClick={() => navigate('/profile')}
                       style={{
-                        padding: '15px 32px', background: FLAME, color: '#fff', border: 'none',
-                        borderRadius: 14, fontFamily: DISP, fontWeight: 900, fontSize: '1.05rem',
+                        minHeight: 44,
+                        padding: '15px 32px', background: colors.accent, color: colors.accentOn, border: 'none',
+                        borderRadius: radii.md, fontFamily: t.font.display, fontWeight: t.weight.bold, fontSize: t.size.md,
                         letterSpacing: '.1em', textTransform: 'uppercase', cursor: 'pointer',
                         display: 'flex', alignItems: 'center', gap: 10,
                         boxShadow: '0 8px 28px rgba(139,59,255,.35)', transition: 'all .18s',
@@ -523,14 +549,15 @@ export function Onboarding() {
                     <button
                       onClick={() => navigate('/feed')}
                       style={{
-                        padding: '15px 32px', background: 'transparent', color: '#f4f4f2',
-                        border: `1px solid ${LINE}`, borderRadius: 14,
-                        fontFamily: DISP, fontWeight: 800, fontSize: '1.05rem',
+                        minHeight: 44,
+                        padding: '15px 32px', background: 'transparent', color: colors.textPrimary,
+                        border: `1px solid ${colors.border}`, borderRadius: radii.md,
+                        fontFamily: t.font.display, fontWeight: t.weight.bold, fontSize: t.size.md,
                         letterSpacing: '.1em', textTransform: 'uppercase', cursor: 'pointer',
                         transition: 'all .18s',
                       }}
-                      onMouseEnter={e => { e.currentTarget.style.borderColor = FLAME; e.currentTarget.style.color = FLAME; }}
-                      onMouseLeave={e => { e.currentTarget.style.borderColor = LINE; e.currentTarget.style.color = '#f4f4f2'; }}
+                      onMouseEnter={e => { e.currentTarget.style.borderColor = colors.accent; e.currentTarget.style.color = colors.accent; }}
+                      onMouseLeave={e => { e.currentTarget.style.borderColor = colors.border; e.currentTarget.style.color = colors.textPrimary; }}
                     >
                       Go to The Grid
                     </button>
@@ -552,15 +579,16 @@ export function Onboarding() {
                 onClick={goBack}
                 disabled={step === 1}
                 style={{
+                  minHeight: 44,
                   display: 'flex', alignItems: 'center', gap: 6,
-                  padding: '11px 18px', borderRadius: 12, border: `1px solid ${LINE}`,
-                  background: 'transparent', color: step === 1 ? 'transparent' : MUTED,
-                  fontFamily: DISP, fontWeight: 800, fontSize: '.82rem',
+                  padding: '11px 18px', borderRadius: radii.md, border: `1px solid ${colors.border}`,
+                  background: 'transparent', color: step === 1 ? 'transparent' : colors.textSecondary,
+                  fontFamily: t.font.display, fontWeight: t.weight.bold, fontSize: t.size.base,
                   letterSpacing: '.1em', textTransform: 'uppercase', cursor: step === 1 ? 'default' : 'pointer',
                   transition: 'all .18s',
                 }}
-                onMouseEnter={e => { if (step > 1) e.currentTarget.style.borderColor = MUTED; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = LINE; }}
+                onMouseEnter={e => { if (step > 1) e.currentTarget.style.borderColor = colors.borderStrong; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = colors.border; }}
               >
                 <ChevronLeft size={16} /> Back
               </button>
@@ -570,10 +598,11 @@ export function Onboarding() {
                   onClick={goNext}
                   disabled={!canAdvance}
                   style={{
+                    minHeight: 44,
                     display: 'flex', alignItems: 'center', gap: 9,
-                    padding: '13px 28px', background: canAdvance ? FLAME : INK_3,
-                    color: canAdvance ? '#fff' : MUTED_2, border: 'none', borderRadius: 13,
-                    fontFamily: DISP, fontWeight: 900, fontSize: '1rem',
+                    padding: '13px 28px', background: canAdvance ? colors.accent : colors.surface2,
+                    color: canAdvance ? colors.accentOn : colors.textTertiary, border: 'none', borderRadius: radii.md,
+                    fontFamily: t.font.display, fontWeight: t.weight.bold, fontSize: t.size.md,
                     letterSpacing: '.1em', textTransform: 'uppercase',
                     cursor: canAdvance ? 'pointer' : 'not-allowed', transition: 'all .2s',
                     boxShadow: canAdvance ? '0 6px 20px rgba(139,59,255,.3)' : 'none',
@@ -588,9 +617,10 @@ export function Onboarding() {
                   onClick={handleComplete}
                   disabled={saving}
                   style={{
+                    minHeight: 44,
                     display: 'flex', alignItems: 'center', gap: 9,
-                    padding: '13px 28px', background: FLAME, color: '#fff', border: 'none', borderRadius: 13,
-                    fontFamily: DISP, fontWeight: 900, fontSize: '1rem',
+                    padding: '13px 28px', background: colors.accent, color: colors.accentOn, border: 'none', borderRadius: radii.md,
+                    fontFamily: t.font.display, fontWeight: t.weight.bold, fontSize: t.size.md,
                     letterSpacing: '.1em', textTransform: 'uppercase',
                     cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1,
                     boxShadow: '0 6px 20px rgba(139,59,255,.3)', transition: 'all .2s',
@@ -609,9 +639,9 @@ export function Onboarding() {
             <div style={{ textAlign: 'center', marginTop: 20 }}>
               <button
                 onClick={() => navigate('/profile')}
-                style={{ background: 'none', border: 'none', color: MUTED_2, fontSize: '.82rem', fontWeight: 600, cursor: 'pointer', transition: 'color .2s' }}
-                onMouseEnter={e => { e.currentTarget.style.color = MUTED; }}
-                onMouseLeave={e => { e.currentTarget.style.color = MUTED_2; }}
+                style={{ background: 'none', border: 'none', color: colors.textTertiary, fontSize: t.size.base, fontWeight: t.weight.semibold, cursor: 'pointer', transition: 'color .2s' }}
+                onMouseEnter={e => { e.currentTarget.style.color = colors.textSecondary; }}
+                onMouseLeave={e => { e.currentTarget.style.color = colors.textTertiary; }}
               >
                 Skip for now
               </button>
@@ -622,7 +652,7 @@ export function Onboarding() {
         {/* ── PROFILE PREVIEW PANEL (right, hidden on step 4 & mobile) ── */}
         {step < 4 && (
           <div className="ob-preview" style={{ position: 'sticky', top: 24 }}>
-            <div style={{ fontFamily: DISP, fontWeight: 800, fontSize: '.66rem', letterSpacing: '.18em', textTransform: 'uppercase', color: MUTED_2, marginBottom: 14 }}>
+            <div style={{ fontFamily: t.font.display, fontWeight: t.weight.bold, fontSize: t.size.xs, letterSpacing: '.18em', textTransform: 'uppercase', color: colors.textTertiary, marginBottom: 14 }}>
               Live Preview
             </div>
             <ProfilePreview form={form} step={step} userName={userName} />

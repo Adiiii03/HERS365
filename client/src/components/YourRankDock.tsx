@@ -1,6 +1,11 @@
-import { forwardRef } from 'react';
+import { forwardRef, useEffect, useRef, useState } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { tokens } from '../lib/tokens';
+import { springs } from '../lib/motion';
+
+const { colors, type: T, radii } = tokens;
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 // Mirrors the server's GET /api/rankings/me response. Three shapes only —
@@ -31,16 +36,47 @@ interface RankedProps extends CommonProps {
   athleteSchool: string;
 }
 
+// One-time-per-mount count-up. Reduced-motion lands on the target instantly.
+function useCountUp(target: number, { durationMs = 900 }: { durationMs?: number } = {}) {
+  const reduce = useReducedMotion();
+  const [value, setValue] = useState(reduce ? target : 0);
+  const targetRef = useRef(target);
+  targetRef.current = target;
+
+  useEffect(() => {
+    if (reduce) {
+      setValue(targetRef.current);
+      return;
+    }
+    const end = targetRef.current;
+    const start = performance.now();
+    let raf = 0;
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / durationMs);
+      const eased = t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
+      setValue(Math.round(end * eased));
+      if (t < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return value;
+}
+
 // ─── The ranked variant — the centerpiece ──────────────────────────────────
-// Whole strip is one button → her profile. One scalpel of orange (the rating
-// number); everything else holds composition. No animations beyond the
-// slide-in handled by parent class flip.
+// Whole strip is one button → her profile. One scalpel of accent (the rating
+// number); everything else holds composition. Signature moment #1: the rank
+// counts up once on first render and settles on a spring.
 export const YourRankDock = forwardRef<HTMLButtonElement, RankedProps>(function YourRankDock(
   { data, athleteId, athleteName, athleteSchool, inView, tucked },
   ref,
 ) {
   const navigate = useNavigate();
+  const reduce = useReducedMotion();
   const { rank, rating, position } = data;
+  const rankDisplay = useCountUp(rank, { durationMs: 900 });
 
   return (
     <div
@@ -63,15 +99,15 @@ export const YourRankDock = forwardRef<HTMLButtonElement, RankedProps>(function 
           background: 'rgba(18,18,22,0.92)',
           backdropFilter: 'blur(20px) saturate(140%)',
           WebkitBackdropFilter: 'blur(20px) saturate(140%)',
-          borderTop: '2px solid #8B3BFF',
+          borderTop: `2px solid ${colors.accent}`,
           borderLeft: 'none',
           borderRight: 'none',
           borderBottom: 'none',
           boxShadow: '0 -1px 0 rgba(139,59,255,0.40), 0 -16px 40px -12px rgba(139,59,255,0.22)',
-          color: '#F4F4F5',
+          color: colors.textPrimary,
           textAlign: 'left',
           cursor: 'pointer',
-          fontFamily: "'DM Sans', sans-serif",
+          fontFamily: T.font.body,
           transition: 'transform 100ms ease',
         }}
         onMouseDown={(e) => (e.currentTarget.style.transform = 'scale(0.995)')}
@@ -84,38 +120,43 @@ export const YourRankDock = forwardRef<HTMLButtonElement, RankedProps>(function 
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
-            background: '#8B3BFF',
-            color: '#0A0A0C',
-            fontFamily: "'DM Sans', sans-serif",
-            fontWeight: 700,
+            background: colors.accent,
+            color: colors.surface0,
+            fontFamily: T.font.body,
+            fontWeight: T.weight.bold,
             fontSize: 11,
             letterSpacing: '0.14em',
             textTransform: 'uppercase',
             padding: '4px 9px',
-            borderRadius: 6,
+            borderRadius: radii.sm,
             flexShrink: 0,
           }}
         >
           You
         </span>
 
-        {/* Rank */}
-        <span
+        {/* Rank — signature reveal: count-up + spring settle */}
+        <motion.span
           className="tnum"
+          initial={reduce ? false : { scale: 0.82, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={springs.snappy}
           style={{
-            fontFamily: "'Barlow Condensed', sans-serif",
-            fontWeight: 800,
+            fontFamily: T.font.display,
+            fontWeight: T.weight.bold + 100,
             fontSize: 'clamp(28px, 5.5vw, 34px)',
             lineHeight: 1,
-            color: '#C4A3FF',
+            color: colors.accentText,
             letterSpacing: '-0.01em',
             flexShrink: 0,
+            display: 'inline-flex',
+            alignItems: 'baseline',
           }}
           aria-hidden="true"
         >
-          <span style={{ fontSize: '0.6em', color: 'rgba(255,122,82,0.55)', marginRight: 1 }}>#</span>
-          {rank}
-        </span>
+          <span style={{ fontSize: '0.6em', color: 'rgba(139,59,255,0.55)', marginRight: 1 }}>#</span>
+          {rankDisplay}
+        </motion.span>
 
         {/* Name + school */}
         <span
@@ -128,10 +169,10 @@ export const YourRankDock = forwardRef<HTMLButtonElement, RankedProps>(function 
         >
           <span
             style={{
-              fontFamily: "'DM Sans', sans-serif",
-              fontWeight: 600,
+              fontFamily: T.font.body,
+              fontWeight: T.weight.semibold,
               fontSize: 16,
-              color: '#F4F4F5',
+              color: colors.textPrimary,
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
@@ -143,10 +184,10 @@ export const YourRankDock = forwardRef<HTMLButtonElement, RankedProps>(function 
             <span
               className="rk-dock-school"
               style={{
-                fontFamily: "'DM Sans', sans-serif",
-                fontWeight: 400,
+                fontFamily: T.font.body,
+                fontWeight: T.weight.regular,
                 fontSize: 12,
-                color: '#8A8A94',
+                color: colors.textSecondary,
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
@@ -164,14 +205,14 @@ export const YourRankDock = forwardRef<HTMLButtonElement, RankedProps>(function 
           <span
             className="rk-dock-pos"
             style={{
-              fontFamily: "'DM Sans', sans-serif",
-              fontWeight: 600,
+              fontFamily: T.font.body,
+              fontWeight: T.weight.semibold,
               fontSize: 12,
               letterSpacing: '0.04em',
-              color: '#C8C8D0',
-              background: '#1A1A20',
+              color: colors.textSecondary,
+              background: colors.surface2,
               padding: '5px 10px',
-              borderRadius: 6,
+              borderRadius: radii.sm,
               flexShrink: 0,
             }}
           >
@@ -183,11 +224,11 @@ export const YourRankDock = forwardRef<HTMLButtonElement, RankedProps>(function 
         <span
           className="tnum"
           style={{
-            fontFamily: "'Barlow Condensed', sans-serif",
-            fontWeight: 800,
+            fontFamily: T.font.display,
+            fontWeight: T.weight.bold + 100,
             fontSize: 'clamp(32px, 6vw, 38px)',
             lineHeight: 1,
-            color: '#8B3BFF',
+            color: colors.accent,
             letterSpacing: '-0.01em',
             flexShrink: 0,
           }}
@@ -243,7 +284,7 @@ export function YourRankDockEmpty({ data, inView, tucked }: UnratedOrHiddenProps
           WebkitBackdropFilter: 'blur(20px) saturate(140%)',
           borderTop: '2px solid rgba(139,59,255,0.35)',
           boxShadow: '0 -1px 0 rgba(139,59,255,0.18), 0 -10px 28px -10px rgba(139,59,255,0.12)',
-          color: '#F4F4F5',
+          color: colors.textPrimary,
         }}
       >
         <span
@@ -251,15 +292,15 @@ export function YourRankDockEmpty({ data, inView, tucked }: UnratedOrHiddenProps
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
-            background: '#8B3BFF',
-            color: '#0A0A0C',
-            fontFamily: "'DM Sans', sans-serif",
-            fontWeight: 700,
+            background: colors.accent,
+            color: colors.surface0,
+            fontFamily: T.font.body,
+            fontWeight: T.weight.bold,
             fontSize: 11,
             letterSpacing: '0.14em',
             textTransform: 'uppercase',
             padding: '4px 9px',
-            borderRadius: 6,
+            borderRadius: radii.sm,
             flexShrink: 0,
           }}
         >
@@ -276,10 +317,10 @@ export function YourRankDockEmpty({ data, inView, tucked }: UnratedOrHiddenProps
         >
           <span
             style={{
-              fontFamily: "'DM Sans', sans-serif",
-              fontWeight: 500,
+              fontFamily: T.font.body,
+              fontWeight: T.weight.medium,
               fontSize: 14,
-              color: '#C8C8D0',
+              color: colors.textSecondary,
             }}
           >
             {message}
@@ -288,10 +329,10 @@ export function YourRankDockEmpty({ data, inView, tucked }: UnratedOrHiddenProps
             <span
               className="rk-dock-subline"
               style={{
-                fontFamily: "'DM Sans', sans-serif",
-                fontWeight: 400,
+                fontFamily: T.font.body,
+                fontWeight: T.weight.regular,
                 fontSize: 12,
-                color: '#8A8A94',
+                color: colors.textSecondary,
                 marginTop: 2,
               }}
             >
@@ -306,9 +347,9 @@ export function YourRankDockEmpty({ data, inView, tucked }: UnratedOrHiddenProps
           style={{
             background: 'transparent',
             border: 'none',
-            color: '#C4A3FF',
-            fontFamily: "'DM Sans', sans-serif",
-            fontWeight: 600,
+            color: colors.accentText,
+            fontFamily: T.font.body,
+            fontWeight: T.weight.semibold,
             fontSize: 13,
             cursor: 'pointer',
             padding: '8px 4px',

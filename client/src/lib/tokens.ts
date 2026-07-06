@@ -14,6 +14,9 @@ const colors = {
   gradientBrand: 'linear-gradient(135deg, #8B3BFF 0%, #FF2E93 100%)',
 
   success: '#4ade80',
+  successText: '#7ee2a8',
+  danger: '#ff5a5a',
+  dangerText: '#ff9a8a',
 
   surface0: '#0A0A0C',
   surface1: '#121216',

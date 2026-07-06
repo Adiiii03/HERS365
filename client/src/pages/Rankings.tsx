@@ -1,11 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { Search, CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { athleteAvatar } from '../lib/avatar';
 import { POSITION_FILTERS } from '../lib/positions';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { Skeleton, VisuallyHidden } from '../components/Skeleton';
+import { Card, Input, Badge, Button } from '../components/ui';
+import { tokens } from '../lib/tokens';
+import { springs, staggerDelay } from '../lib/motion';
 import { useAuth } from '../context/AuthContext';
 import { apiFetch } from '../lib/api';
 import {
@@ -14,6 +17,8 @@ import {
   type RankMeRanked,
   type RankMeUnratedOrHidden,
 } from '../components/YourRankDock';
+
+const { colors, type: T, radii } = tokens;
 
 // The "change" field on the server is hardcoded to 0 because there is no
 // rank-history table yet. The previous client surfaced a fake ▲/▼ trend
@@ -54,18 +59,81 @@ const positions = POSITION_FILTERS;
 
 const PER_PAGE = 25;
 
+// One-time-per-mount count-up. Fast in, slow at the line (easeOutExpo).
+// Reduced-motion lands on the target instantly with no animation frames.
+function useCountUp(target: number, { durationMs = 900 }: { durationMs?: number } = {}) {
+  const reduce = useReducedMotion();
+  const [value, setValue] = useState(reduce ? target : 0);
+  const targetRef = useRef(target);
+  targetRef.current = target;
+
+  useEffect(() => {
+    if (reduce) {
+      setValue(targetRef.current);
+      return;
+    }
+    const end = targetRef.current;
+    const start = performance.now();
+    let raf = 0;
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / durationMs);
+      const eased = t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
+      setValue(Math.round(end * eased));
+      if (t < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+    // Intentionally mount-only: the "reveal" fires once when the rank first
+    // renders. targetRef captures the latest value without re-triggering.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return value;
+}
+
 function Avatar({ name, size = 36 }: { name: string; size?: number }) {
   return (
     <img
       src={athleteAvatar(name)}
       alt={name}
-      style={{ width: size, height: size, borderRadius: '50%', background: '#1c1c1c', flexShrink: 0, objectFit: 'cover' }}
+      style={{ width: size, height: size, borderRadius: radii.full, background: colors.surface2, flexShrink: 0, objectFit: 'cover' }}
     />
+  );
+}
+
+// Signature moment #1 — Rankings reveal. The hero rank numeral counts up once
+// on first render and settles on a spring; reduced-motion lands instantly.
+function RevealRank({ value, size, one }: { value: number; size: number; one?: boolean }) {
+  const reduce = useReducedMotion();
+  const display = useCountUp(value, { durationMs: 900 });
+  return (
+    <motion.span
+      className="tnum"
+      initial={reduce ? false : { scale: 0.82, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={springs.snappy}
+      style={{
+        fontFamily: T.font.display,
+        fontWeight: T.weight.bold + 100,
+        fontSize: size,
+        lineHeight: 1,
+        letterSpacing: '-0.01em',
+        color: one ? colors.accent : colors.textPrimary,
+        textShadow: one ? '0 0 16px rgba(139,59,255,0.4)' : 'none',
+        display: 'inline-flex',
+        alignItems: 'baseline',
+      }}
+      aria-hidden="true"
+    >
+      <span style={{ fontSize: '0.55em', color: 'rgba(244,244,245,0.35)', marginRight: 1 }}>#</span>
+      {display}
+    </motion.span>
   );
 }
 
 export const Rankings = () => {
   const navigate = useNavigate();
+  const reduceMotion = useReducedMotion();
   const { user, isAuthenticated } = useAuth();
   const [players, setPlayers] = useState<RankedPlayer[]>([]);
   const [loading, setLoading] = useState(true);
@@ -236,12 +304,11 @@ export const Rankings = () => {
         {!isMobile && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 28 }}>
             {[0, 1, 2].map((i) => (
-              <div
+              <Card
                 key={i}
-                className="k-card"
                 style={{
                   padding: '20px 18px',
-                  borderColor: i === 0 ? 'rgba(139,59,255,0.4)' : 'rgba(255,255,255,0.06)',
+                  borderColor: i === 0 ? 'rgba(139,59,255,0.4)' : colors.border,
                   display: 'flex',
                   alignItems: 'center',
                   gap: 14,
@@ -253,7 +320,7 @@ export const Rankings = () => {
                   <Skeleton width="50%" height={11} style={{ display: 'block' }} />
                 </div>
                 <Skeleton width={36} height={28} radius={6} style={{ flexShrink: 0 }} />
-              </div>
+              </Card>
             ))}
           </div>
         )}
@@ -271,7 +338,7 @@ export const Rankings = () => {
               display: 'grid',
               gridTemplateColumns: tableCols,
               padding: '10px 16px',
-              borderBottom: '1px solid rgba(255,255,255,0.06)',
+              borderBottom: `1px solid ${colors.border}`,
               gap: 12,
             }}
           >
@@ -319,22 +386,22 @@ export const Rankings = () => {
       <div style={{ marginBottom: 28 }}>
         <h1
           style={{
-            fontFamily: 'Barlow Condensed, sans-serif',
+            fontFamily: T.font.display,
             fontWeight: 800,
-            fontSize: '2rem',
+            fontSize: T.size['2xl'],
             textTransform: 'uppercase',
-            color: '#fff',
+            color: colors.textPrimary,
             marginBottom: 4,
-            letterSpacing: 'var(--tracking-display)',
+            letterSpacing: T.tracking.display,
           }}
         >
           National Rankings
         </h1>
-        <p style={{ color: '#555', fontSize: '0.85rem' }}>Top female high school athletes ranked by performance score</p>
+        <p style={{ color: colors.textTertiary, fontSize: T.size.base }}>Top female high school athletes ranked by performance score</p>
       </div>
 
       {/* Podium — desktop top 3. Stadium typography upgrade: #1 oversized
-          orange numeral, #2/#3 neutral large; size + colour are the medal. */}
+          accent numeral, #2/#3 neutral large; size + colour are the medal. */}
       {search === '' && pos === 'All' && page === 1 && top3.length >= 3 && !isMobile && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 28 }}>
           {top3.map((p, i) => {
@@ -344,93 +411,80 @@ export const Rankings = () => {
                 key={p.id}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.08 }}
+                transition={{ delay: staggerDelay(i) }}
                 onClick={() => navigate(`/profile/${p.id}`)}
-                className="k-card"
-                style={{
-                  padding: '20px 18px',
-                  position: 'relative',
-                  overflow: 'hidden',
-                  borderColor: isOne ? 'rgba(139,59,255,0.4)' : 'rgba(255,255,255,0.06)',
-                  boxShadow: isOne ? '0 0 0 1px rgba(139,59,255,0.1), 0 8px 32px rgba(139,59,255,0.08)' : 'none',
-                  cursor: 'pointer',
-                }}
               >
-                {isOne && (
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: -40,
-                      right: -40,
-                      width: 160,
-                      height: 160,
-                      background: 'radial-gradient(circle, rgba(139,59,255,0.12) 0%, transparent 70%)',
-                      pointerEvents: 'none',
-                    }}
-                  />
-                )}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                  <span
-                    className="tnum"
-                    style={{
-                      fontFamily: 'Barlow Condensed, sans-serif',
-                      fontWeight: 800,
-                      fontSize: isOne ? 88 : 64,
-                      lineHeight: 1,
-                      letterSpacing: '-0.01em',
-                      color: isOne ? '#8B3BFF' : '#F4F4F5',
-                      textShadow: isOne ? '0 0 16px rgba(139,59,255,0.4)' : 'none',
-                    }}
-                    aria-hidden="true"
-                  >
-                    <span style={{ fontSize: '0.55em', color: 'rgba(244,244,245,0.35)', marginRight: 1 }}>#</span>
-                    {p.rank}
-                  </span>
-                  <span
-                    className="tnum"
-                    style={{
-                      fontFamily: 'Barlow Condensed, sans-serif',
-                      fontWeight: 800,
-                      fontSize: isOne ? 64 : 48,
-                      color: isOne ? '#C4A3FF' : '#C8C8D0',
-                      lineHeight: 1,
-                    }}
-                  >
-                    {p.rating}
-                  </span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
-                  <Avatar name={p.name} size={isOne ? 44 : 38} />
-                  <div style={{ minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 0 }}>
-                      <span
+                <Card
+                  style={{
+                    padding: '20px 18px',
+                    position: 'relative',
+                    overflow: 'hidden',
+                    borderColor: isOne ? 'rgba(139,59,255,0.4)' : colors.border,
+                    boxShadow: isOne ? '0 0 0 1px rgba(139,59,255,0.1), 0 8px 32px rgba(139,59,255,0.08)' : 'none',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {isOne && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: -40,
+                        right: -40,
+                        width: 160,
+                        height: 160,
+                        background: 'radial-gradient(circle, rgba(139,59,255,0.12) 0%, transparent 70%)',
+                        pointerEvents: 'none',
+                      }}
+                    />
+                  )}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                    <RevealRank value={p.rank} size={isOne ? 88 : 64} one={isOne} />
+                    <span
+                      className="tnum"
+                      style={{
+                        fontFamily: T.font.display,
+                        fontWeight: 800,
+                        fontSize: isOne ? 64 : 48,
+                        color: isOne ? colors.accentText : colors.textSecondary,
+                        lineHeight: 1,
+                      }}
+                    >
+                      {p.rating}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+                    <Avatar name={p.name} size={isOne ? 44 : 38} />
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 0 }}>
+                        <span
+                          style={{
+                            fontSize: isOne ? T.size.md : T.size.base,
+                            fontWeight: T.weight.bold,
+                            color: colors.textPrimary,
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {p.name}
+                        </span>
+                        {p.verified && <CheckCircle2 size={12} color={colors.accent} fill={colors.accent} style={{ flexShrink: 0 }} />}
+                      </div>
+                      <div
                         style={{
-                          fontSize: isOne ? '0.92rem' : '0.85rem',
-                          fontWeight: 700,
-                          color: '#fff',
+                          fontSize: T.size.xs,
+                          color: colors.textSecondary,
+                          marginTop: 2,
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
                           whiteSpace: 'nowrap',
                         }}
                       >
-                        {p.name}
-                      </span>
-                      {p.verified && <CheckCircle2 size={12} color="#8B3BFF" fill="#8B3BFF" style={{ flexShrink: 0 }} />}
-                    </div>
-                    <div
-                      style={{
-                        fontSize: '0.7rem',
-                        color: '#8A8A94',
-                        marginTop: 2,
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      {p.position} | {p.school}
+                        {p.position} | {p.school}
+                      </div>
                     </div>
                   </div>
-                </div>
+                </Card>
               </motion.div>
             );
           })}
@@ -442,9 +496,9 @@ export const Rankings = () => {
         <div style={{ position: 'relative' }}>
           <Search
             size={14}
-            style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', color: '#444', pointerEvents: 'none' }}
+            style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', color: colors.textTertiary, pointerEvents: 'none', zIndex: 1 }}
           />
-          <input
+          <Input
             type="text"
             aria-label="Search athletes or schools"
             placeholder="Search athletes or schools..."
@@ -453,16 +507,7 @@ export const Rankings = () => {
               setSearch(e.target.value);
               setPage(1);
             }}
-            style={{
-              width: '100%',
-              background: '#111',
-              border: '1px solid rgba(255,255,255,0.08)',
-              borderRadius: 8,
-              padding: '9px 12px 9px 32px',
-              color: '#fff',
-              fontSize: '0.82rem',
-              boxSizing: 'border-box',
-            }}
+            style={{ paddingLeft: 32 }}
           />
         </div>
         <div style={{ display: 'flex', gap: 4, overflowX: 'auto', paddingBottom: 2, WebkitOverflowScrolling: 'touch' as 'auto' }}>
@@ -474,14 +519,14 @@ export const Rankings = () => {
                 setPage(1);
               }}
               style={{
-                background: pos === p ? '#8B3BFF' : '#111',
+                background: pos === p ? colors.accent : colors.surface1,
                 border: '1px solid',
-                borderColor: pos === p ? '#8B3BFF' : 'rgba(255,255,255,0.08)',
-                borderRadius: 7,
+                borderColor: pos === p ? colors.accent : colors.border,
+                borderRadius: radii.sm,
                 padding: '8px 12px',
-                color: pos === p ? '#fff' : '#666',
-                fontSize: '0.75rem',
-                fontWeight: 700,
+                color: pos === p ? colors.accentOn : colors.textTertiary,
+                fontSize: T.size.xs,
+                fontWeight: T.weight.bold,
                 cursor: 'pointer',
                 transition: 'all 0.15s',
                 flexShrink: 0,
@@ -507,12 +552,12 @@ export const Rankings = () => {
             <div
               key={h}
               style={{
-                fontFamily: "'DM Sans', sans-serif",
-                fontWeight: 600,
+                fontFamily: T.font.body,
+                fontWeight: T.weight.semibold,
                 fontSize: 11,
                 letterSpacing: '0.12em',
                 textTransform: 'uppercase',
-                color: '#8A8A94',
+                color: colors.textSecondary,
                 textAlign: h === 'ATHLETE' ? 'left' : h === 'RK' ? 'left' : 'center',
               }}
             >
@@ -537,19 +582,36 @@ export const Rankings = () => {
                 alignItems: 'center',
                 minHeight: isMobile ? 56 : 64,
                 cursor: 'pointer',
+                position: isSelf ? 'relative' : undefined,
               }}
             >
+              {/* Signature #1 — one-time NEON pulse on the athlete's own row */}
+              {isSelf && !reduceMotion && (
+                <motion.span
+                  aria-hidden="true"
+                  initial={{ boxShadow: 'inset 0 0 0 0 rgba(57,255,20,0)', opacity: 0 }}
+                  animate={{
+                    boxShadow: [
+                      'inset 0 0 0 1px rgba(57,255,20,0.55)',
+                      'inset 0 0 0 1px rgba(57,255,20,0)',
+                    ],
+                    opacity: [1, 0],
+                  }}
+                  transition={{ duration: 1.1, times: [0, 1], ease: 'easeOut', delay: 0.12 }}
+                  style={{ position: 'absolute', inset: 0, borderRadius: 'inherit', pointerEvents: 'none' }}
+                />
+              )}
               {/* Rank */}
               <div style={{ display: 'flex', alignItems: 'center' }}>
                 <span
                   className="tnum"
                   style={{
-                    fontFamily: 'Barlow Condensed, sans-serif',
+                    fontFamily: T.font.display,
                     fontWeight: 800,
                     fontSize: isMobile ? 22 : 28,
                     lineHeight: 1,
                     letterSpacing: '-0.01em',
-                    color: p.rank <= 3 ? '#C4A3FF' : '#F4F4F5',
+                    color: p.rank <= 3 ? colors.accentText : colors.textPrimary,
                   }}
                   aria-hidden="true"
                 >
@@ -565,9 +627,9 @@ export const Rankings = () => {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                     <span
                       style={{
-                        fontSize: '0.9rem',
-                        fontWeight: 600,
-                        color: '#F4F4F5',
+                        fontSize: T.size.md,
+                        fontWeight: T.weight.semibold,
+                        color: colors.textPrimary,
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
@@ -575,12 +637,12 @@ export const Rankings = () => {
                     >
                       {p.name}
                     </span>
-                    {p.verified && <CheckCircle2 size={11} color="#8B3BFF" fill="#8B3BFF" />}
+                    {p.verified && <CheckCircle2 size={11} color={colors.accent} fill={colors.accent} />}
                   </div>
                   <div
                     style={{
                       fontSize: 12,
-                      color: '#8A8A94',
+                      color: colors.textSecondary,
                       marginTop: 1,
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
@@ -594,30 +656,18 @@ export const Rankings = () => {
 
               {!isMobile && (
                 <div style={{ textAlign: 'center' }}>
-                  <span
-                    style={{
-                      background: 'rgba(139,59,255,0.10)',
-                      color: '#C4A3FF',
-                      fontSize: '0.65rem',
-                      fontWeight: 700,
-                      padding: '3px 8px',
-                      borderRadius: 4,
-                      letterSpacing: '0.04em',
-                    }}
-                  >
-                    {p.position}
-                  </span>
+                  <Badge tone="accent" style={{ letterSpacing: '0.04em' }}>{p.position}</Badge>
                 </div>
               )}
 
               {!isMobile && (
-                <div className="tnum" style={{ textAlign: 'center', fontSize: '0.85rem', fontWeight: 600, color: '#C8C8D0' }}>
+                <div className="tnum" style={{ textAlign: 'center', fontSize: T.size.base, fontWeight: T.weight.semibold, color: colors.textSecondary }}>
                   {p.gradYear ?? '–'}
                 </div>
               )}
 
               {!isMobile && (
-                <div className="tnum" style={{ textAlign: 'center', fontSize: '0.85rem', fontWeight: 600, color: '#C8C8D0' }}>
+                <div className="tnum" style={{ textAlign: 'center', fontSize: T.size.base, fontWeight: T.weight.semibold, color: colors.textSecondary }}>
                   {p.gpa ?? '–'}
                 </div>
               )}
@@ -627,11 +677,11 @@ export const Rankings = () => {
                 <span
                   className="tnum"
                   style={{
-                    fontFamily: 'Barlow Condensed, sans-serif',
+                    fontFamily: T.font.display,
                     fontWeight: 800,
                     fontSize: isMobile ? 24 : 30,
                     lineHeight: 1,
-                    color: '#C4A3FF',
+                    color: colors.accentText,
                   }}
                 >
                   {p.rating}
@@ -642,8 +692,8 @@ export const Rankings = () => {
         })}
 
         {players.length === 0 && (
-          <div style={{ padding: 48, textAlign: 'center', color: '#444' }}>
-            <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontSize: '1.2rem', fontWeight: 700 }}>
+          <div style={{ padding: 48, textAlign: 'center', color: colors.textTertiary }}>
+            <div style={{ fontFamily: T.font.display, fontSize: T.size.lg, fontWeight: T.weight.bold }}>
               {search === '' && pos === 'All' ? 'No athletes on the board yet.' : 'No athletes found'}
             </div>
           </div>
@@ -652,41 +702,25 @@ export const Rankings = () => {
 
       {totalPages > 1 && (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginTop: 16 }}>
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             disabled={page <= 1}
             onClick={() => setPage((p) => Math.max(1, p - 1))}
-            style={{
-              background: '#111',
-              border: '1px solid rgba(255,255,255,0.08)',
-              borderRadius: 7,
-              padding: '8px 14px',
-              color: page <= 1 ? '#333' : '#ccc',
-              fontSize: '0.75rem',
-              fontWeight: 700,
-              cursor: page <= 1 ? 'not-allowed' : 'pointer',
-            }}
           >
             Previous
-          </button>
-          <span className="tnum" style={{ fontSize: '0.75rem', color: '#666' }}>
+          </Button>
+          <span className="tnum" style={{ fontSize: T.size.xs, color: colors.textTertiary }}>
             Page {page} of {totalPages} · {total} athletes
           </span>
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             disabled={page >= totalPages}
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            style={{
-              background: '#111',
-              border: '1px solid rgba(255,255,255,0.08)',
-              borderRadius: 7,
-              padding: '8px 14px',
-              color: page >= totalPages ? '#333' : '#ccc',
-              fontSize: '0.75rem',
-              fontWeight: 700,
-              cursor: page >= totalPages ? 'not-allowed' : 'pointer',
-            }}
           >
             Next
-          </button>
+          </Button>
         </div>
       )}
 
