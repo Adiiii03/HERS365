@@ -151,19 +151,19 @@ export const VideoStudio = () => {
             {/* Video preview */}
             <div style={{ position: 'relative', borderRadius: radii.lg, overflow: 'hidden', background: colors.surface0, marginBottom: 20, aspectRatio: '16/9' }}>
               <video ref={videoRef} src={previewUrl} style={{ width: '100%', height: '100%', objectFit: 'contain' }} onEnded={() => setPlaying(false)} />
-              <div onClick={togglePlay} style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', background: playing ? 'transparent' : 'rgba(0,0,0,0.4)' }}>
+              <button type="button" onClick={togglePlay} aria-label={playing ? 'Pause video' : 'Play video'} style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: 'none', padding: 0, background: playing ? 'transparent' : 'rgba(0,0,0,0.4)' }}>
                 {!playing && (
                   <div style={{ width: 52, height: 52, borderRadius: '50%', background: colors.accent, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Play size={22} color={colors.accentOn} fill={colors.accentOn} />
                   </div>
                 )}
-              </div>
+              </button>
               {playing && (
-                <button onClick={togglePlay} style={{ position: 'absolute', bottom: 10, right: 10, background: 'rgba(0,0,0,0.6)', border: 'none', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: colors.textPrimary }}>
+                <button onClick={togglePlay} aria-label="Pause video" style={{ position: 'absolute', bottom: 10, right: 10, background: 'rgba(0,0,0,0.6)', border: 'none', borderRadius: '50%', width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: colors.textPrimary }}>
                   <Pause size={16} />
                 </button>
               )}
-              <button onClick={reset} aria-label="Remove video" style={{ position: 'absolute', top: 10, right: 10, background: 'rgba(0,0,0,0.6)', border: 'none', borderRadius: '50%', width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: colors.textPrimary }}>
+              <button onClick={reset} aria-label="Remove video" style={{ position: 'absolute', top: 10, right: 10, background: 'rgba(0,0,0,0.6)', border: 'none', borderRadius: '50%', width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: colors.textPrimary }}>
                 <X size={14} />
               </button>
             </div>

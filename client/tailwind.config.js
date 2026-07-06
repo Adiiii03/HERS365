@@ -35,7 +35,7 @@ export default {
         ink: {
           DEFAULT: '#F5F5F7',
           muted:   '#A0A0AB',
-          faint:   '#6B6B76',
+          faint:   '#808089',
         },
       },
       fontFamily: {

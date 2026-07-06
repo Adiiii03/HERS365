@@ -369,8 +369,9 @@ export const Layout = () => {
             <motion.button
               whileTap={{ scale: 0.9 }}
               onClick={() => navigate('/profile')}
+              aria-label="Your profile"
               style={{
-                width: 32, height: 32, borderRadius: '50%',
+                width: 44, height: 44, borderRadius: '50%',
                 background: `linear-gradient(135deg, ${colors.accent}, ${colors.accentText})`,
                 border: '2px solid rgba(139,59,255,0.5)',
                 cursor: 'pointer', flexShrink: 0, padding: 0,

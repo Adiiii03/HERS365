@@ -126,7 +126,7 @@ export const CoachLayout = () => {
               type="button"
               onClick={() => setMobileOpen(true)}
               aria-label="Open menu"
-              className="flex md:hidden text-ink-muted hover:text-white transition-colors"
+              className="flex md:hidden items-center justify-center min-w-[44px] min-h-[44px] -ml-2 text-ink-muted hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/50 rounded-lg"
             >
               <Menu size={22} aria-hidden="true" />
             </button>
@@ -154,7 +154,7 @@ export const CoachLayout = () => {
                 aria-label={unreadCount > 0 ? `Notifications (${unreadCount} unread)` : 'Notifications'}
                 aria-haspopup="menu"
                 aria-expanded={notificationsOpen}
-                className="relative text-ink-muted hover:text-white transition-colors"
+                className="relative flex items-center justify-center min-w-[44px] min-h-[44px] text-ink-muted hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/50 rounded-lg"
               >
                 <Bell size={20} aria-hidden="true" />
                 {unreadCount > 0 && (

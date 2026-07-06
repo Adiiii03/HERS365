@@ -92,7 +92,10 @@ export function NotificationBell() {
       <motion.button
         whileTap={{ scale: 0.88 }}
         onClick={handleOpen}
-        style={{ position: 'relative', width: 36, height: 36, borderRadius: radii.full, background: open ? 'rgba(139,59,255,0.12)' : 'rgba(255,255,255,0.05)', border: `1px solid ${open ? 'rgba(139,59,255,0.3)' : LINE}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'background 0.18s, border-color 0.18s' }}
+        aria-label={unreadCount > 0 ? `Notifications (${unreadCount} unread)` : 'Notifications'}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        style={{ position: 'relative', width: 44, height: 44, borderRadius: radii.full, background: open ? 'rgba(139,59,255,0.12)' : 'rgba(255,255,255,0.05)', border: `1px solid ${open ? 'rgba(139,59,255,0.3)' : LINE}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'background 0.18s, border-color 0.18s' }}
       >
         <Bell size={16} color={open ? colors.accent : text.secondary} />
         <AnimatePresence>

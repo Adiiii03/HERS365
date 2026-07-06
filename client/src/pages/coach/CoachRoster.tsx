@@ -151,8 +151,8 @@ function StatusControl({
                       onChange(s.id);
                       setOpen(false);
                     }}
-                    className="flex w-full items-center gap-2 rounded-[8px] px-2.5 py-2 text-left text-xs font-semibold transition-colors"
-                    style={{ color: s.tone, background: active ? s.fill : 'transparent' }}
+                    className="flex w-full items-center gap-2 rounded-[8px] px-2.5 py-2 min-h-[44px] text-left text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset"
+                    style={{ color: s.tone, background: active ? s.fill : 'transparent', ['--tw-ring-color' as string]: colors.accent }}
                     onMouseEnter={(e) => { if (!active) e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
                     onMouseLeave={(e) => { if (!active) e.currentTarget.style.background = 'transparent'; }}
                   >
@@ -507,19 +507,21 @@ export function CoachRoster() {
                           <div className="flex items-center justify-end gap-1">
                             <Link
                               to={`/coach/player/${athlete.id}`}
-                              className="p-2 transition-colors hover:opacity-80"
-                              style={{ color: text.secondary }}
+                              className="inline-flex items-center justify-center min-w-[44px] min-h-[44px] rounded-lg transition-colors hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+                              style={{ color: text.secondary, ['--tw-ring-color' as string]: colors.accent }}
                               title="View profile"
+                              aria-label="View profile"
                             >
                               <Eye className="h-5 w-5" />
                             </Link>
                             <button
                               onClick={() => removeAthlete(athlete.id)}
-                              className="p-2 transition-colors hover:opacity-80"
-                              style={{ color: text.secondary }}
+                              className="inline-flex items-center justify-center min-w-[44px] min-h-[44px] rounded-lg transition-colors hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+                              style={{ color: text.secondary, ['--tw-ring-color' as string]: colors.accent }}
                               onMouseEnter={(e) => (e.currentTarget.style.color = colors.dangerText)}
                               onMouseLeave={(e) => (e.currentTarget.style.color = text.secondary)}
                               title="Remove from roster"
+                              aria-label="Remove from roster"
                             >
                               <Trash2 className="h-5 w-5" />
                             </button>
@@ -566,11 +568,12 @@ export function CoachRoster() {
                         </div>
                         <button
                           onClick={() => removeAthlete(athlete.id)}
-                          className="flex-shrink-0 p-2 transition-colors hover:opacity-80"
-                          style={{ color: text.secondary }}
+                          className="flex-shrink-0 inline-flex items-center justify-center min-w-[44px] min-h-[44px] rounded-lg transition-colors hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+                          style={{ color: text.secondary, ['--tw-ring-color' as string]: colors.accent }}
                           onMouseEnter={(e) => (e.currentTarget.style.color = colors.dangerText)}
                           onMouseLeave={(e) => (e.currentTarget.style.color = text.secondary)}
                           title="Remove from roster"
+                          aria-label="Remove from roster"
                         >
                           <Trash2 className="h-5 w-5" />
                         </button>

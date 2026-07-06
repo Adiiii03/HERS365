@@ -50,7 +50,7 @@ const SettingRow = ({ label, desc, on, onToggle }: { label: string; desc: string
       style={{ width: 40, height: 22, borderRadius: radii.full, background: on ? colors.accent : 'rgba(255,255,255,0.1)', position: 'relative', cursor: 'pointer', flexShrink: 0, transition: 'background 0.2s' }}
     >
       <motion.div animate={{ x: on ? 20 : 2 }} transition={{ type: 'spring', stiffness: 400, damping: 28 }} style={{ width: 18, height: 18, borderRadius: radii.full, background: colors.accentOn, position: 'absolute', top: 2 }} />
-      <style>{`.parent-switch:focus-visible{outline:2px solid ${colors.accent};outline-offset:3px}`}</style>
+      <style>{`.parent-switch:focus-visible{outline:2px solid ${colors.accent};outline-offset:3px}.parent-switch::before{content:'';position:absolute;top:-11px;bottom:-11px;left:0;right:0}`}</style>
     </motion.div>
   </div>
 );
@@ -258,7 +258,7 @@ export const ParentDashboard = () => {
             )}
 
             {requests.length > 0 && (
-              <div style={{ background: 'rgba(245,158,11,0.06)', border: `1px solid rgba(245,158,11,0.19)`, borderRadius: radii.md, padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }} onClick={() => setTab('messages')}>
+              <button type="button" onClick={() => setTab('messages')} style={{ width: '100%', textAlign: 'left', background: 'rgba(245,158,11,0.06)', border: `1px solid rgba(245,158,11,0.19)`, borderRadius: radii.md, padding: '14px 16px', minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <Bell size={16} color={colors.pink} />
                   <div>
@@ -267,7 +267,7 @@ export const ParentDashboard = () => {
                   </div>
                 </div>
                 <ChevronRight size={16} color={colors.pink} />
-              </div>
+              </button>
             )}
           </motion.div>
         )}

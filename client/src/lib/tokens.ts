@@ -26,7 +26,7 @@ const colors = {
 
   textPrimary: '#F5F5F7',
   textSecondary: '#A0A0AB',
-  textTertiary: '#6B6B76',
+  textTertiary: '#808089',
 } as const;
 
 const text = {

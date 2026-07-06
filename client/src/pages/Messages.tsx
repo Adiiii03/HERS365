@@ -531,7 +531,7 @@ export const Messages = () => {
             {showScrollBtn && (
               <button
                 onClick={() => threadEndRef.current?.scrollIntoView({ behavior: 'smooth' })}
-                style={{ position: 'absolute', bottom: 12, right: 16, zIndex: 10, background: INK_2, border: `1px solid ${LINE}`, borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 4px 16px rgba(0,0,0,0.5)' }}
+                style={{ position: 'absolute', bottom: 12, right: 16, zIndex: 10, background: INK_2, border: `1px solid ${LINE}`, borderRadius: '50%', width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 4px 16px rgba(0,0,0,0.5)' }}
                 aria-label="Scroll to bottom"
               >
                 <ChevronDown size={18} color={MUTED} />

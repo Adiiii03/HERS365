@@ -300,9 +300,9 @@ export function Onboarding() {
 
       {/* Header */}
       <header style={{ position: 'relative', zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '24px 32px', borderBottom: `1px solid ${colors.border}` }}>
-        <div style={{ fontFamily: t.font.display, fontWeight: t.weight.bold, fontSize: t.size.xl, letterSpacing: '.04em', textTransform: 'uppercase', cursor: 'pointer' }} onClick={() => navigate('/')}>
+        <button type="button" onClick={() => navigate('/')} aria-label="Go to home" style={{ display: 'flex', alignItems: 'center', minHeight: 44, background: 'none', border: 'none', padding: 0, color: 'inherit', fontFamily: t.font.display, fontWeight: t.weight.bold, fontSize: t.size.xl, letterSpacing: '.04em', textTransform: 'uppercase', cursor: 'pointer' }}>
           HERS<span style={{ color: colors.accent }}>365</span>
-        </div>
+        </button>
 
         {/* Step dots */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>

@@ -216,11 +216,11 @@ export function CoachScoutingBoard() {
           <div className="flex flex-wrap gap-4 mb-6">
             <button
               onClick={() => setActiveTier('all')}
-              className="px-4 py-2 rounded-lg font-medium transition-colors"
+              className="px-4 py-2 min-h-[44px] rounded-lg font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
               style={
                 activeTier === 'all'
-                  ? { background: colors.accent, color: colors.accentOn }
-                  : { background: colors.surface1, color: colors.textSecondary }
+                  ? { background: colors.accent, color: colors.accentOn, ['--tw-ring-color' as string]: colors.accent }
+                  : { background: colors.surface1, color: colors.textSecondary, ['--tw-ring-color' as string]: colors.accent }
               }
             >
               All Players ({board.length})
@@ -229,11 +229,11 @@ export function CoachScoutingBoard() {
               <button
                 key={tier.id}
                 onClick={() => setActiveTier(tier.id)}
-                className="px-4 py-2 rounded-lg font-medium transition-colors"
+                className="px-4 py-2 min-h-[44px] rounded-lg font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
                 style={
                   activeTier === tier.id
-                    ? { background: tier.dot, color: colors.surface0 }
-                    : { background: colors.surface1, color: colors.textSecondary }
+                    ? { background: tier.dot, color: colors.surface0, ['--tw-ring-color' as string]: colors.accent }
+                    : { background: colors.surface1, color: colors.textSecondary, ['--tw-ring-color' as string]: colors.accent }
                 }
               >
                 {tier.label} ({getTierStats(tier.id)})
@@ -338,8 +338,8 @@ export function CoachScoutingBoard() {
                       <button
                         onClick={() => removeFromBoard(item.playerId)}
                         aria-label={`Remove ${player.name} from board`}
-                        className="p-2 transition-colors"
-                        style={{ color: colors.textSecondary }}
+                        className="inline-flex items-center justify-center min-w-[44px] min-h-[44px] rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+                        style={{ color: colors.textSecondary, ['--tw-ring-color' as string]: colors.accent }}
                       >
                         <Trash2 className="w-5 h-5" />
                       </button>

@@ -120,7 +120,7 @@ export function CoachSettings() {
                 onClick={() => togglePref(key)}
                 aria-checked={prefs[key]}
                 role="switch"
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 flex-shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/50 ${
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 flex-shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/50 before:absolute before:-inset-y-[10px] before:inset-x-0 before:content-[''] ${
                   prefs[key] ? 'bg-accent-500' : 'bg-surface-hover border border-white/10'
                 }`}
               >

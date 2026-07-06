@@ -20,7 +20,7 @@
   --border-strong:#3A3A44;
   --text-primary:#F5F5F7;
   --text-secondary:#A0A0AB;
-  --text-tertiary:#6B6B76;
+  --text-tertiary:#808089;
 
   /* purple — primary action + brand */
   --accent:#8B3BFF;
@@ -618,7 +618,7 @@ html, body {
     box-shadow: 0 0 0 3px rgba(139,59,255,0.08);
   }
 
-  .k-input::placeholder { color: #6b6b76; }
+  .k-input::placeholder { color: #808089; }
 
   /* ── Animate on mount ── */
   .k-fade-up {

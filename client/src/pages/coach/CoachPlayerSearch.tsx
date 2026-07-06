@@ -354,7 +354,7 @@ export function CoachPlayerSearch() {
             <div className="flex justify-end mt-6">
               <button
                 onClick={clearFilters}
-                className="px-4 py-2 text-ink-muted hover:text-ink transition-colors"
+                className="px-4 py-2 min-h-[44px] rounded-lg text-ink-muted hover:text-ink transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/50 focus-visible:ring-offset-2"
               >
                 Clear Filters
               </button>
@@ -427,7 +427,9 @@ export function CoachPlayerSearch() {
                   </div>
                   <button
                     onClick={() => toggleSavePlayer(player.id)}
-                    className={`p-2 rounded-full transition-colors ${
+                    aria-label={savedPlayers.has(player.id) ? 'Unsave player' : 'Save player'}
+                    aria-pressed={savedPlayers.has(player.id)}
+                    className={`inline-flex items-center justify-center min-w-[44px] min-h-[44px] rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/50 focus-visible:ring-offset-2 ${
                       savedPlayers.has(player.id)
                         ? 'text-pink-300 hover:text-pink-500'
                         : 'text-ink-muted hover:text-pink-300'

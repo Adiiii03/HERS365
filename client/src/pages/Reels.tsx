@@ -187,7 +187,7 @@ function ReelCard({
           style={{
             background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(8px)',
             border: 'none', cursor: 'pointer', color: colors.textPrimary,
-            width: 36, height: 36, borderRadius: '50%',
+            width: 44, height: 44, borderRadius: '50%',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}
         >
@@ -201,7 +201,7 @@ function ReelCard({
           style={{
             background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(8px)',
             border: 'none', cursor: 'pointer', color: colors.textPrimary,
-            width: 36, height: 36, borderRadius: '50%',
+            width: 44, height: 44, borderRadius: '50%',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}
         >

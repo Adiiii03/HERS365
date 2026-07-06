@@ -384,10 +384,10 @@ export function CoachMessages() {
       textTransform: 'uppercase' as const,
     },
     composeBtn: {
-      width: 30, height: 30, borderRadius: '50%',
+      width: 44, height: 44, borderRadius: '50%',
       background: colors.accent, border: 'none', cursor: 'pointer',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      color: colors.accentOn, fontSize: 18, lineHeight: 1, flexShrink: 0,
+      color: colors.accentOn, fontSize: 20, lineHeight: 1, flexShrink: 0,
       transition: 'background 0.2s',
     },
     searchInput: {
@@ -509,7 +509,7 @@ export function CoachMessages() {
       resize: 'none' as const,
     },
     sendBtn: {
-      width: 40, height: 40, borderRadius: '50%',
+      width: 44, height: 44, borderRadius: '50%',
       background: colors.accent, border: 'none',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       cursor: 'pointer', flexShrink: 0, alignSelf: 'flex-end',
@@ -522,8 +522,8 @@ export function CoachMessages() {
     backBtn: {
       background: 'none', border: 'none', color: colors.accent,
       cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600,
-      padding: '4px 8px', borderRadius: 8,
-      display: 'flex', alignItems: 'center', gap: 4,
+      padding: '4px 8px', borderRadius: 8, minHeight: 44,
+      display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0,
     },
   };
 
@@ -633,7 +633,7 @@ export function CoachMessages() {
                 <button
                   onClick={() => qc.invalidateQueries({ queryKey: ['coach-messages'] })}
                   style={{ background: colors.accent, color: colors.accentOn, border: 'none', borderRadius: 8,
-                    padding: '6px 16px', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
+                    padding: '6px 16px', minHeight: 44, fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
                 >
                   Retry
                 </button>

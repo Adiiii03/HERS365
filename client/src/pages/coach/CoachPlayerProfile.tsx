@@ -210,7 +210,7 @@ export function CoachPlayerProfile() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+              className={`flex items-center gap-2 px-4 py-2 min-h-[44px] rounded-lg font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/50 focus-visible:ring-offset-2 ${
                 activeTab === tab.id
                   ? 'bg-accent-500 text-white'
                   : 'bg-surface-card text-ink-muted hover:bg-surface-hover'

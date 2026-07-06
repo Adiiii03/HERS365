@@ -916,8 +916,12 @@ export const Profile = () => {
             ) : highlights.length > 0 ? (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
                 {highlights.map(h => (
-                  <Card key={h.id} style={{ overflow: 'hidden', cursor: 'pointer', position: 'relative' }}
-                    onClick={() => h.videoUrl && window.open(h.videoUrl, '_blank', 'noopener,noreferrer')}>
+                  <Card key={h.id} style={{ overflow: 'hidden', cursor: h.videoUrl ? 'pointer' : 'default', position: 'relative' }}
+                    role={h.videoUrl ? 'button' : undefined}
+                    tabIndex={h.videoUrl ? 0 : undefined}
+                    aria-label={h.videoUrl ? 'Play highlight' : undefined}
+                    onClick={() => h.videoUrl && window.open(h.videoUrl, '_blank', 'noopener,noreferrer')}
+                    onKeyDown={(e) => { if (h.videoUrl && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); window.open(h.videoUrl, '_blank', 'noopener,noreferrer'); } }}>
                     <div style={{ aspectRatio: '16/9', background: colors.surface2, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
                       {h.thumbnailUrl ? (
                         <img src={h.thumbnailUrl} style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0 }} alt="Highlight" />

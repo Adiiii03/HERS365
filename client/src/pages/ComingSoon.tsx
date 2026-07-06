@@ -156,15 +156,16 @@ export const ComingSoon = () => {
                   }}>
                     Email address
                   </label>
-                  <Input
-                    id="cs-email"
-                    type="email"
-                    autoComplete="email"
-                    placeholder="you@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="flex-[1_1_240px]"
-                  />
+                  <div style={{ flex: '1 1 240px', minWidth: 0 }}>
+                    <Input
+                      id="cs-email"
+                      type="email"
+                      autoComplete="email"
+                      placeholder="you@example.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                    />
+                  </div>
                   <Button type="submit" size="lg" loading={submitting}>
                     {submitting ? 'Sending…' : 'Notify me'} {!submitting && <ArrowRight size={16} aria-hidden />}
                   </Button>
