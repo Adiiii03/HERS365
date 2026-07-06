@@ -6,20 +6,14 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { DemoLoginButton } from '../components/DemoLoginButton';
 import { Capacitor } from '@capacitor/core';
+import { Button } from '../components/ui';
+import { colors, type as t, radii } from '../lib/tokens';
+import { easing } from '../lib/motion';
 
-const FLAME   = '#8B3BFF';
-const FLAME_S = '#C4A3FF';
-const INK      = '#0a0a0a';
-const PANEL    = '#0c0808';
-const FIELD    = 'rgba(255,255,255,0.02)';
-const LINE     = 'rgba(255,255,255,0.08)';
-const TEXT      = '#f4f4f2';
-const MUTED    = '#9a9a96';
-const MUTED_2  = '#7d7d78';
-const DISP     = "'Barlow Condensed', sans-serif";
-const BODY     = "'DM Sans', sans-serif";
+const FIELD = 'rgba(255,255,255,0.02)';
+const LINE  = 'rgba(255,255,255,0.08)';
 
-const EASE: [number, number, number, number] = [0.22, 0.8, 0.2, 1];
+const EASE = easing.standard as [number, number, number, number];
 
 function GoogleMark({ size = 16 }: { size?: number }) {
   return (
@@ -52,9 +46,9 @@ function Field({
         htmlFor={id}
         style={{
           display: 'block',
-          fontFamily: DISP, fontWeight: 700, fontSize: '.7rem',
+          fontFamily: t.font.display, fontWeight: 700, fontSize: '.7rem',
           letterSpacing: '.16em', textTransform: 'uppercase',
-          color: focused ? FLAME : MUTED, marginBottom: 9,
+          color: focused ? colors.accent : colors.textSecondary, marginBottom: 9,
           transition: 'color .2s',
         }}
       >
@@ -67,7 +61,7 @@ function Field({
           aria-hidden
           style={{
             position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)',
-            color: focused ? FLAME : MUTED_2, transition: 'color .2s', pointerEvents: 'none',
+            color: focused ? colors.accent : colors.textTertiary, transition: 'color .2s', pointerEvents: 'none',
           }}
         />
 
@@ -85,11 +79,11 @@ function Field({
           style={{
             width: '100%', background: FIELD,
             border: `1px solid ${focused ? 'rgba(139,59,255,0.5)' : LINE}`,
-            borderRadius: 12,
+            borderRadius: radii.md,
             outline: focused ? '2px solid rgba(139,59,255,0.9)' : 'none',
             outlineOffset: 2,
             padding: isPass ? '15px 46px 15px 44px' : '15px 16px 15px 44px',
-            fontSize: '1rem', color: TEXT, fontFamily: BODY,
+            fontSize: '1rem', color: colors.textPrimary, fontFamily: t.font.body,
             boxShadow: focused ? '0 0 0 3px rgba(139,59,255,0.08)' : 'none',
             transition: 'border-color .2s, box-shadow .2s',
           }}
@@ -102,13 +96,13 @@ function Field({
             aria-label={showPw ? 'Hide password' : 'Show password'}
             style={{
               position: 'absolute', right: 4, top: '50%', transform: 'translateY(-50%)',
-              background: 'none', border: 'none', color: MUTED, cursor: 'pointer',
+              background: 'none', border: 'none', color: colors.textSecondary, cursor: 'pointer',
               padding: 10, minWidth: 44, minHeight: 44,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              transition: 'color .2s', borderRadius: 8,
+              transition: 'color .2s', borderRadius: radii.sm,
             }}
-            onMouseEnter={e => (e.currentTarget.style.color = FLAME_S)}
-            onMouseLeave={e => (e.currentTarget.style.color = MUTED)}
+            onMouseEnter={e => (e.currentTarget.style.color = colors.accentText)}
+            onMouseLeave={e => (e.currentTarget.style.color = colors.textSecondary)}
           >
             {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
           </button>
@@ -127,13 +121,13 @@ function AmbientField({ reduced, faint = false }: { reduced: boolean; faint?: bo
       <div className={reduced ? '' : 'auth-orb auth-orb-a'} style={{
         position: 'absolute', width: 560, height: 560, borderRadius: '50%',
         filter: 'blur(120px)', opacity: 0.16 * k, bottom: '-26%', left: '-16%',
-        background: `radial-gradient(circle, ${FLAME}, transparent 62%)`,
+        background: `radial-gradient(circle, ${colors.accent}, transparent 62%)`,
         willChange: 'transform, opacity',
       }} />
       <div className={reduced ? '' : 'auth-orb auth-orb-b'} style={{
         position: 'absolute', width: 420, height: 420, borderRadius: '50%',
         filter: 'blur(110px)', opacity: 0.1 * k, top: '-18%', right: '-12%',
-        background: `radial-gradient(circle, ${FLAME_S}, transparent 64%)`,
+        background: `radial-gradient(circle, ${colors.accentText}, transparent 64%)`,
         willChange: 'transform, opacity',
       }} />
     </div>
@@ -390,7 +384,7 @@ export const Auth = () => {
   };
 
   return (
-    <div className="auth-root" style={{ display: 'flex', minHeight: '100vh', background: INK, color: TEXT, fontFamily: BODY, overflowX: 'hidden' }}>
+    <div className="auth-root" style={{ display: 'flex', minHeight: '100vh', background: colors.surface0, color: colors.textPrimary, fontFamily: t.font.body, overflowX: 'hidden' }}>
 
       {/* ── LEFT RAIL (desktop) ── */}
       <aside
@@ -399,7 +393,7 @@ export const Auth = () => {
           width: '44%', flexShrink: 0, position: 'relative',
           flexDirection: 'column', justifyContent: 'space-between',
           padding: '56px 64px', borderRight: `1px solid ${LINE}`,
-          background: PANEL, overflow: 'hidden',
+          background: colors.surface1, overflow: 'hidden',
         }}
       >
         {/* subtle drifting flame ambient (motion-safe) */}
@@ -425,13 +419,13 @@ export const Auth = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: EASE }}
           style={{
-            fontFamily: DISP, fontWeight: 900, fontSize: '1.5rem', letterSpacing: '.03em',
+            fontFamily: t.font.display, fontWeight: 900, fontSize: '1.5rem', letterSpacing: '.03em',
             textTransform: 'uppercase', position: 'relative', zIndex: 1, cursor: 'pointer',
-            background: 'none', border: 'none', color: TEXT, padding: 0, alignSelf: 'flex-start',
+            background: 'none', border: 'none', color: colors.textPrimary, padding: 0, alignSelf: 'flex-start',
             display: 'flex', alignItems: 'center',
           }}
         >
-          HERS<span style={{ color: FLAME }}>365</span>
+          HERS<span style={{ color: colors.accent }}>365</span>
         </motion.button>
 
         {/* Headline */}
@@ -444,13 +438,13 @@ export const Auth = () => {
           <div
             style={{
               display: 'inline-flex', alignItems: 'center', gap: 9, marginBottom: 30,
-              padding: '6px 13px 6px 11px', borderRadius: 9999,
+              padding: '6px 13px 6px 11px', borderRadius: radii.full,
               border: `1px solid ${LINE}`, background: 'rgba(255,255,255,0.02)',
-              fontFamily: DISP, fontWeight: 700, fontSize: '.68rem',
-              letterSpacing: '.16em', textTransform: 'uppercase', color: MUTED,
+              fontFamily: t.font.display, fontWeight: 700, fontSize: '.68rem',
+              letterSpacing: '.16em', textTransform: 'uppercase', color: colors.textSecondary,
             }}
           >
-            <span className={reduced ? '' : 'auth-live-ring'} style={{ width: 6, height: 6, borderRadius: '50%', background: FLAME, boxShadow: `0 0 10px ${FLAME}` }} />
+            <span className={reduced ? '' : 'auth-live-ring'} style={{ width: 6, height: 6, borderRadius: '50%', background: colors.accent, boxShadow: `0 0 10px ${colors.accent}` }} />
             Girls Flag Football
           </div>
 
@@ -458,22 +452,22 @@ export const Auth = () => {
             role="heading"
             aria-level={2}
             style={{
-              fontFamily: DISP, fontWeight: 900, fontSize: 'clamp(3rem,4.4vw,4.5rem)',
+              fontFamily: t.font.display, fontWeight: 900, fontSize: 'clamp(3rem,4.4vw,4.5rem)',
               textTransform: 'uppercase', lineHeight: 0.9, letterSpacing: 'var(--tracking-display)', margin: 0,
             }}
           >
             Her game.<br />Her people.<br />
-            <span style={{ color: FLAME }}>Her space.</span>
+            <span style={{ color: colors.accent }}>Her space.</span>
           </div>
 
-          <p style={{ color: MUTED, fontSize: '1.05rem', lineHeight: 1.65, margin: '26px 0 0', maxWidth: 360 }}>
+          <p style={{ color: colors.textSecondary, fontSize: '1.05rem', lineHeight: 1.65, margin: '26px 0 0', maxWidth: 360 }}>
             The community built for girls flag football. Safe by design, parent approved, and moderated by real people.
           </p>
 
           {/* Trust line — honest, no invented numbers */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 11, marginTop: 34 }}>
-            <ShieldCheck size={20} aria-hidden style={{ color: FLAME, flexShrink: 0 }} />
-            <span style={{ color: MUTED, fontSize: '.9rem', lineHeight: 1.45 }}>
+            <ShieldCheck size={20} aria-hidden style={{ color: colors.accent, flexShrink: 0 }} />
+            <span style={{ color: colors.textSecondary, fontSize: '.9rem', lineHeight: 1.45 }}>
               Parent approved. Human moderated.
             </span>
           </div>
@@ -495,16 +489,16 @@ export const Auth = () => {
             { Icon: Lock,        l: 'Under 18 safe',   s: 'Built to protect younger athletes' },
           ].map(({ Icon, l, s }) => (
             <div key={l}>
-              <Icon size={18} aria-hidden style={{ color: FLAME, marginBottom: 9 }} />
-              <div style={{ fontFamily: DISP, fontWeight: 800, fontSize: '.72rem', letterSpacing: '.14em', textTransform: 'uppercase', color: TEXT, lineHeight: 1.1 }}>{l}</div>
-              <div style={{ fontSize: '.72rem', color: MUTED_2, marginTop: 6, lineHeight: 1.4 }}>{s}</div>
+              <Icon size={18} aria-hidden style={{ color: colors.accent, marginBottom: 9 }} />
+              <div style={{ fontFamily: t.font.display, fontWeight: 800, fontSize: '.72rem', letterSpacing: '.14em', textTransform: 'uppercase', color: colors.textPrimary, lineHeight: 1.1 }}>{l}</div>
+              <div style={{ fontSize: '.72rem', color: colors.textTertiary, marginTop: 6, lineHeight: 1.4 }}>{s}</div>
             </div>
           ))}
         </motion.div>
       </aside>
 
       {/* ── RIGHT PANEL (form) ── */}
-      <main style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 24px', paddingBottom: 'calc(40px + env(safe-area-inset-bottom))', position: 'relative', background: INK, overflow: 'hidden' }}>
+      <main style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 24px', paddingBottom: 'calc(40px + env(safe-area-inset-bottom))', position: 'relative', background: colors.surface0, overflow: 'hidden' }}>
         {/* faint ambient behind the form so mobile (no left panel) isn't flat */}
         <div className="flex lg:hidden" aria-hidden style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
           <AmbientField reduced={reduced} faint />
@@ -522,12 +516,12 @@ export const Auth = () => {
             className="flex lg:hidden"
             onClick={() => navigate('/')}
             style={{
-              fontFamily: DISP, fontWeight: 900, fontSize: '1.4rem', letterSpacing: '.03em',
+              fontFamily: t.font.display, fontWeight: 900, fontSize: '1.4rem', letterSpacing: '.03em',
               textTransform: 'uppercase', marginBottom: 36, cursor: 'pointer',
-              background: 'none', border: 'none', color: TEXT, padding: 0, alignItems: 'center',
+              background: 'none', border: 'none', color: colors.textPrimary, padding: 0, alignItems: 'center',
             }}
           >
-            HERS<span style={{ color: FLAME }}>365</span>
+            HERS<span style={{ color: colors.accent }}>365</span>
           </button>
 
           {showPendingScreen ? (
@@ -536,16 +530,16 @@ export const Auth = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, ease: EASE }}
             >
-              <HeartHandshake size={40} aria-hidden style={{ color: FLAME, marginBottom: 18 }} />
-              <h1 style={{ fontFamily: DISP, fontWeight: 900, fontSize: 'clamp(2.2rem,5vw,2.8rem)', textTransform: 'uppercase', lineHeight: 0.95, margin: '0 0 12px', letterSpacing: 'var(--tracking-display)' }}>
+              <HeartHandshake size={40} aria-hidden style={{ color: colors.accent, marginBottom: 18 }} />
+              <h1 style={{ fontFamily: t.font.display, fontWeight: 900, fontSize: 'clamp(2.2rem,5vw,2.8rem)', textTransform: 'uppercase', lineHeight: 0.95, margin: '0 0 12px', letterSpacing: 'var(--tracking-display)' }}>
                 Waiting for your grown up to say yes
               </h1>
-              <p style={{ color: MUTED, fontSize: '.95rem', lineHeight: 1.6, margin: '0 0 8px' }}>
+              <p style={{ color: colors.textSecondary, fontSize: '.95rem', lineHeight: 1.6, margin: '0 0 8px' }}>
                 You're almost in! We sent an email to{' '}
-                <strong style={{ color: TEXT }}>{guardianMasked || 'your parent or guardian'}</strong>{' '}
+                <strong style={{ color: colors.textPrimary }}>{guardianMasked || 'your parent or guardian'}</strong>{' '}
                 with a special code. Once they approve, your account unlocks.
               </p>
-              <p style={{ color: MUTED_2, fontSize: '.82rem', lineHeight: 1.55, margin: '0 0 24px' }}>
+              <p style={{ color: colors.textTertiary, fontSize: '.82rem', lineHeight: 1.55, margin: '0 0 24px' }}>
                 Go tell them to check their inbox — we'll keep an eye out here and let you know the moment they say yes.
               </p>
 
@@ -557,7 +551,7 @@ export const Auth = () => {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0 }}
                     style={{
-                      color: TEXT, fontSize: '.82rem', margin: '0 0 16px', fontWeight: 600,
+                      color: colors.textPrimary, fontSize: '.82rem', margin: '0 0 16px', fontWeight: 600,
                       padding: '10px 14px', borderRadius: 10,
                       background: 'rgba(255,255,255,0.04)', border: `1px solid ${LINE}`,
                     }}
@@ -565,45 +559,34 @@ export const Auth = () => {
                 )}
               </AnimatePresence>
 
-              <button
+              <Button
                 type="button"
+                size="lg"
                 onClick={() => checkGuardianStatus(true)}
-                style={{
-                  width: '100%', padding: '15px 24px', marginBottom: 12,
-                  background: FLAME, color: '#fff', border: 'none', borderRadius: 12,
-                  fontFamily: DISP, fontWeight: 900, fontSize: '1rem',
-                  letterSpacing: '.08em', textTransform: 'uppercase', cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-                  boxShadow: '0 8px 26px rgba(139,59,255,.3)',
-                }}
+                className="w-full uppercase tracking-[.08em] mb-3"
+                style={{ fontFamily: t.font.display, fontWeight: 900, fontSize: '1rem' }}
               >
                 I think my grown up said yes <ArrowRight size={16} />
-              </button>
+              </Button>
 
-              <button
+              <Button
                 type="button"
+                variant="ghost"
                 onClick={handleResend}
                 disabled={resendWait > 0}
-                style={{
-                  width: '100%', padding: '13px 24px',
-                  background: FIELD, color: resendWait > 0 ? MUTED_2 : TEXT,
-                  border: `1px solid ${LINE}`, borderRadius: 12,
-                  fontFamily: DISP, fontWeight: 800, fontSize: '.85rem',
-                  letterSpacing: '.08em', textTransform: 'uppercase',
-                  cursor: resendWait > 0 ? 'not-allowed' : 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                }}
+                className="w-full uppercase tracking-[.08em]"
+                style={{ fontFamily: t.font.display, fontWeight: 800, fontSize: '.85rem', color: resendWait > 0 ? colors.textTertiary : colors.textPrimary }}
               >
                 <RefreshCw size={14} />
                 {resendWait > 0 ? `Send the email again (${resendWait}s)` : 'Send the email again'}
-              </button>
+              </Button>
 
-              <p style={{ color: MUTED_2, fontSize: '.72rem', marginTop: 22, lineHeight: 1.6 }}>
+              <p style={{ color: colors.textTertiary, fontSize: '.72rem', marginTop: 22, lineHeight: 1.6 }}>
                 Signed up with the wrong grown up email?{' '}
                 <button
                   type="button"
                   onClick={() => { localStorage.removeItem('guardianEmailMasked'); clearPending(); }}
-                  style={{ background: 'none', border: 'none', color: MUTED, fontSize: '.72rem', cursor: 'pointer', fontFamily: BODY, textDecoration: 'underline', padding: 0 }}
+                  style={{ background: 'none', border: 'none', color: colors.textSecondary, fontSize: '.72rem', cursor: 'pointer', fontFamily: t.font.body, textDecoration: 'underline', padding: 0 }}
                 >
                   Start over
                 </button>
@@ -620,12 +603,12 @@ export const Auth = () => {
               exit={{ opacity: 0, y: -6 }}
               transition={{ duration: 0.22 }}
             >
-              <h1 style={{ fontFamily: DISP, fontWeight: 900, fontSize: 'clamp(2.4rem,5vw,3rem)', textTransform: 'uppercase', lineHeight: 0.92, margin: '0 0 10px', letterSpacing: 'var(--tracking-display)' }}>
+              <h1 style={{ fontFamily: t.font.display, fontWeight: 900, fontSize: 'clamp(2.4rem,5vw,3rem)', textTransform: 'uppercase', lineHeight: 0.92, margin: '0 0 10px', letterSpacing: 'var(--tracking-display)' }}>
                 {isLogin
                   ? 'Welcome back.'
                   : role === 'parent' ? 'Set up her safe space.' : 'Join the community.'}
               </h1>
-              <p style={{ color: MUTED, fontSize: '0.98rem', margin: '0 0 32px', lineHeight: 1.5 }}>
+              <p style={{ color: colors.textSecondary, fontSize: '0.98rem', margin: '0 0 32px', lineHeight: 1.5 }}>
                 {isLogin
                   ? 'Sign back in to your community.'
                   : role === 'parent'
@@ -640,8 +623,8 @@ export const Auth = () => {
             className="flex lg:hidden"
             style={{ alignItems: 'center', gap: 9, marginBottom: 26 }}
           >
-            <ShieldCheck size={17} aria-hidden style={{ color: FLAME, flexShrink: 0 }} />
-            <span style={{ color: MUTED, fontSize: '.8rem', lineHeight: 1.4 }}>
+            <ShieldCheck size={17} aria-hidden style={{ color: colors.accent, flexShrink: 0 }} />
+            <span style={{ color: colors.textSecondary, fontSize: '.8rem', lineHeight: 1.4 }}>
               Parent approved. Human moderated.
             </span>
           </div>
@@ -654,7 +637,7 @@ export const Auth = () => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
                 style={{
-                  color: '#7ee2a8', fontSize: '.84rem', margin: '0 0 20px', fontWeight: 600,
+                  color: colors.successText, fontSize: '.84rem', margin: '0 0 20px', fontWeight: 600,
                   padding: '11px 14px', borderRadius: 10,
                   background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.25)',
                 }}
@@ -675,7 +658,7 @@ export const Auth = () => {
               transition={{ type: 'spring', stiffness: 480, damping: 38 }}
               style={{
                 position: 'absolute', top: 4, bottom: 4, width: 'calc(50% - 4px)',
-                background: FLAME, borderRadius: 8, boxShadow: '0 4px 16px rgba(139,59,255,.32)',
+                background: colors.accent, borderRadius: radii.sm, boxShadow: '0 4px 16px rgba(139,59,255,.32)',
               }}
             />
             {[{ label: 'Sign In', val: true }, { label: 'Create Account', val: false }].map(({ label, val }) => (
@@ -686,9 +669,9 @@ export const Auth = () => {
                 onClick={() => { setIsLogin(val); setError(''); }}
                 style={{
                   position: 'relative', zIndex: 1, flex: 1, padding: '10px 0',
-                  borderRadius: 8, border: 'none', cursor: 'pointer', background: 'transparent',
-                  color: isLogin === val ? '#fff' : MUTED,
-                  fontFamily: DISP, fontWeight: 800, fontSize: '.82rem',
+                  borderRadius: radii.sm, border: 'none', cursor: 'pointer', background: 'transparent',
+                  color: isLogin === val ? colors.accentOn : colors.textSecondary,
+                  fontFamily: t.font.display, fontWeight: 800, fontSize: '.82rem',
                   letterSpacing: '.1em', textTransform: 'uppercase', transition: 'color .25s',
                 }}
               >{label}</button>
@@ -718,10 +701,10 @@ export const Auth = () => {
                         onClick={() => setRole(r)}
                         style={{
                           padding: '12px 10px', borderRadius: 11,
-                          border: `1.5px solid ${role === r ? FLAME : LINE}`,
+                          border: `1.5px solid ${role === r ? colors.accent : LINE}`,
                           background: role === r ? 'rgba(139,59,255,0.12)' : FIELD,
-                          color: role === r ? TEXT : MUTED,
-                          fontFamily: DISP, fontWeight: 800, fontSize: '.78rem',
+                          color: role === r ? colors.textPrimary : colors.textSecondary,
+                          fontFamily: t.font.display, fontWeight: 800, fontSize: '.78rem',
                           letterSpacing: '.16em', textTransform: 'uppercase',
                           cursor: 'pointer', transition: 'all .18s',
                         }}
@@ -748,7 +731,7 @@ export const Auth = () => {
                   style={{ overflow: 'hidden' }}
                 >
                   <div style={{ marginBottom: 16 }}>
-                    <label htmlFor="auth-dob" style={{ display: 'block', fontFamily: DISP, fontWeight: 700, fontSize: '.7rem', letterSpacing: '.16em', textTransform: 'uppercase', color: MUTED, marginBottom: 9 }}>
+                    <label htmlFor="auth-dob" style={{ display: 'block', fontFamily: t.font.display, fontWeight: 700, fontSize: '.7rem', letterSpacing: '.16em', textTransform: 'uppercase', color: colors.textSecondary, marginBottom: 9 }}>
                       Date of Birth
                     </label>
                     <input
@@ -760,12 +743,12 @@ export const Auth = () => {
                       max={new Date().toISOString().slice(0, 10)}
                       style={{
                         width: '100%', background: FIELD, border: `1px solid ${LINE}`,
-                        borderRadius: 12, padding: '14px 16px', fontSize: '1rem',
-                        color: TEXT, fontFamily: BODY, outline: 'none',
+                        borderRadius: radii.md, padding: '14px 16px', fontSize: '1rem',
+                        color: colors.textPrimary, fontFamily: t.font.body, outline: 'none',
                         colorScheme: 'dark',
                       }}
                     />
-                    <p style={{ color: MUTED_2, fontSize: '.68rem', margin: '6px 4px 0', fontFamily: BODY }}>
+                    <p style={{ color: colors.textTertiary, fontSize: '.68rem', margin: '6px 4px 0', fontFamily: t.font.body }}>
                       We use this to apply the right safety settings for under-18 athletes.
                     </p>
                   </div>
@@ -779,7 +762,7 @@ export const Auth = () => {
                     required
                     autoComplete="off"
                   />
-                  <p style={{ color: MUTED_2, fontSize: '.68rem', margin: '-8px 4px 16px', fontFamily: BODY }}>
+                  <p style={{ color: colors.textTertiary, fontSize: '.68rem', margin: '-8px 4px 16px', fontFamily: t.font.body }}>
                     Required. We'll email your grown up a code to approve your account — you can't start until they say yes.
                   </p>
                   <Field
@@ -796,23 +779,18 @@ export const Auth = () => {
                       marginBottom: 16, padding: '12px 14px', borderRadius: 10,
                       background: 'rgba(139,59,255,0.08)', border: '1px solid rgba(139,59,255,0.2)',
                     }}>
-                      <p style={{ color: TEXT, fontSize: '.8rem', margin: '0 0 10px', lineHeight: 1.5 }}>
+                      <p style={{ color: colors.textPrimary, fontSize: '.8rem', margin: '0 0 10px', lineHeight: 1.5 }}>
                         Almost there! Add your parent or guardian's email above, then finish signing up with Google.
                       </p>
-                      <button
+                      <Button
                         type="button"
                         disabled={loading}
                         onClick={handleGoogleGuardianRetry}
-                        style={{
-                          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                          width: '100%', padding: '12px', background: FLAME, color: '#fff',
-                          border: 'none', borderRadius: 10, cursor: loading ? 'not-allowed' : 'pointer',
-                          fontFamily: DISP, fontWeight: 800, fontSize: '.85rem',
-                          letterSpacing: '.08em', textTransform: 'uppercase', opacity: loading ? 0.75 : 1,
-                        }}
+                        className="w-full uppercase tracking-[.08em]"
+                        style={{ fontFamily: t.font.display, fontWeight: 800, fontSize: '.85rem' }}
                       >
                         <GoogleMark size={14} /> Finish signing up with Google
-                      </button>
+                      </Button>
                     </div>
                   )}
                 </motion.div>
@@ -820,7 +798,7 @@ export const Auth = () => {
             </AnimatePresence>
 
             {!isLogin && (
-              <p style={{ color: MUTED, fontSize: '.72rem', margin: '-8px 0 16px', fontFamily: BODY, lineHeight: 1.4 }}>
+              <p style={{ color: colors.textSecondary, fontSize: '.72rem', margin: '-8px 0 16px', fontFamily: t.font.body, lineHeight: 1.4 }}>
                 At least 8 characters.
               </p>
             )}
@@ -830,9 +808,9 @@ export const Auth = () => {
                 <button
                   type="button"
                   onClick={() => navigate('/forgot-password')}
-                  style={{ background: 'none', border: 'none', color: MUTED, fontSize: '.72rem', fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', cursor: 'pointer', fontFamily: DISP, padding: '10px 0', transition: 'color .2s' }}
-                  onMouseEnter={e => (e.currentTarget.style.color = FLAME)}
-                  onMouseLeave={e => (e.currentTarget.style.color = MUTED)}
+                  style={{ background: 'none', border: 'none', color: colors.textSecondary, fontSize: '.72rem', fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', cursor: 'pointer', fontFamily: t.font.display, padding: '10px 0', transition: 'color .2s' }}
+                  onMouseEnter={e => (e.currentTarget.style.color = colors.accent)}
+                  onMouseLeave={e => (e.currentTarget.style.color = colors.textSecondary)}
                 >
                   Forgot Password?
                 </button>
@@ -849,7 +827,7 @@ export const Auth = () => {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
                   style={{
-                    color: '#ff9a8a', fontSize: '.84rem', margin: isLogin ? '0 0 16px' : '4px 0 16px',
+                    color: colors.dangerText, fontSize: '.84rem', margin: isLogin ? '0 0 16px' : '4px 0 16px',
                     fontWeight: 600, padding: '11px 14px', borderRadius: 10, wordBreak: 'break-word',
                     background: 'rgba(139,59,255,0.08)', border: '1px solid rgba(139,59,255,0.2)',
                   }}
@@ -857,30 +835,18 @@ export const Auth = () => {
               )}
             </AnimatePresence>
 
-            <button
+            <Button
               type="submit"
+              size="lg"
               disabled={loading}
-              style={{
-                width: '100%', padding: '16px 24px', marginTop: isLogin ? 0 : 4,
-                background: FLAME, color: '#fff', border: 'none', borderRadius: 12,
-                fontFamily: DISP, fontWeight: 900, fontSize: '1.05rem',
-                letterSpacing: '.08em', textTransform: 'uppercase',
-                cursor: loading ? 'not-allowed' : 'pointer',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-                boxShadow: loading ? 'none' : '0 8px 26px rgba(139,59,255,.3)',
-                transition: 'transform .18s, box-shadow .2s, opacity .2s',
-                opacity: loading ? 0.75 : 1,
-              }}
-              onMouseEnter={e => { if (!loading) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 14px 34px rgba(139,59,255,.45)'; } }}
-              onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = loading ? 'none' : '0 8px 26px rgba(139,59,255,.3)'; }}
-              onMouseDown={e => { if (!loading) e.currentTarget.style.transform = 'scale(0.99)'; }}
-              onMouseUp={e => { if (!loading) e.currentTarget.style.transform = 'translateY(-2px)'; }}
+              className="w-full uppercase tracking-[.08em]"
+              style={{ marginTop: isLogin ? 0 : 4, fontFamily: t.font.display, fontWeight: 900, fontSize: '1.05rem' }}
             >
               {loading
                 ? <><span className="auth-spinner" aria-hidden /> {isLogin ? 'Signing in…' : 'Creating account…'}</>
                 : <>{isLogin ? 'Sign In' : 'Create my account'}<ArrowRight size={16} /></>
               }
-            </button>
+            </Button>
 
             {isLogin && (
               <DemoLoginButton role="player" onLoadingChange={setLoading} onError={msg => setError(msg ?? '')} />
@@ -889,8 +855,8 @@ export const Auth = () => {
 
           {/* Consent / age block (signup only — also covers OAuth signup) */}
           {!isLogin && (
-            <div style={{ marginTop: 16, fontSize: '.72rem', lineHeight: 1.55, color: MUTED, fontFamily: BODY }}>
-              <p style={{ margin: '0 0 6px', fontWeight: 700, color: TEXT }}>
+            <div style={{ marginTop: 16, fontSize: '.72rem', lineHeight: 1.55, color: colors.textSecondary, fontFamily: t.font.body }}>
+              <p style={{ margin: '0 0 6px', fontWeight: 700, color: colors.textPrimary }}>
                 Free to create your profile — no card required.
               </p>
               <p style={{ margin: '0 0 6px' }}>
@@ -908,7 +874,7 @@ export const Auth = () => {
           {/* Divider */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 14, margin: '28px 0' }}>
             <div style={{ flex: 1, height: 1, background: LINE }} />
-            <span style={{ color: MUTED_2, fontSize: '.64rem', fontWeight: 700, letterSpacing: '.2em', textTransform: 'uppercase', fontFamily: DISP }}>Or continue with</span>
+            <span style={{ color: colors.textTertiary, fontSize: '.64rem', fontWeight: 700, letterSpacing: '.2em', textTransform: 'uppercase', fontFamily: t.font.display }}>Or continue with</span>
             <div style={{ flex: 1, height: 1, background: LINE }} />
           </div>
 
@@ -935,14 +901,14 @@ export const Auth = () => {
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9,
                   padding: '13px', background: FIELD,
                   border: `1px solid ${LINE}`, borderRadius: 11,
-                  color: MUTED_2, fontSize: '.8rem', fontWeight: 800,
+                  color: colors.textTertiary, fontSize: '.8rem', fontWeight: 800,
                   cursor: 'not-allowed', opacity: 0.5,
-                  letterSpacing: '.08em', textTransform: 'uppercase', fontFamily: DISP,
+                  letterSpacing: '.08em', textTransform: 'uppercase', fontFamily: t.font.display,
                 }}
               >
                 <GoogleMark size={16} />
                 Google
-                <span style={{ fontSize: '.62rem', letterSpacing: '.12em', color: MUTED_2, marginLeft: 4 }}>— Coming soon</span>
+                <span style={{ fontSize: '.62rem', letterSpacing: '.12em', color: colors.textTertiary, marginLeft: 4 }}>— Coming soon</span>
               </button>
             )}
           </div>
@@ -951,16 +917,16 @@ export const Auth = () => {
           {isLogin && registrationEnabled && (
             <p
               style={{
-                fontSize: '.72rem', textAlign: 'center', color: MUTED_2, marginTop: 26, marginBottom: 0,
-                lineHeight: 1.7, fontFamily: BODY,
+                fontSize: '.72rem', textAlign: 'center', color: colors.textTertiary, marginTop: 26, marginBottom: 0,
+                lineHeight: 1.7, fontFamily: t.font.body,
               }}
             >
               <button
                 type="button"
                 onClick={() => { setIsLogin(false); setError(''); }}
-                style={{ background: 'none', border: 'none', color: MUTED, fontSize: '.72rem', cursor: 'pointer', fontFamily: BODY, display: 'inline-flex', alignItems: 'center', gap: 4 }}
-                onMouseEnter={e => (e.currentTarget.style.color = FLAME)}
-                onMouseLeave={e => (e.currentTarget.style.color = MUTED)}
+                style={{ background: 'none', border: 'none', color: colors.textSecondary, fontSize: '.72rem', cursor: 'pointer', fontFamily: t.font.body, display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                onMouseEnter={e => (e.currentTarget.style.color = colors.accent)}
+                onMouseLeave={e => (e.currentTarget.style.color = colors.textSecondary)}
               >
                 New here? Create an account <ArrowUpRight size={13} aria-hidden />
               </button>
@@ -971,8 +937,8 @@ export const Auth = () => {
           {isLogin && !registrationEnabled && (
             <p
               style={{
-                fontSize: '.72rem', textAlign: 'center', color: MUTED_2, marginTop: 26, marginBottom: 0,
-                lineHeight: 1.7, fontFamily: BODY,
+                fontSize: '.72rem', textAlign: 'center', color: colors.textTertiary, marginTop: 26, marginBottom: 0,
+                lineHeight: 1.7, fontFamily: t.font.body,
               }}
             >
               New signups are currently closed.
@@ -1003,7 +969,7 @@ export const Auth = () => {
         .auth-live-ring { position: relative; }
         .auth-live-ring::after {
           content: ''; position: absolute; inset: 0; border-radius: 50%;
-          background: ${FLAME};
+          background: ${colors.accent};
           animation: auth-pulse 2.4s ease-out infinite;
         }
         @keyframes auth-pulse {

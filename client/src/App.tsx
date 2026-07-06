@@ -243,6 +243,7 @@ function App() {
     (async () => {
       const { StatusBar, Style } = await import('@capacitor/status-bar');
       const { Keyboard, KeyboardResize } = await import('@capacitor/keyboard');
+      const { SplashScreen } = await import('@capacitor/splash-screen');
 
       await StatusBar.setStyle({ style: Style.Dark });
       if (Capacitor.getPlatform() === 'ios') {
@@ -255,6 +256,8 @@ function App() {
         if (!canGoBack) CapApp.minimizeApp();
         else window.history.back();
       });
+
+      await SplashScreen.hide().catch(() => {});
 
       cleanup = () => { backListener.remove(); };
     })();

@@ -1,16 +1,17 @@
 import { forwardRef } from 'react';
 import type { ShareCardData } from '../lib/shareCard';
+import { colors, text, type as typeTokens } from '../lib/tokens';
 
 // ─── Card visual — 9:16 (540 × 960), exported at pixelRatio 2 → 1080 × 1920 ─
 
-const BG = '#0E0E11';
-const ACCENT = '#8B3BFF';
-const ACCENT_TEXT = '#C4A3FF';
-const TEXT_PRIMARY = '#F5F5F7';
-const TEXT_SECONDARY = '#B0B0B8';
+const BG = colors.surface0;
+const ACCENT = colors.accent;
+const ACCENT_TEXT = colors.accentText;
+const TEXT_PRIMARY = text.primary;
+const TEXT_SECONDARY = text.secondary;
 const DIVIDER = 'rgba(255,255,255,0.08)';
-const DISP = "'Barlow Condensed', sans-serif";
-const BODY = "'DM Sans', sans-serif";
+const DISP = typeTokens.font.display;
+const BODY = typeTokens.font.body;
 
 interface ShareCardProps {
   data: ShareCardData;
@@ -30,7 +31,7 @@ export const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(function Sha
   const deltaLine = (() => {
     if (typeof rankDelta !== 'number' || rankDelta === 0) return null;
     if (rankDelta > 0) return { symbol: '▲', n: rankDelta, color: ACCENT_TEXT };
-    return { symbol: '▼', n: Math.abs(rankDelta), color: '#8A8A92' };
+    return { symbol: '▼', n: Math.abs(rankDelta), color: text.tertiary };
   })();
 
   return (
@@ -123,8 +124,8 @@ export const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(function Sha
               width: 22,
               height: 22,
               borderRadius: '50%',
-              background: '#39FF14',
-              color: '#0A0A0C',
+              background: colors.neon,
+              color: colors.neonOn,
               fontSize: 14,
               fontWeight: 800,
             }}

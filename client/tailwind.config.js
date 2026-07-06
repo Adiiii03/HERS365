@@ -7,7 +7,7 @@ export default {
   theme: {
     extend: {
       colors: {
-        coral: {
+        accent: {
           50:  '#F5EEFF',
           100: '#E6D6FF',
           200: '#D5BCFF',
@@ -27,15 +27,15 @@ export default {
           500: '#39FF14',
         },
         surface: {
-          DEFAULT: '#111111',
-          card:    '#161616',
-          hover:   '#1c1c1c',
-          border:  'rgba(255,255,255,0.06)',
+          DEFAULT: '#0A0A0C',
+          card:    '#121216',
+          hover:   '#1A1A20',
+          border:  '#2A2A32',
         },
         ink: {
-          DEFAULT: '#ffffff',
-          muted:   '#999999',
-          faint:   '#555555',
+          DEFAULT: '#F5F5F7',
+          muted:   '#A0A0AB',
+          faint:   '#808089',
         },
       },
       fontFamily: {

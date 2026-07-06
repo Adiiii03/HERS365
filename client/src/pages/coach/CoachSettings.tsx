@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { User, Mail, School, Award, Bell, LogOut, Shield, Megaphone, Calendar } from 'lucide-react';
 import { useNotifications } from '../../context/NotificationContext';
+import { Button } from '../../components/ui';
 
 interface CoachUser {
   name?: string;
@@ -76,14 +77,14 @@ export function CoachSettings() {
         className="bg-surface-card border border-white/5 rounded-2xl overflow-hidden"
       >
         <div className="px-6 py-5 border-b border-white/5">
-          <h2 className="text-sm font-black uppercase tracking-widest text-white">Account Information</h2>
+          <h2 className="font-display text-base font-black uppercase tracking-widest text-white">Account Information</h2>
           <p className="text-xs text-ink-muted mt-1">Your coach profile details from this session.</p>
         </div>
         <div className="divide-y divide-white/5">
           {accountFields.map(({ icon: Icon, label, value }) => (
             <div key={label} className="flex items-center gap-4 px-6 py-4">
-              <div className="w-9 h-9 rounded-xl bg-green-500/10 border border-green-500/20 flex items-center justify-center flex-shrink-0">
-                <Icon size={16} className="text-green-500" />
+              <div className="w-9 h-9 rounded-xl bg-accent-500/10 border border-accent-500/20 flex items-center justify-center flex-shrink-0">
+                <Icon size={16} className="text-accent-400" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-[10px] font-black uppercase tracking-widest text-ink-muted">{label}</p>
@@ -102,7 +103,7 @@ export function CoachSettings() {
         className="bg-surface-card border border-white/5 rounded-2xl overflow-hidden"
       >
         <div className="px-6 py-5 border-b border-white/5">
-          <h2 className="text-sm font-black uppercase tracking-widest text-white">Notification Preferences</h2>
+          <h2 className="font-display text-base font-black uppercase tracking-widest text-white">Notification Preferences</h2>
           <p className="text-xs text-ink-muted mt-1">Choose which alerts appear in your portal.</p>
         </div>
         <div className="divide-y divide-white/5">
@@ -119,8 +120,8 @@ export function CoachSettings() {
                 onClick={() => togglePref(key)}
                 aria-checked={prefs[key]}
                 role="switch"
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-green-500/50 ${
-                  prefs[key] ? 'bg-green-500' : 'bg-surface-hover border border-white/10'
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 flex-shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/50 before:absolute before:-inset-y-[10px] before:inset-x-0 before:content-[''] ${
+                  prefs[key] ? 'bg-accent-500' : 'bg-surface-hover border border-white/10'
                 }`}
               >
                 <span
@@ -142,17 +143,14 @@ export function CoachSettings() {
         className="bg-surface-card border border-white/5 rounded-2xl overflow-hidden"
       >
         <div className="px-6 py-5 border-b border-white/5">
-          <h2 className="text-sm font-black uppercase tracking-widest text-white">Session</h2>
+          <h2 className="font-display text-base font-black uppercase tracking-widest text-white">Session</h2>
           <p className="text-xs text-ink-muted mt-1">End your current Coach Portal session.</p>
         </div>
         <div className="px-6 py-5">
-          <button
-            onClick={handleSignOut}
-            className="flex items-center gap-3 px-5 py-3 bg-coral-500/10 border border-coral-500/20 text-coral-400 rounded-xl font-semibold text-sm hover:bg-coral-500/20 transition-colors"
-          >
+          <Button variant="danger" onClick={handleSignOut}>
             <LogOut size={18} />
             Sign Out
-          </button>
+          </Button>
         </div>
       </motion.div>
     </div>

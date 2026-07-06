@@ -29,9 +29,9 @@ export const DemoLoginButton: React.FC<Props> = ({ role, variant, onLoadingChang
         type="button"
         onClick={submit}
         disabled={loading}
-        className="w-full py-4 bg-white/5 hover:bg-white/10 border border-coral-500/40 disabled:opacity-60 disabled:cursor-not-allowed text-white rounded-2xl font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2"
+        className="w-full py-4 bg-white/5 hover:bg-white/10 border border-accent-500/40 disabled:opacity-60 disabled:cursor-not-allowed text-white rounded-2xl font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2"
       >
-        <Zap size={18} className="text-coral-500 fill-current" />
+        <Zap size={18} className="text-accent-500 fill-current" />
         {loading ? 'Entering…' : 'Enter Demo Coach Portal'}
       </button>
     );
