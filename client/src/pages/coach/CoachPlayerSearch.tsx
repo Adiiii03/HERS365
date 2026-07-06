@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Search, Filter, Eye, Star, MapPin, GraduationCap, Award, Users, Heart } from 'lucide-react';
 import type { PlayerSearchResult } from '../../types';
 import { useNotifications } from '../../context/NotificationContext';
+import { Button, EmptyState } from '../../components/ui';
 
 interface SearchFilters {
   q?: string;
@@ -124,24 +125,24 @@ export function CoachPlayerSearch() {
     return Array.from({ length: 5 }, (_, i) => (
       <Star
         key={i}
-        className={`w-4 h-4 ${i < stars ? 'text-yellow-400 fill-current' : 'text-gray-300'}`}
+        className={`w-4 h-4 ${i < stars ? 'text-yellow-400 fill-current' : 'text-ink-faint'}`}
       />
     ));
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
+    <div className="min-h-screen bg-surface text-ink">
       {/* Header */}
-      <div className="bg-gray-800 border-b border-gray-700">
+      <div className="bg-surface-card border-b border-surface-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-white">Player Search</h1>
-              <p className="text-gray-400 mt-2">Discover and recruit top talent</p>
+              <h1 className="font-display uppercase tracking-tight text-3xl font-bold text-ink">Player Search</h1>
+              <p className="text-ink-muted mt-2">Discover and recruit top talent</p>
             </div>
             <Link
               to="/coach/board"
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+              className="bg-accent-500 hover:bg-accent-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
             >
               View Scouting Board
             </Link>
@@ -154,18 +155,18 @@ export function CoachPlayerSearch() {
         <div className="mb-6">
           <div className="flex gap-4">
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+              <Search className="absolute left-3 top-3 h-5 w-5 text-ink-muted" />
               <input
                 type="text"
                 placeholder="Search players by name, school, or location..."
                 value={filters.q || ''}
                 onChange={(e) => updateFilter('q', e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full pl-10 pr-4 py-3 bg-surface-card border border-surface-border rounded-lg text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-accent-500"
               />
             </div>
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center gap-2 px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg hover:bg-gray-700 transition-colors"
+              className="flex items-center gap-2 px-4 py-3 bg-surface-card border border-surface-border rounded-lg hover:bg-surface-hover transition-colors"
             >
               <Filter className="w-5 h-5" />
               Filters
@@ -175,14 +176,14 @@ export function CoachPlayerSearch() {
 
         {/* Filters Panel */}
         {showFilters && (
-          <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 mb-6">
+          <div className="bg-surface-card border border-surface-border rounded-lg p-6 mb-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Position</label>
+                <label className="block text-sm font-medium text-ink-muted mb-2">Position</label>
                 <select
                   value={filters.position || ''}
                   onChange={(e) => updateFilter('position', e.target.value)}
-                  className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white"
+                  className="w-full bg-surface-hover border border-surface-border rounded px-3 py-2 text-ink"
                 >
                   <option value="">All Positions</option>
                   {POSITIONS.map(pos => (
@@ -192,11 +193,11 @@ export function CoachPlayerSearch() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">State</label>
+                <label className="block text-sm font-medium text-ink-muted mb-2">State</label>
                 <select
                   value={filters.state || ''}
                   onChange={(e) => updateFilter('state', e.target.value)}
-                  className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white"
+                  className="w-full bg-surface-hover border border-surface-border rounded px-3 py-2 text-ink"
                 >
                   <option value="">All States</option>
                   {STATES.map(state => (
@@ -206,11 +207,11 @@ export function CoachPlayerSearch() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Grad Year</label>
+                <label className="block text-sm font-medium text-ink-muted mb-2">Grad Year</label>
                 <select
                   value={filters.gradYear || ''}
                   onChange={(e) => updateFilter('gradYear', e.target.value)}
-                  className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white"
+                  className="w-full bg-surface-hover border border-surface-border rounded px-3 py-2 text-ink"
                 >
                   <option value="">All Years</option>
                   {GRAD_YEARS.map(year => (
@@ -220,11 +221,11 @@ export function CoachPlayerSearch() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Archetype</label>
+                <label className="block text-sm font-medium text-ink-muted mb-2">Archetype</label>
                 <select
                   value={filters.archetype || ''}
                   onChange={(e) => updateFilter('archetype', e.target.value)}
-                  className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white"
+                  className="w-full bg-surface-hover border border-surface-border rounded px-3 py-2 text-ink"
                 >
                   <option value="">All Archetypes</option>
                   <option value="Speedster">Speedster</option>
@@ -237,7 +238,7 @@ export function CoachPlayerSearch() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Breakout Score Range</label>
+                <label className="block text-sm font-medium text-ink-muted mb-2">Breakout Score Range</label>
                 <div className="flex gap-2">
                   <input
                     type="number"
@@ -245,7 +246,7 @@ export function CoachPlayerSearch() {
                     max="100"
                     value={filters.minBreakoutScore || ''}
                     onChange={(e) => updateFilter('minBreakoutScore', e.target.value)}
-                    className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white"
+                    className="w-full bg-surface-hover border border-surface-border rounded px-3 py-2 text-ink"
                     placeholder="Min"
                   />
                   <input
@@ -254,14 +255,14 @@ export function CoachPlayerSearch() {
                     max="100"
                     value={filters.maxBreakoutScore || ''}
                     onChange={(e) => updateFilter('maxBreakoutScore', e.target.value)}
-                    className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white"
+                    className="w-full bg-surface-hover border border-surface-border rounded px-3 py-2 text-ink"
                     placeholder="Max"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">GPA Range</label>
+                <label className="block text-sm font-medium text-ink-muted mb-2">GPA Range</label>
                 <div className="flex gap-2">
                   <input
                     type="number"
@@ -270,7 +271,7 @@ export function CoachPlayerSearch() {
                     step="0.1"
                     value={filters.minGpa || ''}
                     onChange={(e) => updateFilter('minGpa', e.target.value)}
-                    className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white"
+                    className="w-full bg-surface-hover border border-surface-border rounded px-3 py-2 text-ink"
                     placeholder="Min"
                   />
                   <input
@@ -280,14 +281,14 @@ export function CoachPlayerSearch() {
                     step="0.1"
                     value={filters.maxGpa || ''}
                     onChange={(e) => updateFilter('maxGpa', e.target.value)}
-                    className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white"
+                    className="w-full bg-surface-hover border border-surface-border rounded px-3 py-2 text-ink"
                     placeholder="Max"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Height Range (inches)</label>
+                <label className="block text-sm font-medium text-ink-muted mb-2">Height Range (inches)</label>
                 <div className="flex gap-2">
                   <input
                     type="number"
@@ -295,7 +296,7 @@ export function CoachPlayerSearch() {
                     max="84"
                     value={filters.minHeight || ''}
                     onChange={(e) => updateFilter('minHeight', e.target.value)}
-                    className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white"
+                    className="w-full bg-surface-hover border border-surface-border rounded px-3 py-2 text-ink"
                     placeholder="Min"
                   />
                   <input
@@ -304,14 +305,14 @@ export function CoachPlayerSearch() {
                     max="84"
                     value={filters.maxHeight || ''}
                     onChange={(e) => updateFilter('maxHeight', e.target.value)}
-                    className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white"
+                    className="w-full bg-surface-hover border border-surface-border rounded px-3 py-2 text-ink"
                     placeholder="Max"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Weight Range (lbs)</label>
+                <label className="block text-sm font-medium text-ink-muted mb-2">Weight Range (lbs)</label>
                 <div className="flex gap-2">
                   <input
                     type="number"
@@ -319,7 +320,7 @@ export function CoachPlayerSearch() {
                     max="400"
                     value={filters.minWeight || ''}
                     onChange={(e) => updateFilter('minWeight', e.target.value)}
-                    className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white"
+                    className="w-full bg-surface-hover border border-surface-border rounded px-3 py-2 text-ink"
                     placeholder="Min"
                   />
                   <input
@@ -328,7 +329,7 @@ export function CoachPlayerSearch() {
                     max="400"
                     value={filters.maxWeight || ''}
                     onChange={(e) => updateFilter('maxWeight', e.target.value)}
-                    className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white"
+                    className="w-full bg-surface-hover border border-surface-border rounded px-3 py-2 text-ink"
                     placeholder="Max"
                   />
                 </div>
@@ -336,15 +337,15 @@ export function CoachPlayerSearch() {
 
               <div className="flex items-end">
                 <div className="w-full">
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Verified Only</label>
+                  <label className="block text-sm font-medium text-ink-muted mb-2">Verified Only</label>
                   <div className="flex items-center">
                     <input
                       type="checkbox"
                       checked={filters.verified || false}
                       onChange={(e) => updateFilter('verified', e.target.checked)}
-                      className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
+                      className="w-4 h-4 accent-accent-500 bg-surface-hover border-surface-border rounded focus:ring-accent-500"
                     />
-                    <span className="ml-2 text-sm text-gray-300">Verified players only</span>
+                    <span className="ml-2 text-sm text-ink-muted">Verified players only</span>
                   </div>
                 </div>
               </div>
@@ -353,7 +354,7 @@ export function CoachPlayerSearch() {
             <div className="flex justify-end mt-6">
               <button
                 onClick={clearFilters}
-                className="px-4 py-2 text-gray-400 hover:text-white transition-colors"
+                className="px-4 py-2 text-ink-muted hover:text-ink transition-colors"
               >
                 Clear Filters
               </button>
@@ -364,7 +365,7 @@ export function CoachPlayerSearch() {
         {/* Results */}
         <div className="mb-6">
           <div className="flex items-center justify-between">
-            <p className="text-gray-400">
+            <p className="text-ink-muted">
               {loading ? 'Searching...' : `${players.length} players found`}
             </p>
           </div>
@@ -373,13 +374,13 @@ export function CoachPlayerSearch() {
         {/* Player Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {players.map((player) => (
-            <div key={player.id} className="bg-gray-800 border border-gray-700 rounded-lg overflow-hidden hover:border-gray-600 transition-colors">
+            <div key={player.id} className="bg-surface-card border border-surface-border rounded-lg overflow-hidden hover:border-accent-500/40 transition-colors">
               {/* Film/photo strip — uses the latest highlight thumbnail when present,
                   falling back to the athlete's profile photo, then to a placeholder.
                   Lets coaches eyeball candidates without clicking every card. */}
               <Link
                 to={`/coach/player/${player.id}`}
-                className="block aspect-video bg-gray-900 relative overflow-hidden group"
+                className="block aspect-video bg-surface relative overflow-hidden group"
               >
                 {player.highlightThumbnailUrl || player.profileImage ? (
                   <img
@@ -389,7 +390,7 @@ export function CoachPlayerSearch() {
                   />
                 ) : (
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-16 h-16 rounded-full bg-gray-700 flex items-center justify-center text-2xl font-bold text-gray-500">
+                    <div className="w-16 h-16 rounded-full bg-surface-hover flex items-center justify-center text-2xl font-bold text-ink-faint">
                       {player.name?.[0] ?? '?'}
                     </div>
                   </div>
@@ -404,12 +405,12 @@ export function CoachPlayerSearch() {
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
-                      <h3 className="text-xl font-semibold text-white">{player.name}</h3>
+                      <h3 className="font-display uppercase tracking-tight text-xl font-semibold text-ink">{player.name}</h3>
                       {player.verified && (
-                        <Award className="w-5 h-5 text-blue-400" />
+                        <Award className="w-5 h-5 text-accent-400" />
                       )}
                     </div>
-                    <div className="flex items-center gap-4 text-sm text-gray-400">
+                    <div className="flex items-center gap-4 text-sm text-ink-muted">
                       <span className="flex items-center gap-1">
                         <Users className="w-4 h-4" />
                         {player.position}
@@ -428,8 +429,8 @@ export function CoachPlayerSearch() {
                     onClick={() => toggleSavePlayer(player.id)}
                     className={`p-2 rounded-full transition-colors ${
                       savedPlayers.has(player.id)
-                        ? 'text-red-400 hover:text-red-300'
-                        : 'text-gray-400 hover:text-red-400'
+                        ? 'text-pink-300 hover:text-pink-500'
+                        : 'text-ink-muted hover:text-pink-300'
                     }`}
                   >
                     <Heart className={`w-5 h-5 ${savedPlayers.has(player.id) ? 'fill-current' : ''}`} />
@@ -438,17 +439,17 @@ export function CoachPlayerSearch() {
 
                 <div className="space-y-3 mb-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-400">Breakout Score</span>
+                    <span className="text-sm text-ink-muted">Breakout Score</span>
                     <span className="text-lg font-semibold text-green-400">{player.breakoutScore}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-400">Rating</span>
+                    <span className="text-sm text-ink-muted">Rating</span>
                     <div className="flex items-center gap-1">
                       {renderStars(player.stars)}
                     </div>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-400">NIL Points</span>
+                    <span className="text-sm text-ink-muted">NIL Points</span>
                     <span className="text-lg font-semibold text-yellow-400">{(player.nilPoints ?? 0).toLocaleString()}</span>
                   </div>
                 </div>
@@ -456,12 +457,12 @@ export function CoachPlayerSearch() {
                 <div className="flex items-center justify-between">
                   <Link
                     to={`/coach/player/${player.id}`}
-                    className="flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors"
+                    className="flex items-center gap-2 text-accent-400 hover:text-accent-300 transition-colors"
                   >
                     <Eye className="w-4 h-4" />
                     View Profile
                   </Link>
-                  <div className="text-sm text-gray-400">
+                  <div className="text-sm text-ink-muted">
                     {player.offers} offers • {player.highlights} highlights
                   </div>
                 </div>
@@ -472,21 +473,16 @@ export function CoachPlayerSearch() {
 
         {loadError && !loading && (
           <div className="flex flex-col items-center justify-center py-12 text-center">
-            <p className="text-gray-400 mb-4">Search failed. Could not load players.</p>
-            <button
-              onClick={searchPlayers}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-            >
-              Retry
-            </button>
+            <p className="text-ink-muted mb-4">Search failed. Could not load players.</p>
+            <Button onClick={searchPlayers}>Retry</Button>
           </div>
         )}
         {players.length === 0 && !loading && !loadError && (
-          <div className="text-center py-12">
-            <Search className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-            <h3 className="text-xl font-medium text-gray-400 mb-2">No players found</h3>
-            <p className="text-gray-500">Try adjusting your search filters</p>
-          </div>
+          <EmptyState
+            icon={<Search className="w-12 h-12" />}
+            title="No players found"
+            body="Try adjusting your search filters"
+          />
         )}
       </div>
     </div>
