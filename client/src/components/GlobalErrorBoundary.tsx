@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
+import { colors } from '../lib/tokens';
 
 // Per-field caps mirror the server-side allow-list in server/api/errors.ts so
 // nothing oversized is sent over the wire either. The boundary is the last
@@ -105,8 +106,8 @@ export default class GlobalErrorBoundary extends Component<Props, State> {
         role="alert"
         style={{
           minHeight: '100vh',
-          background: '#0a0a0a',
-          color: '#f4f4f2',
+          background: colors.surface0,
+          color: colors.textPrimary,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -116,7 +117,7 @@ export default class GlobalErrorBoundary extends Component<Props, State> {
       >
         <div
           style={{
-            background: '#111',
+            background: colors.surface1,
             border: '1px solid rgba(255,255,255,0.08)',
             borderRadius: 16,
             padding: '36px 32px',
@@ -134,7 +135,7 @@ export default class GlobalErrorBoundary extends Component<Props, State> {
               textTransform: 'uppercase',
               letterSpacing: '0.02em',
               margin: '0 0 10px',
-              color: '#f4f4f2',
+              color: colors.textPrimary,
             }}
           >
             Something went wrong
@@ -142,7 +143,7 @@ export default class GlobalErrorBoundary extends Component<Props, State> {
           <p
             style={{
               fontSize: '0.92rem',
-              color: '#9a9a96',
+              color: colors.textSecondary,
               margin: '0 0 24px',
               lineHeight: 1.5,
             }}
@@ -153,8 +154,8 @@ export default class GlobalErrorBoundary extends Component<Props, State> {
             type="button"
             onClick={this.handleReload}
             style={{
-              background: '#8B3BFF',
-              color: '#0a0a0c',
+              background: colors.accent,
+              color: colors.surface0,
               border: 'none',
               borderRadius: 10,
               padding: '11px 24px',

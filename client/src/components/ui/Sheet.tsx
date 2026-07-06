@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { cn } from '../../lib/cn';
+import { colors } from '../../lib/tokens';
 
 export interface SheetProps {
   open: boolean;
@@ -82,10 +83,11 @@ export function Sheet({ open, onClose, children, className, label }: SheetProps)
             aria-modal="true"
             aria-label={label}
             className={cn(
-              'relative w-full max-w-[560px] rounded-t-[24px] border border-[#2A2A32] bg-[#121216] ' +
+              'relative w-full max-w-[560px] rounded-t-[24px] border ' +
                 'p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] shadow-[inset_0_1px_0_0_rgba(255,255,255,.08),0_24px_64px_-16px_rgba(0,0,0,.8)]',
               className,
             )}
+            style={{ borderColor: colors.border, background: colors.surface1 }}
             initial={reduce ? { opacity: 0 } : { y: '100%' }}
             animate={reduce ? { opacity: 1 } : { y: 0 }}
             exit={reduce ? { opacity: 0 } : { y: '100%' }}

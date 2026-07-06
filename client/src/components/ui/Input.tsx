@@ -1,5 +1,6 @@
 import React, { forwardRef, useId } from 'react';
 import { cn } from '../../lib/cn';
+import { colors } from '../../lib/tokens';
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -7,7 +8,7 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
-  { label, error, className, id, ...props },
+  { label, error, className, id, style, ...props },
   ref,
 ) {
   const reactId = useId();
@@ -19,7 +20,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
       {label && (
         <label
           htmlFor={inputId}
-          className="text-[0.72rem] font-semibold uppercase tracking-[0.08em] text-[#A0A0AB]"
+          className="text-[0.72rem] font-semibold uppercase tracking-[0.08em]"
+          style={{ color: colors.textSecondary }}
         >
           {label}
         </label>
@@ -29,15 +31,12 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
         id={inputId}
         aria-invalid={error ? true : undefined}
         aria-describedby={errorId}
-        className={cn(
-          'k-input w-full min-h-[44px] px-3.5 py-2.5',
-          error && 'border-[#FF2E93] focus:border-[#FF2E93]',
-          className,
-        )}
+        className={cn('k-input w-full min-h-[44px] px-3.5 py-2.5', className)}
+        style={error ? { borderColor: colors.pink, ...style } : style}
         {...props}
       />
       {error && (
-        <span id={errorId} className="text-[0.72rem] text-[#FF6FB3]">
+        <span id={errorId} className="text-[0.72rem]" style={{ color: colors.pinkText }}>
           {error}
         </span>
       )}

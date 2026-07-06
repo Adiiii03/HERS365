@@ -1,5 +1,6 @@
 import React from 'react';
 import { cn } from '../../lib/cn';
+import { colors } from '../../lib/tokens';
 
 export interface EmptyStateProps {
   icon?: React.ReactNode;
@@ -14,9 +15,13 @@ export interface EmptyStateProps {
 export function EmptyState({ icon, title, body, cta, className }: EmptyStateProps) {
   return (
     <div className={cn('flex flex-col items-center px-6 py-16 text-center', className)}>
-      {icon && <div className="mb-4 text-[#6B6B76]">{icon}</div>}
-      <h3 className="mb-2 text-xl font-medium text-[#F5F5F7]">{title}</h3>
-      {body && <p className="mb-6 max-w-sm text-[0.85rem] text-[#A0A0AB]">{body}</p>}
+      {icon && <div className="mb-4" style={{ color: colors.textTertiary }}>{icon}</div>}
+      <h3 className="mb-2 text-xl font-medium" style={{ color: colors.textPrimary }}>{title}</h3>
+      {body && (
+        <p className="mb-6 max-w-sm text-[0.85rem]" style={{ color: colors.textSecondary }}>
+          {body}
+        </p>
+      )}
       {cta}
     </div>
   );
