@@ -1,6 +1,8 @@
 import { useState, type CSSProperties } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { CheckCircle, Loader2, ShieldCheck } from 'lucide-react';
+import { CheckCircle, ShieldCheck } from 'lucide-react';
+import { useNotifications } from '../context/NotificationContext';
+import { useHaptics } from '../lib/haptics';
 
 const FLAME = '#8B3BFF';
 const INK   = '#0a0a0a';
@@ -26,6 +28,8 @@ const labelStyle: CSSProperties = {
 export function GuardianVerify() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
+  const { showNotification } = useNotifications();
+  const haptics = useHaptics();
   const linkToken = params.get('token');
 
   const [code, setCode] = useState('');
@@ -36,6 +40,12 @@ export function GuardianVerify() {
   const [error, setError] = useState(
     linkToken ? '' : 'This approval link is missing its token. Please open the link from the email we sent you.',
   );
+
+  const fail = (message: string) => {
+    setError(message);
+    haptics.press();
+    showNotification('error', "Couldn't approve", message);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,29 +74,31 @@ export function GuardianVerify() {
       const data = await res.json().catch(() => null);
       if (res.ok && data?.activated) {
         setDone(true);
+        haptics.notify();
+        showNotification('success', 'Account activated', "Your child's account is now active. You can sign in any time to oversee their activity.");
         return;
       }
       switch (data?.code) {
         case 'INVALID_CODE':
-          setError("That code doesn't match. Check the email carefully — the code is case sensitive and you have a limited number of tries.");
+          fail("That code doesn't match. Check the email carefully — the code is case sensitive and you have a limited number of tries.");
           break;
         case 'CODE_EXPIRED':
-          setError('This approval code has expired. Ask your child to open the app and tap "Send the email again" — you\'ll get a fresh code.');
+          fail('This approval code has expired. Ask your child to open the app and tap "Send the email again" — you\'ll get a fresh code.');
           break;
         case 'CODE_LOCKED':
-          setError('Too many incorrect attempts, so this code is locked for safety. Ask your child to open the app and tap "Send the email again" for a new one.');
+          fail('Too many incorrect attempts, so this code is locked for safety. Ask your child to open the app and tap "Send the email again" for a new one.');
           break;
         case 'INVALID_CREDENTIALS':
-          setError('That password doesn\'t match your existing parent account. Try again, or reset your password from the sign in page.');
+          fail('That password doesn\'t match your existing parent account. Try again, or reset your password from the sign in page.');
           break;
         case 'PASSWORD_REQUIRED':
-          setError('Please enter a password.');
+          fail('Please enter a password.');
           break;
         default:
-          setError(data?.error || data?.message || "Something went wrong on our end — please try again.");
+          fail(data?.error || data?.message || "Something went wrong on our end — please try again.");
       }
     } catch {
-      setError('Network error — check your connection and try again.');
+      fail('Network error — check your connection and try again.');
     } finally {
       setSubmitting(false);
     }
@@ -195,15 +207,13 @@ export function GuardianVerify() {
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                 }}
               >
-                {submitting && <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />}
+                {submitting && <span className="auth-spinner" />}
                 {submitting ? 'Approving…' : "Approve my child's account"}
               </button>
             </form>
           </>
         )}
       </div>
-
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }

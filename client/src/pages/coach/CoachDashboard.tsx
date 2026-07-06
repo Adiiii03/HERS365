@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import type { CoachAnalytics as CoachAnalyticsType, PlayerClip } from '../../types';
 import { useNotifications } from '../../context/NotificationContext';
+import { EmptyState, StatCardSkeleton, CardSkeleton } from '../../components/ui';
 
 export function CoachDashboard() {
   const [analytics, setAnalytics] = useState<CoachAnalyticsType | null>(null);
@@ -142,45 +143,51 @@ export function CoachDashboard() {
 
         {/* Analytics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-400">Board Size</p>
-                <p className="text-2xl font-bold text-white">{analytics?.boardCount || 0}</p>
+          {!analytics && !pendingVerification ? (
+            Array.from({ length: 4 }).map((_, i) => <StatCardSkeleton key={i} />)
+          ) : (
+            <>
+              <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-400">Board Size</p>
+                    <p className="text-2xl font-bold text-white">{analytics?.boardCount || 0}</p>
+                  </div>
+                  <Heart className="w-8 h-8 text-red-400" />
+                </div>
               </div>
-              <Heart className="w-8 h-8 text-red-400" />
-            </div>
-          </div>
 
-          <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-400">Messages Sent</p>
-                <p className="text-2xl font-bold text-white">{analytics?.messagesSent || 0}</p>
+              <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-400">Messages Sent</p>
+                    <p className="text-2xl font-bold text-white">{analytics?.messagesSent || 0}</p>
+                  </div>
+                  <MessageSquare className="w-8 h-8 text-green-400" />
+                </div>
               </div>
-              <MessageSquare className="w-8 h-8 text-green-400" />
-            </div>
-          </div>
 
-          <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-400">Profile Views</p>
-                <p className="text-2xl font-bold text-white">{analytics?.profileViews || 0}</p>
+              <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-400">Profile Views</p>
+                    <p className="text-2xl font-bold text-white">{analytics?.profileViews || 0}</p>
+                  </div>
+                  <Eye className="w-8 h-8 text-blue-400" />
+                </div>
               </div>
-              <Eye className="w-8 h-8 text-blue-400" />
-            </div>
-          </div>
 
-          <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-400">Top State</p>
-                <p className="text-2xl font-bold text-white">{analytics?.topStates?.[0] || 'N/A'}</p>
+              <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-400">Top State</p>
+                    <p className="text-2xl font-bold text-white">{analytics?.topStates?.[0] || 'N/A'}</p>
+                  </div>
+                  <MapPin className="w-8 h-8 text-yellow-400" />
+                </div>
               </div>
-              <MapPin className="w-8 h-8 text-yellow-400" />
-            </div>
-          </div>
+            </>
+          )}
         </div>
 
         {/* Quick Actions */}
@@ -228,7 +235,19 @@ export function CoachDashboard() {
                   </Link>
                 </div>
               )) || (
-                <p className="text-gray-400 text-center py-4">No recent activity</p>
+                <EmptyState
+                  icon={<Eye className="w-10 h-10" />}
+                  title="No recent activity"
+                  body="Players you view will show up here so you can jump back into your recruiting flow."
+                  cta={
+                    <Link
+                      to="/coach/search"
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                    >
+                      Find Players
+                    </Link>
+                  }
+                />
               )}
             </div>
           </div>
@@ -288,8 +307,8 @@ export function CoachDashboard() {
           </div>
 
           {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {Array.from({ length: 6 }).map((_, i) => <CardSkeleton key={i} />)}
             </div>
           ) : loadError ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">

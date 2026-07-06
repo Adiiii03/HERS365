@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, TrendingUp, Trophy, Users, ChevronDown, ChevronUp } from 'lucide-react';
+import { Search, TrendingUp, Trophy, Users, ChevronDown, ChevronUp, BarChart3 } from 'lucide-react';
+import { EmptyState } from '../components/ui';
 
 const FLAME = '#8B3BFF';
 const LINE = 'rgba(255,255,255,0.07)';
@@ -170,7 +171,11 @@ export const MaxPrepsLookup = () => {
             </div>
             {leadersLoaded && (
               leaders.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '32px', color: MUTED_2, fontSize: '0.85rem' }}>No data available — MaxPreps may not have current season data for this filter.</div>
+                <EmptyState
+                  icon={<BarChart3 className="w-10 h-10" />}
+                  title="No data available"
+                  body="MaxPreps may not have current season data for this filter. Try a different category or state."
+                />
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {leaders.map((p, i) => (

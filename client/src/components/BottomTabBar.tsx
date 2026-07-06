@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { LayoutGrid, Trophy, User, Dumbbell, MessageSquare } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useHaptics } from '../lib/haptics';
 
 const FLAME = '#8B3BFF';
 
@@ -19,6 +20,7 @@ interface BottomTabBarProps {
 
 export const BottomTabBar: React.FC<BottomTabBarProps> = ({ unreadMessages = 0 }) => {
   const location = useLocation();
+  const haptics = useHaptics();
 
   return (
     <nav
@@ -48,6 +50,7 @@ export const BottomTabBar: React.FC<BottomTabBarProps> = ({ unreadMessages = 0 }
           <Link
             key={path}
             to={path}
+            onClick={() => { if (!active) haptics.press(); }}
             style={{ flex: 1, textDecoration: 'none' }}
           >
             <motion.div

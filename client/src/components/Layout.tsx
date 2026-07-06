@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
+import { variants } from '../lib/motion';
 import { BottomTabBar } from './BottomTabBar';
 import { NotificationBell } from './NotificationBell';
 import { ProfileCompletionBanner } from './ProfileCompletionBanner';
@@ -28,17 +29,7 @@ const nav: NavItem[] = [
   { icon: MessageSquare, label: 'MESSAGES',   path: '/messages' },
 ];
 
-const pageTransition = {
-  initial: { opacity: 0, y: 10, scale: 0.992 },
-  animate: { opacity: 1, y: 0, scale: 1 },
-  exit:    { opacity: 0, y: -4, scale: 1.004 },
-  transition: {
-    type: 'spring' as const,
-    stiffness: 420,
-    damping: 34,
-    mass: 0.8,
-  },
-};
+const pageTransition = variants.pageTransition;
 
 export const Layout = () => {
   const location  = useLocation();

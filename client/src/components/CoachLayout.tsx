@@ -14,6 +14,7 @@ import {
   Menu,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { variants } from '../lib/motion';
 import { MobileNav } from './MobileNav';
 
 export const CoachLayout = () => {
@@ -215,7 +216,11 @@ export const CoachLayout = () => {
         </header>
 
         <main className="flex-1 overflow-y-auto p-8 relative z-0 scroll-smooth">
-          <Outlet />
+          <AnimatePresence mode="wait">
+            <motion.div key={location.pathname} {...variants.pageTransition}>
+              <Outlet />
+            </motion.div>
+          </AnimatePresence>
         </main>
       </div>
 

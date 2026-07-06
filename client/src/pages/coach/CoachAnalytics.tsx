@@ -8,7 +8,10 @@ import {
   Target,
   Award,
   Heart,
+  BarChart3,
+  CalendarClock,
 } from 'lucide-react';
+import { EmptyState } from '../../components/ui';
 
 type CoachAnalyticsResponse = {
   boardCount: number;
@@ -228,7 +231,12 @@ export function CoachAnalytics() {
           <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
             <h3 className="text-lg font-semibold text-white mb-6">Top Recruiting States</h3>
             {topRecruitingStates.length === 0 ? (
-              <p className="text-gray-500 text-sm">No state data yet.</p>
+              <EmptyState
+                className="py-8"
+                icon={<MapPin className="w-10 h-10" />}
+                title="No state data yet"
+                body="Save prospects to your board and their home states will rank here."
+              />
             ) : (
               <div className="space-y-3">
                 {topRecruitingStates.map((state, index) => (
@@ -261,7 +269,12 @@ export function CoachAnalytics() {
           <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
             <h3 className="text-lg font-semibold text-white mb-6">Weekly Activity</h3>
             {analytics.weeklyActivity.length === 0 ? (
-              <p className="text-gray-500 text-sm">No weekly activity recorded yet.</p>
+              <EmptyState
+                className="py-8"
+                icon={<CalendarClock className="w-10 h-10" />}
+                title="No weekly activity yet"
+                body="Your searches, views, and saves from the past week will chart here."
+              />
             ) : (
               <div className="space-y-3">
                 {analytics.weeklyActivity.map((day) => (
@@ -291,7 +304,12 @@ export function CoachAnalytics() {
           <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
             <h3 className="text-lg font-semibold text-white mb-6">Board Position Breakdown</h3>
             {analytics.positionBreakdown.length === 0 ? (
-              <p className="text-gray-500 text-sm">No board positions saved yet.</p>
+              <EmptyState
+                className="py-8"
+                icon={<BarChart3 className="w-10 h-10" />}
+                title="No board positions yet"
+                body="Add players to your board and the position mix will break down here."
+              />
             ) : (
               <div className="space-y-4">
                 {analytics.positionBreakdown.map((pos) => (

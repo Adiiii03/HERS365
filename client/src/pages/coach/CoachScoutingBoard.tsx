@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Heart, Eye, Trash2, Star, Users, MapPin, GraduationCap, Award } from 'lucide-react';
 import type { ScoutingBoardItem, PlayerSearchResult } from '../../types';
 import { useNotifications } from '../../context/NotificationContext';
+import { CardSkeleton } from '../../components/ui';
 
 const TIERS = [
   { id: 'top-target', label: 'Top Targets', color: 'bg-red-600', description: 'Priority recruits' },
@@ -97,6 +98,7 @@ export function CoachScoutingBoard() {
   };
 
   const removeFromBoard = async (playerId: number) => {
+    const playerName = players.get(playerId)?.name;
     try {
       const token = localStorage.getItem('coachToken');
       await fetch(`/api/coach/players/${playerId}/save`, {
@@ -107,6 +109,7 @@ export function CoachScoutingBoard() {
       });
 
       setBoard(prev => prev.filter(item => item.playerId !== playerId));
+      showNotification('info', 'Removed from Board', playerName ? `${playerName} was removed from your board.` : 'Player removed from your board.');
     } catch {
       showNotification('error', 'Remove Failed', 'Could not remove player from board. Please try again.');
     }
@@ -128,6 +131,9 @@ export function CoachScoutingBoard() {
         setBoard(prev => prev.map(item =>
           item.playerId === playerId ? { ...item, tier: newTier as ScoutingBoardItem['tier'] } : item
         ));
+        const tierLabel = TIERS.find(t => t.id === newTier)?.label ?? newTier;
+        const playerName = players.get(playerId)?.name;
+        showNotification('success', 'Tier Updated', playerName ? `${playerName} moved to ${tierLabel}.` : `Player moved to ${tierLabel}.`);
       }
     } catch {
       showNotification('error', 'Update Failed', 'Could not update player tier. Please try again.');
@@ -244,8 +250,8 @@ export function CoachScoutingBoard() {
 
         {/* Board Content */}
         {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.from({ length: 6 }).map((_, i) => <CardSkeleton key={i} />)}
           </div>
         ) : loadError ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">

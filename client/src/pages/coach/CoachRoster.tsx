@@ -17,11 +17,11 @@ import {
   Phone,
   Send,
   CheckCircle2,
-  Loader2,
 } from 'lucide-react';
 import type { PlayerSearchResult } from '../../types';
 import { useNotifications } from '../../context/NotificationContext';
 import { apiFetch } from '../../lib/api';
+import { RowSkeleton } from '../../components/ui';
 
 type RosterStatus = 'watching' | 'contacted' | 'offered' | 'committed';
 
@@ -211,9 +211,18 @@ export function CoachRoster() {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh', gap: 12, color: '#555' }}>
-        <Loader2 size={20} className="animate-spin" />
-        <span style={{ fontSize: '0.85rem' }}>Loading roster...</span>
+      <div className="min-h-screen bg-gray-900 text-white">
+        <div className="bg-gray-800 border-b border-gray-700">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <h1 className="text-3xl font-bold text-white">My Roster</h1>
+            <p className="text-gray-400 mt-2">Manage your shortlisted and recruited athletes</p>
+          </div>
+        </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="bg-gray-800 border border-gray-700 rounded-lg divide-y divide-gray-700/60 px-6">
+            {Array.from({ length: 6 }).map((_, i) => <RowSkeleton key={i} />)}
+          </div>
+        </div>
       </div>
     );
   }

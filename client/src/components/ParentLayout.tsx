@@ -1,9 +1,12 @@
-import { Outlet, Link, useNavigate } from 'react-router-dom';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { LogOut } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { apiFetch } from '../lib/api';
+import { variants } from '../lib/motion';
 
 export const ParentLayout = () => {
+  const location = useLocation();
   const navigate = useNavigate();
   const { logout } = useAuth();
 
@@ -57,7 +60,11 @@ export const ParentLayout = () => {
         </button>
       </header>
       <main id="main-content" style={{ flex: 1 }}>
-        <Outlet />
+        <AnimatePresence mode="wait">
+          <motion.div key={location.pathname} {...variants.pageTransition}>
+            <Outlet />
+          </motion.div>
+        </AnimatePresence>
       </main>
     </div>
   );

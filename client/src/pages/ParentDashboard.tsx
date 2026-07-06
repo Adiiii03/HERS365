@@ -1,7 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, Users, MessageSquare, Activity, Bell, CheckCircle2, XCircle, ChevronRight, Lock } from 'lucide-react';
+import { Shield, Users, MessageSquare, Activity, Bell, CheckCircle2, XCircle, ChevronRight, Lock, Inbox } from 'lucide-react';
 import { apiFetch } from '../lib/api';
+import { useNotifications } from '../context/NotificationContext';
+import { useHaptics } from '../lib/haptics';
+import { EmptyState, CardSkeleton, RowSkeleton } from '../components/ui';
 
 const FLAME = '#8B3BFF';
 const LINE = 'rgba(255,255,255,0.07)';
@@ -109,6 +112,8 @@ function formatTs(iso: string): string {
 }
 
 export const ParentDashboard = () => {
+  const { showNotification } = useNotifications();
+  const haptics = useHaptics();
   const [tab, setTab] = useState<Tab>('overview');
   const [children, setChildren] = useState<Child[]>([]);
   const [requests, setRequests] = useState<PendingMsg[]>([]);
@@ -138,20 +143,32 @@ export const ParentDashboard = () => {
 
   const respond = async (id: number, action: 'approve' | 'reject') => {
     setActing(id);
+    const req = requests.find((r) => r.id === id);
     try {
       const data = await apiFetch(`/api/parent/requests/${id}/respond`, {
         method: 'POST',
         body: JSON.stringify({ action }),
       }).catch(() => null);
       if (data?.success) {
-        const req = requests.find((r) => r.id === id);
         if (req) {
           setRecentActions((prev) => [...prev, { id, from: req.from, action: action === 'approve' ? 'approved' : 'rejected' }]);
         }
         setRequests((prev) => prev.filter((r) => r.id !== id));
+        if (action === 'approve') {
+          haptics.notify();
+          showNotification('success', 'Approved', `${req?.from ?? 'The coach'} can now message ${req?.child ?? 'your athlete'}.`);
+        } else {
+          haptics.press();
+          showNotification('info', 'Denied', `${req?.from ?? 'This coach'} is blocked from messaging ${req?.child ?? 'your athlete'}.`);
+        }
+      } else {
+        haptics.press();
+        showNotification('error', 'Something went wrong', "We couldn't record your response. Please try again.");
       }
     } catch (err) {
       console.error('[ParentDashboard] respond error', err);
+      haptics.press();
+      showNotification('error', 'Something went wrong', "We couldn't record your response. Please try again.");
     } finally {
       setActing(null);
     }
@@ -196,11 +213,18 @@ export const ParentDashboard = () => {
         {tab === 'overview' && (
           <motion.div key="overview" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
             {loading ? (
-              <div style={{ color: MUTED_2, fontSize: '0.85rem', padding: '24px 0' }}>Loading...</div>
+              <div style={{ display: 'grid', gap: 12, marginBottom: 20 }}>
+                <CardSkeleton />
+                <CardSkeleton />
+              </div>
             ) : (
               <div style={{ display: 'grid', gap: 12, marginBottom: 20 }}>
                 {children.length === 0 ? (
-                  <div style={{ color: MUTED_2, fontSize: '0.85rem', padding: '24px 0' }}>No athletes linked to your account.</div>
+                  <EmptyState
+                    icon={<Users size={32} />}
+                    title="No athletes linked yet"
+                    body="No athletes are linked to your account."
+                  />
                 ) : children.map((c) => (
                   <div key={c.id} style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${LINE}`, borderRadius: 14, padding: '18px 20px' }}>
                     <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
@@ -253,12 +277,20 @@ export const ParentDashboard = () => {
           <motion.div key="messages" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
             <p style={{ color: MUTED, fontSize: '0.82rem', marginBottom: 18, lineHeight: 1.6 }}>Coaches can contact your athlete only after you approve each request. Denied requests are blocked permanently from that coach.</p>
             {loading ? (
-              <div style={{ color: MUTED_2, fontSize: '0.85rem', padding: '24px 0' }}>Loading...</div>
-            ) : requests.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '36px', color: MUTED_2, fontSize: '0.85rem', border: `1px dashed ${LINE}`, borderRadius: 14 }}>
-                <CheckCircle2 size={32} color={GREEN} style={{ marginBottom: 12, opacity: 0.7 }} />
-                <div>No pending message requests.</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <div style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${LINE}`, borderRadius: 14, padding: '18px 20px' }}>
+                  <RowSkeleton />
+                </div>
+                <div style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${LINE}`, borderRadius: 14, padding: '18px 20px' }}>
+                  <RowSkeleton />
+                </div>
               </div>
+            ) : requests.length === 0 ? (
+              <EmptyState
+                icon={<CheckCircle2 size={32} color={GREEN} />}
+                title="You're all caught up"
+                body="No pending message requests."
+              />
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                 {requests.map((m) => (
@@ -311,9 +343,17 @@ export const ParentDashboard = () => {
         {tab === 'activity' && (
           <motion.div key="activity" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
             {loading ? (
-              <div style={{ color: MUTED_2, fontSize: '0.85rem', padding: '24px 0' }}>Loading...</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <RowSkeleton />
+                <RowSkeleton />
+                <RowSkeleton />
+              </div>
             ) : activity.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '36px', color: MUTED_2, fontSize: '0.85rem', border: `1px dashed ${LINE}`, borderRadius: 14 }}>No recent activity.</div>
+              <EmptyState
+                icon={<Inbox size={32} />}
+                title="Nothing here yet"
+                body="No recent activity."
+              />
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {activity.map((a, i) => (
