@@ -3,26 +3,14 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { CheckCircle, ShieldCheck } from 'lucide-react';
 import { useNotifications } from '../context/NotificationContext';
 import { useHaptics } from '../lib/haptics';
+import { colors, type as t, radii, spacing } from '../lib/tokens';
+import { Button, Input } from '../components/ui';
 
-const FLAME = '#8B3BFF';
-const INK   = '#0a0a0a';
-const TEXT  = '#f4f4f2';
-const MUTED = '#9a9a96';
-const LINE  = 'rgba(255,255,255,0.1)';
-const FIELD = 'rgba(255,255,255,0.04)';
-const DISP  = "'Barlow Condensed', sans-serif";
-const BODY  = "'DM Sans', sans-serif";
-
-const inputStyle: CSSProperties = {
-  width: '100%', background: FIELD, border: `1px solid ${LINE}`,
-  borderRadius: 10, padding: '13px 14px', fontSize: 15,
-  color: TEXT, fontFamily: BODY, outline: 'none',
-};
-
-const labelStyle: CSSProperties = {
-  display: 'block', textAlign: 'left', fontFamily: DISP, fontWeight: 700,
-  fontSize: '.72rem', letterSpacing: '.14em', textTransform: 'uppercase',
-  color: MUTED, margin: '0 0 7px',
+const codeInputStyle: CSSProperties = {
+  letterSpacing: '0.25em',
+  textAlign: 'center',
+  fontSize: t.size.lg,
+  textTransform: 'uppercase',
 };
 
 export function GuardianVerify() {
@@ -106,110 +94,97 @@ export function GuardianVerify() {
 
   return (
     <div style={{
-      display: 'flex', minHeight: '100vh', background: INK,
-      color: TEXT, fontFamily: BODY,
-      alignItems: 'center', justifyContent: 'center', padding: '32px 0',
+      display: 'flex', minHeight: '100vh', background: colors.surface0,
+      color: colors.textPrimary, fontFamily: t.font.body,
+      alignItems: 'center', justifyContent: 'center', padding: `${spacing.space6} 0`,
     }}>
       <div style={{
-        maxWidth: 460, width: '100%', margin: '0 24px',
-        background: 'rgba(255,255,255,0.03)',
-        border: '1px solid rgba(255,255,255,0.07)',
-        borderRadius: 20, padding: '40px 36px', textAlign: 'center',
+        maxWidth: 460, width: '100%', margin: `0 ${spacing.space5}`,
+        background: colors.surface1,
+        border: `1px solid ${colors.border}`,
+        borderRadius: radii.xl, padding: '40px 36px', textAlign: 'center',
       }}>
-        <div style={{ fontFamily: DISP, fontSize: 28, fontWeight: 700, letterSpacing: 1, color: FLAME, marginBottom: 24 }}>
+        <div style={{ fontFamily: t.font.display, fontSize: t.size['2xl'], fontWeight: t.weight.bold, letterSpacing: 1, color: colors.accent, marginBottom: spacing.space5 }}>
           H.E.R.S.365
         </div>
 
         {done ? (
           <>
-            <CheckCircle size={48} style={{ color: '#22c55e', margin: '0 auto 16px', display: 'block' }} />
-            <h1 style={{ fontSize: 22, fontWeight: 700, margin: '0 0 10px' }}>Your child's account is now active</h1>
-            <p style={{ color: MUTED, fontSize: 15, lineHeight: 1.6, margin: '0 0 28px' }}>
+            <CheckCircle size={48} style={{ color: colors.success, margin: '0 auto 16px', display: 'block' }} />
+            <h1 style={{ fontSize: t.size.xl, fontWeight: t.weight.bold, margin: '0 0 10px' }}>Your child's account is now active</h1>
+            <p style={{ color: colors.textSecondary, fontSize: t.size.md, lineHeight: 1.6, margin: '0 0 28px' }}>
               Thanks for approving. Your child can now sign in and use HERS365, and you can sign in
               any time to oversee their activity and coach contact.
             </p>
-            <button
-              onClick={() => navigate('/auth')}
-              style={{
-                background: FLAME, color: '#fff', border: 'none', borderRadius: 10,
-                padding: '12px 28px', fontSize: 15, fontWeight: 600, cursor: 'pointer', width: '100%',
-              }}
-            >
+            <Button onClick={() => navigate('/auth')} className="w-full">
               Go to parent sign in
-            </button>
+            </Button>
           </>
         ) : (
           <>
-            <ShieldCheck size={40} style={{ color: FLAME, margin: '0 auto 14px', display: 'block' }} />
-            <h1 style={{ fontSize: 22, fontWeight: 700, margin: '0 0 10px' }}>Approve your child's account</h1>
-            <p style={{ color: MUTED, fontSize: 15, lineHeight: 1.6, margin: '0 0 26px' }}>
+            <ShieldCheck size={40} style={{ color: colors.accent, margin: '0 auto 14px', display: 'block' }} />
+            <h1 style={{ fontSize: t.size.xl, fontWeight: t.weight.bold, margin: '0 0 10px' }}>Approve your child's account</h1>
+            <p style={{ color: colors.textSecondary, fontSize: t.size.md, lineHeight: 1.6, margin: '0 0 26px' }}>
               Your child signed up for HERS365, a moderated community for girls flag football.
               Their account stays locked until you approve it. Enter the 8 character code from
               the email we sent you.
             </p>
 
             <form onSubmit={handleSubmit} noValidate>
-              <div style={{ marginBottom: 16 }}>
-                <label htmlFor="gv-code" style={labelStyle}>Approval code</label>
-                <input
+              <div style={{ marginBottom: 16, textAlign: 'left' }}>
+                <Input
                   id="gv-code"
+                  label="Approval code"
                   value={code}
                   onChange={e => setCode(e.target.value)}
                   maxLength={8}
                   autoComplete="one-time-code"
                   placeholder="8 character code"
-                  style={{ ...inputStyle, letterSpacing: '0.25em', textAlign: 'center', fontSize: 18, textTransform: 'uppercase' }}
+                  style={codeInputStyle}
                 />
               </div>
 
-              <div style={{ marginBottom: 6 }}>
-                <label htmlFor="gv-password" style={labelStyle}>Your password</label>
-                <input
+              <div style={{ marginBottom: 6, textAlign: 'left' }}>
+                <Input
                   id="gv-password"
+                  label="Your password"
                   type="password"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   autoComplete="current-password"
-                  style={inputStyle}
                 />
               </div>
-              <p style={{ color: MUTED, fontSize: 12.5, textAlign: 'left', margin: '0 0 16px', lineHeight: 1.5 }}>
+              <p style={{ color: colors.textSecondary, fontSize: t.size.xs, textAlign: 'left', margin: '0 0 16px', lineHeight: 1.5 }}>
                 New here? This creates your parent account. Already have one? Enter your existing password.
               </p>
 
-              <div style={{ marginBottom: 20 }}>
-                <label htmlFor="gv-name" style={labelStyle}>Your name (optional)</label>
-                <input
+              <div style={{ marginBottom: 20, textAlign: 'left' }}>
+                <Input
                   id="gv-name"
+                  label="Your name (optional)"
                   value={name}
                   onChange={e => setName(e.target.value)}
                   autoComplete="name"
-                  style={inputStyle}
                 />
               </div>
 
               {error && (
                 <p role="alert" style={{
-                  color: '#ff9a8a', fontSize: 13.5, textAlign: 'left', fontWeight: 600,
-                  padding: '11px 14px', borderRadius: 10, margin: '0 0 16px', lineHeight: 1.5,
+                  color: colors.dangerText, fontSize: t.size.sm, textAlign: 'left', fontWeight: t.weight.semibold,
+                  padding: '11px 14px', borderRadius: radii.md, margin: '0 0 16px', lineHeight: 1.5,
                   background: 'rgba(139,59,255,0.08)', border: '1px solid rgba(139,59,255,0.2)',
                 }}>{error}</p>
               )}
 
-              <button
+              <Button
                 type="submit"
-                disabled={submitting || !linkToken}
-                style={{
-                  background: FLAME, color: '#fff', border: 'none', borderRadius: 10,
-                  padding: '13px 28px', fontSize: 15, fontWeight: 600, width: '100%',
-                  cursor: submitting || !linkToken ? 'not-allowed' : 'pointer',
-                  opacity: submitting || !linkToken ? 0.7 : 1,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                }}
+                size="lg"
+                loading={submitting}
+                disabled={!linkToken}
+                className="w-full"
               >
-                {submitting && <span className="auth-spinner" />}
                 {submitting ? 'Approving…' : "Approve my child's account"}
-              </button>
+              </Button>
             </form>
           </>
         )}

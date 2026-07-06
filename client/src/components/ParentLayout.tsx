@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { apiFetch } from '../lib/api';
 import { variants } from '../lib/motion';
+import { colors, type as t, radii } from '../lib/tokens';
 
 export const ParentLayout = () => {
   const location = useLocation();
@@ -17,11 +18,11 @@ export const ParentLayout = () => {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: '#0a0a0a', color: '#fff' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: colors.surface0, color: colors.textPrimary }}>
       <a href="#main-content" className="skip-link">Skip to content</a>
       <header style={{
         height: 56, display: 'flex', alignItems: 'center', padding: '0 20px',
-        borderBottom: '1px solid rgba(255,255,255,0.06)',
+        borderBottom: `1px solid ${colors.border}`,
         background: 'rgba(10,10,10,0.84)',
         backdropFilter: 'blur(20px) saturate(1.5)',
         WebkitBackdropFilter: 'blur(20px) saturate(1.5)',
@@ -29,17 +30,17 @@ export const ParentLayout = () => {
       }}>
         <Link to="/parent" style={{ textDecoration: 'none', flexShrink: 0 }}>
           <span style={{
-            fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 900,
-            fontSize: '1.35rem', letterSpacing: '0.04em',
-            textTransform: 'uppercase', color: '#fff',
+            fontFamily: t.font.display, fontWeight: t.weight.bold,
+            fontSize: t.size.xl, letterSpacing: '0.04em',
+            textTransform: 'uppercase', color: colors.textPrimary,
           }}>
-            HERS<span style={{ color: '#8B3BFF' }}>365</span>
+            HERS<span style={{ color: colors.accent }}>365</span>
           </span>
         </Link>
         <span style={{
-          fontSize: '0.8rem', fontWeight: 700, letterSpacing: '0.08em',
-          textTransform: 'uppercase', color: '#8a8a86',
-          paddingLeft: 14, borderLeft: '1px solid rgba(255,255,255,0.1)',
+          fontSize: t.size.sm, fontWeight: t.weight.bold, letterSpacing: '0.08em',
+          textTransform: 'uppercase', color: colors.textSecondary,
+          paddingLeft: 14, borderLeft: `1px solid ${colors.border}`,
         }}>
           Parent dashboard
         </span>
@@ -47,13 +48,13 @@ export const ParentLayout = () => {
           onClick={handleSignOut}
           style={{
             marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8,
-            minHeight: 44, padding: '8px 14px', borderRadius: 9,
-            background: 'transparent', border: '1px solid rgba(255,255,255,0.1)',
-            color: '#8a8a86', cursor: 'pointer',
-            fontSize: '0.78rem', fontWeight: 700, letterSpacing: '0.04em',
+            minHeight: 44, padding: '8px 14px', borderRadius: radii.sm,
+            background: 'transparent', border: `1px solid ${colors.border}`,
+            color: colors.textSecondary, cursor: 'pointer',
+            fontSize: t.size.sm, fontWeight: t.weight.bold, letterSpacing: '0.04em',
           }}
-          onMouseEnter={e => { e.currentTarget.style.color = '#8B3BFF'; }}
-          onMouseLeave={e => { e.currentTarget.style.color = '#8a8a86'; }}
+          onMouseEnter={e => { e.currentTarget.style.color = colors.accent; }}
+          onMouseLeave={e => { e.currentTarget.style.color = colors.textSecondary; }}
         >
           <LogOut size={15} />
           Sign out
