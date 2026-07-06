@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, TrendingUp, Trophy, Users, ChevronDown, ChevronUp } from 'lucide-react';
 
-const FLAME = '#ff5a2d';
+const FLAME = '#8B3BFF';
 const LINE = 'rgba(255,255,255,0.07)';
 const MUTED = '#8a8a86';
 const MUTED_2 = '#5a5a56';
@@ -284,7 +284,7 @@ export const MaxPrepsLookup = () => {
                           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.18 }} style={{ overflow: 'hidden' }}>
                             <div style={{ padding: '0 16px 14px', display: 'flex', flexWrap: 'wrap', gap: 10 }}>
                               {Object.entries(p.stats).filter(([, v]) => v !== undefined && v !== null).map(([k, v]) => (
-                                <div key={k} style={{ background: 'rgba(255,90,45,0.08)', border: `1px solid ${FLAME}30`, borderRadius: 8, padding: '6px 12px', textAlign: 'center' }}>
+                                <div key={k} style={{ background: 'rgba(139,59,255,0.08)', border: `1px solid ${FLAME}30`, borderRadius: 8, padding: '6px 12px', textAlign: 'center' }}>
                                   <div style={{ fontFamily: DISP, fontSize: '1.1rem', fontWeight: 900, color: FLAME }}>{v as number}</div>
                                   <div style={{ fontSize: '0.6rem', color: MUTED, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{k.replace(/([A-Z])/g, ' $1').trim()}</div>
                                 </div>

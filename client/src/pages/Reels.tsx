@@ -7,7 +7,7 @@ import {
 import { athleteAvatar } from '../lib/avatar';
 import { useAuth } from '../context/AuthContext';
 
-const FLAME_C = '#ff5a2d';
+const FLAME_C = '#8B3BFF';
 const INK = '#0a0a0a';
 const LINE = 'rgba(255,255,255,0.07)';
 const MUTED = '#8a8a86';

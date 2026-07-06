@@ -5,7 +5,7 @@ import {
   CheckCircle2, Clock, ChevronRight, Trophy,
 } from 'lucide-react';
 
-const FLAME_C = '#ff5a2d';
+const FLAME_C = '#8B3BFF';
 const INK_2 = '#111111';
 const LINE = 'rgba(255,255,255,0.07)';
 const MUTED = '#8a8a86';
@@ -146,7 +146,7 @@ function EventCard({ ev, onRegister }: { ev: EventItem; onRegister: () => void }
               whileTap={{ scale: 0.94 }}
               onClick={onRegister}
               style={{
-                padding: '7px 18px', borderRadius: 8, border: 'none',
+                padding: '10px 18px', minHeight: 44, borderRadius: 8, border: 'none',
                 background: ev.registered ? 'rgba(74,222,128,0.12)' : FLAME_C,
                 color: ev.registered ? '#4ade80' : '#fff',
                 fontSize: '0.73rem', fontWeight: 800, letterSpacing: '0.04em',
@@ -251,7 +251,7 @@ export const Events = () => {
       <div style={{ display: 'flex', gap: 7, overflowX: 'auto', paddingBottom: 4, marginBottom: 24, scrollbarWidth: 'none' }}>
         {TYPES.map((t) => (
           <motion.button key={t} whileTap={{ scale: 0.94 }} onClick={() => setTypeFilter(t)}
-            style={{ padding: '6px 14px', borderRadius: 99, border: 'none', background: typeFilter === t ? (TYPE_COLOR[t] || FLAME_C) : 'rgba(255,255,255,0.05)', color: typeFilter === t ? '#fff' : MUTED, fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap', letterSpacing: '0.03em' }}>
+            style={{ padding: '10px 18px', minHeight: 44, borderRadius: 99, border: 'none', background: typeFilter === t ? (TYPE_COLOR[t] || FLAME_C) : 'rgba(255,255,255,0.05)', color: typeFilter === t ? '#fff' : MUTED, fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap', letterSpacing: '0.03em' }}>
             {t}
           </motion.button>
         ))}

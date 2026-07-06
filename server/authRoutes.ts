@@ -7,8 +7,18 @@ import * as auth from './auth';
 import jwt from 'jsonwebtoken';
 import { blocklistToken } from './redis';
 import { recordCoachEvent } from './lib/coachEvents';
-import { validateAthleteSignup } from './lib/athleteGate';
+import { createPendingAthlete, guardianFailureResponse } from './lib/guardianRegistration';
 import { isRegistrationEnabled } from './lib/registration';
+import { makeLimiterStore } from './lib/limiterStore';
+import {
+  REFRESH_COOKIE,
+  clearRefreshCookie,
+  hashRefreshToken,
+  issueRefreshToken,
+  revokeFamily,
+  rotateRefreshToken,
+  setRefreshCookie,
+} from './lib/refreshTokens';
 
 const router = express.Router();
 
@@ -20,6 +30,7 @@ const SELF_REGISTERABLE_ROLES = new Set<auth.UserRole>(['athlete', 'parent', 'co
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 20,
+  store: makeLimiterStore('auth-login'),
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Too many attempts — try again in 15 minutes' },
@@ -30,6 +41,7 @@ const loginLimiter = rateLimit({
 const registerLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
   max: 5, // 5 new accounts per IP per hour
+  store: makeLimiterStore('auth-register'),
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Too many accounts created from this network — try again later' },
@@ -87,6 +99,7 @@ type FoundUser = {
   passwordHash: string | null;
   name: string;
   role: auth.UserRole;
+  status?: string | null;
 };
 
 async function findUserByEmail(email: string, role: auth.UserRole): Promise<FoundUser | null> {
@@ -117,7 +130,49 @@ async function findUserByEmail(email: string, role: auth.UserRole): Promise<Foun
   // default: athlete
   const [row] = await db.select().from(schema.players).where(eq(schema.players.email, e)).limit(1);
   if (!row) return null;
-  return { id: row.id, email: row.email, passwordHash: row.passwordHash, name: row.name, role: 'athlete' };
+  return { id: row.id, email: row.email, passwordHash: row.passwordHash, name: row.name, role: 'athlete', status: row.status };
+}
+
+// Sign a slim access token and mint a rotating refresh token. The refresh
+// token rides in the response body and an httpOnly cookie scoped to /api/auth.
+async function issueSession(res: express.Response, userId: number, role: auth.UserRole) {
+  const token = auth.signToken({ userId, role });
+  const { token: refreshToken } = await issueRefreshToken(userId, role);
+  setRefreshCookie(res, refreshToken);
+  return { token, refreshToken };
+}
+
+// No cookie parser in the stack; pull one cookie out of the raw header.
+function readCookie(req: express.Request, name: string): string | null {
+  const header = req.headers.cookie ?? '';
+  for (const part of header.split(';')) {
+    const [k, ...v] = part.trim().split('=');
+    if (k === name) return decodeURIComponent(v.join('='));
+  }
+  return null;
+}
+
+async function findUserById(userId: number, role: auth.UserRole): Promise<FoundUser | null> {
+  if (role === 'coach') {
+    const [row] = await db.select().from(schema.coaches).where(eq(schema.coaches.id, userId)).limit(1);
+    return row ? { id: row.id, email: row.email, passwordHash: row.passwordHash, name: row.name ?? '', role: 'coach' } : null;
+  }
+  if (role === 'parent') {
+    const [row] = await db.select().from(schema.parents).where(eq(schema.parents.id, userId)).limit(1);
+    return row ? { id: row.id, email: row.email, passwordHash: row.passwordHash, name: row.name, role: 'parent' } : null;
+  }
+  if (role === 'admin') {
+    const [row] = await db.select().from(schema.adminUsers).where(eq(schema.adminUsers.id, userId)).limit(1);
+    return row ? { id: row.id, email: row.username, passwordHash: row.passwordHash, name: row.username, role: 'admin' } : null;
+  }
+  const [row] = await db.select().from(schema.players).where(eq(schema.players.id, userId)).limit(1);
+  return row ? { id: row.id, email: row.email, passwordHash: row.passwordHash, name: row.name, role: 'athlete', status: row.status } : null;
+}
+
+function athleteStatusRefusal(user: FoundUser, res: any): boolean {
+  if (user.role !== 'athlete' || user.status === 'active' || user.status == null) return false;
+  res.status(403).json({ code: user.status === 'deactivated' ? 'ACCOUNT_DEACTIVATED' : 'GUARDIAN_PENDING' });
+  return true;
 }
 
 // ─── POST /api/auth/register ──────────────────────────────────────────────────
@@ -126,7 +181,7 @@ router.post('/register', registerLimiter, async (req, res) => {
   if (!isRegistrationEnabled()) {
     return res.status(403).json({ error: 'Registration is currently closed.' });
   }
-  const { email, password, name, role = 'athlete', school, division, dob, parentEmail } = req.body ?? {};
+  const { email, password, name, role = 'athlete', school, division, dob, parentEmail, guardianEmail, guardianPhone, relationship } = req.body ?? {};
 
   if (!email || !password || !name) {
     return res.status(400).json({ error: 'email, password, and name are required' });
@@ -141,20 +196,14 @@ router.post('/register', registerLimiter, async (req, res) => {
     return res.status(400).json({ error: 'Invalid account type' });
   }
 
-  // Athlete signup: DOB is required so we can enforce COPPA / parent-gate.
-  // Server is the source of truth, regardless of what the client sends. The
-  // gate lives in one shared validator so every signup path stays uniform.
-  let parsedDob: Date | null = null;
-  if (userRole === 'athlete') {
-    const result = validateAthleteSignup(dob, parentEmail);
-    if (!result.ok) {
-      return res.status(400).json({ error: result.error });
-    }
-    parsedDob = result.dob;
+  // Athlete signup: DOB + guardian email are required for ALL athletes so the
+  // guardian gate applies uniformly (COPPA under-13 block stays server-side).
+  const rawGuardianEmail = guardianEmail ?? parentEmail;
+  if (userRole === 'athlete' && (typeof rawGuardianEmail !== 'string' || !rawGuardianEmail.trim())) {
+    return res.status(400).json({ code: 'GUARDIAN_EMAIL_REQUIRED', error: 'A parent or guardian email is required for athlete accounts.' });
   }
 
   const normalEmail = (email as string).toLowerCase().trim();
-  const normalParentEmail = parentEmail ? (parentEmail as string).toLowerCase().trim() : null;
 
   const existing = await findUserByEmail(normalEmail, userRole);
   if (existing) {
@@ -163,6 +212,30 @@ router.post('/register', registerLimiter, async (req, res) => {
 
   try {
     const passwordHash = await auth.hashPassword(password as string);
+
+    if (userRole === 'athlete') {
+      const result = await createPendingAthlete({
+        email: normalEmail,
+        passwordHash,
+        name: name as string,
+        dob,
+        guardianEmail: rawGuardianEmail,
+        guardianPhone: typeof guardianPhone === 'string' ? guardianPhone : null,
+        relationship: typeof relationship === 'string' ? relationship : null,
+        signupIp: req.ip ?? null,
+        signupUserAgent: req.get('user-agent') ?? null,
+      });
+      if (!result.ok) {
+        const { status, body } = guardianFailureResponse(result);
+        return res.status(status).json(body);
+      }
+      return res.status(202).json({
+        status: 'pending_guardian',
+        pendingToken: result.pendingToken,
+        guardianEmailMasked: result.guardianEmailMasked,
+      });
+    }
+
     let userId: number;
 
     if (userRole === 'coach') {
@@ -176,40 +249,15 @@ router.post('/register', registerLimiter, async (req, res) => {
         verificationRequestedAt: new Date(),
       }).returning({ id: schema.coaches.id });
       userId = row.id;
-    } else if (userRole === 'parent') {
+    } else {
       const [row] = await db.insert(schema.parents).values({
         email: normalEmail, passwordHash, name: name as string,
       }).returning({ id: schema.parents.id });
       userId = row.id;
-    } else {
-      const [row] = await db.insert(schema.players).values({
-        email: normalEmail, passwordHash, name: name as string,
-        dob: parsedDob,
-        pendingParentEmail: normalParentEmail,
-      }).returning({ id: schema.players.id });
-      userId = row.id;
-      // Best-effort: kick off a parent invite if an email was provided.
-      // The actual invite flow lives in /api/parent/invites (see parent routes).
-      if (normalParentEmail) {
-        try {
-          const existingParent = await db.select().from(schema.parents).where(eq(schema.parents.email, normalParentEmail)).limit(1);
-          if (existingParent.length > 0) {
-            await db.insert(schema.parentChildRelations).values({
-              parentId: existingParent[0].id,
-              playerId: userId,
-              relationship: 'pending',
-            });
-          }
-          // If the parent isn't a user yet, the pendingParentEmail column carries
-          // the address for the invite job to pick up later.
-        } catch (linkErr) {
-          console.warn('[auth/register] parent link skipped', linkErr);
-        }
-      }
     }
 
-    const token = auth.signToken({ userId, email: normalEmail, role: userRole, name: name as string });
-    res.status(201).json({ token, user: { id: userId, email: normalEmail, name, role: userRole } });
+    const session = await issueSession(res, userId, userRole);
+    res.status(201).json({ ...session, user: { id: userId, email: normalEmail, name, role: userRole } });
   } catch (err: any) {
     console.error('[auth/register]', err);
     res.status(500).json({ error: 'Registration failed' });
@@ -237,8 +285,10 @@ router.post('/login', loginLimiter, async (req, res) => {
     return res.status(401).json({ error: 'Invalid credentials' });
   }
 
-  const token = auth.signToken({ userId: user.id, email: user.email, role: user.role, name: user.name });
-  res.json({ token, user: { id: user.id, email: user.email, name: user.name, role: user.role } });
+  if (athleteStatusRefusal(user, res)) return;
+
+  const session = await issueSession(res, user.id, user.role);
+  res.json({ ...session, user: { id: user.id, email: user.email, name: user.name, role: user.role } });
 });
 
 // ─── POST /api/auth/(secure/)coach/login ──────────────────────────────────────
@@ -257,8 +307,8 @@ router.post('/coach/login', loginLimiter, async (req, res) => {
   if (!valid) {
     return res.status(401).json({ error: 'Invalid credentials' });
   }
-  const token = auth.signToken({ userId: user.id, email: user.email, role: 'coach', name: user.name });
-  res.json({ token, user: { id: user.id, email: user.email, name: user.name, role: 'coach' } });
+  const session = await issueSession(res, user.id, 'coach');
+  res.json({ ...session, user: { id: user.id, email: user.email, name: user.name, role: 'coach' } });
 });
 
 // ─── POST /api/auth/(secure/)coach/register ───────────────────────────────────
@@ -290,9 +340,9 @@ router.post('/coach/register', registerLimiter, async (req, res) => {
       verificationRequestedAt: new Date(),
       verificationNote: verificationNote ?? undefined,
     }).returning({ id: schema.coaches.id });
-    const token = auth.signToken({ userId: row.id, email: normalEmail, role: 'coach', name: name as string });
+    const session = await issueSession(res, row.id, 'coach');
     res.status(201).json({
-      token,
+      ...session,
       user: { id: row.id, email: normalEmail, name, role: 'coach', verifiedStatus: false },
       pendingVerification: true,
     });
@@ -305,7 +355,7 @@ router.post('/coach/register', registerLimiter, async (req, res) => {
 // ─── POST /api/auth/google ────────────────────────────────────────────────────
 
 router.post('/google', loginLimiter, async (req, res) => {
-  const { credential, role = 'athlete', dob, parentEmail } = req.body ?? {};
+  const { credential, role = 'athlete', dob, parentEmail, guardianEmail } = req.body ?? {};
 
   if (!credential) {
     return res.status(400).json({ error: 'Google credential is required' });
@@ -344,29 +394,39 @@ router.post('/google', loginLimiter, async (req, res) => {
         }).returning({ id: schema.parents.id });
         userId = row.id;
       } else {
-        // New athlete via Google: Google provides no DOB, so require the same
-        // age/parent gate as every other athlete signup path. Only new-athlete
-        // creation is gated — coach/parent creation and the existing-user login
-        // path below are untouched.
-        const result = validateAthleteSignup(dob, parentEmail);
-        if (!result.ok) {
-          return res.status(400).json({ error: result.error });
+        // New athlete via Google: same guardian gate as every other athlete
+        // signup path. The client collects the guardian email and retries on
+        // 409; existing users log in above untouched.
+        const rawGuardianEmail = guardianEmail ?? parentEmail;
+        if (typeof rawGuardianEmail !== 'string' || !rawGuardianEmail.trim()) {
+          return res.status(409).json({ code: 'GUARDIAN_EMAIL_REQUIRED', error: 'A parent or guardian email is required to finish signup.' });
         }
-        const normalParentEmail = typeof parentEmail === 'string' && parentEmail.trim()
-          ? parentEmail.toLowerCase().trim()
-          : null;
-        const [row] = await db.insert(schema.players).values({
-          email: normalEmail, name: google.name,
-          dob: result.dob,
-          pendingParentEmail: normalParentEmail,
-        }).returning({ id: schema.players.id });
-        userId = row.id;
+        const result = await createPendingAthlete({
+          email: normalEmail,
+          passwordHash: null,
+          name: google.name,
+          dob,
+          guardianEmail: rawGuardianEmail,
+          signupIp: req.ip ?? null,
+          signupUserAgent: req.get('user-agent') ?? null,
+        });
+        if (!result.ok) {
+          const { status, body } = guardianFailureResponse(result);
+          return res.status(status).json(body);
+        }
+        return res.status(202).json({
+          status: 'pending_guardian',
+          pendingToken: result.pendingToken,
+          guardianEmailMasked: result.guardianEmailMasked,
+        });
       }
       user = { id: userId, email: normalEmail, passwordHash: null, name: google.name, role: userRole };
     }
 
-    const token = auth.signToken({ userId: user.id, email: user.email, role: user.role, name: user.name });
-    res.json({ token, user: { id: user.id, email: user.email, name: user.name, role: user.role } });
+    if (athleteStatusRefusal(user, res)) return;
+
+    const session = await issueSession(res, user.id, user.role);
+    res.json({ ...session, user: { id: user.id, email: user.email, name: user.name, role: user.role } });
   } catch (err: any) {
     console.error('[auth/google]', err);
     if (err.message?.includes('Invalid token') || err.message?.includes('Token used too late')) {
@@ -378,8 +438,45 @@ router.post('/google', loginLimiter, async (req, res) => {
 
 // ─── GET /api/auth/me ─────────────────────────────────────────────────────────
 
-router.get('/me', auth.requireAuth, (req, res) => {
-  res.json({ user: (req as any).user });
+// The token payload is just { userId, role }; hydrate email/name from the DB
+// so clients get the same identity shape login returns.
+router.get('/me', auth.requireAuth, async (req, res) => {
+  const u = (req as any).user as auth.TokenPayload;
+  try {
+    const found = await findUserById(Number(u.userId ?? u.id), u.role);
+    if (!found) return res.status(404).json({ error: 'User not found' });
+    res.json({ user: { id: found.id, userId: found.id, email: found.email, name: found.name, role: u.role } });
+  } catch (err) {
+    console.error('[auth/me]', err);
+    res.status(500).json({ error: 'Failed to load user' });
+  }
+});
+
+// ─── POST /api/auth/refresh ───────────────────────────────────────────────────
+
+// Rotating refresh: a valid unconsumed token yields a new access + refresh
+// pair; the old one is consumed atomically. Presenting an already consumed
+// token is treated as theft: the whole family is revoked and the caller gets
+// 401 { code: 'TOKEN_REUSE' }.
+router.post('/refresh', loginLimiter, async (req, res) => {
+  const raw = (req.body?.refreshToken as string | undefined) || readCookie(req, REFRESH_COOKIE);
+  if (!raw) return res.status(401).json({ error: 'Missing refresh token' });
+  try {
+    const result = await rotateRefreshToken(raw);
+    if (!result.ok) {
+      clearRefreshCookie(res);
+      if (result.code === 'TOKEN_REUSE') {
+        return res.status(401).json({ code: 'TOKEN_REUSE', error: 'Refresh token reuse detected' });
+      }
+      return res.status(401).json({ error: 'Invalid or expired refresh token' });
+    }
+    const token = auth.signToken({ userId: result.userId, role: result.role });
+    setRefreshCookie(res, result.token);
+    res.json({ token, refreshToken: result.token });
+  } catch (err) {
+    console.error('[auth/refresh]', err);
+    res.status(500).json({ error: 'Refresh failed' });
+  }
 });
 
 // ─── POST /api/auth/logout ────────────────────────────────────────────────────
@@ -396,7 +493,26 @@ router.post('/logout', auth.requireAuth, async (req, res) => {
     if (ttl > 0) await blocklistToken(token, ttl);
   } catch (err) {
     console.error('[auth/logout] blocklist failed:', err);
-    // Don't fail the logout — the client still drops its token.
+    // [V2-13] In production a failed revocation write means the token would
+    // stay live for its full lifetime; fail the logout so the caller knows.
+    if ((process.env.APP_ENV ?? process.env.NODE_ENV) === 'production') {
+      return res.status(503).json({ error: 'Logout unavailable, try again' });
+    }
+    // Dev/test: don't fail the logout — the client still drops its token.
+  }
+
+  // Revoke the presented refresh token's whole family so it cannot be rotated
+  // into a new access token after logout.
+  const rawRefresh = (req.body?.refreshToken as string | undefined) || readCookie(req, REFRESH_COOKIE);
+  if (rawRefresh) {
+    try {
+      const rt = schema.refreshTokens;
+      const [row] = await db.select({ familyId: rt.familyId }).from(rt)
+        .where(eq(rt.tokenHash, hashRefreshToken(rawRefresh))).limit(1);
+      if (row?.familyId) await revokeFamily(row.familyId, 'user_logout');
+    } catch (err) {
+      console.error('[auth/logout] refresh revocation failed:', err);
+    }
   }
 
   const user = (req as any).user as auth.TokenPayload | undefined;
@@ -416,7 +532,7 @@ router.post('/logout', auth.requireAuth, async (req, res) => {
     recordCoachEvent(Number(user.userId ?? user.id), 'session_ended', { durationMs });
   }
 
-  res.clearCookie('refreshToken', { httpOnly: true, sameSite: 'lax' });
+  clearRefreshCookie(res);
   res.json({ success: true });
 });
 
@@ -431,7 +547,7 @@ router.post('/change-password', auth.requireAuth, async (req, res) => {
     return res.status(400).json({ error: 'Password must be at least 8 characters' });
   }
 
-  const found = await findUserByEmail(user.email, user.role);
+  const found = await findUserById(Number(user.userId ?? user.id), user.role);
   if (!found?.passwordHash) {
     return res.status(400).json({ error: 'Password change is not available for this account' });
   }

@@ -4,8 +4,8 @@ import { Mail, ArrowLeft, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { apiFetch, errorMessage } from '../lib/api';
 
-const FLAME   = '#ff5a2d';
-const FLAME_S = '#ff8c66';
+const FLAME   = '#8B3BFF';
+const FLAME_S = '#C4A3FF';
 const INK     = '#0a0a0a';
 const PANEL   = '#0c0808';
 const FIELD   = 'rgba(255,255,255,0.02)';
@@ -150,13 +150,13 @@ export function ForgotPassword() {
                         placeholder="you@example.com"
                         style={{
                           width: '100%', background: FIELD,
-                          border: `1px solid ${focused ? 'rgba(255,90,45,0.5)' : LINE}`,
+                          border: `1px solid ${focused ? 'rgba(139,59,255,0.5)' : LINE}`,
                           borderRadius: 12,
-                          outline: focused ? '2px solid rgba(255,90,45,0.9)' : 'none',
+                          outline: focused ? '2px solid rgba(139,59,255,0.9)' : 'none',
                           outlineOffset: 2,
                           padding: '15px 16px 15px 44px',
                           fontSize: '1rem', color: TEXT, fontFamily: BODY,
-                          boxShadow: focused ? '0 0 0 3px rgba(255,90,45,0.08)' : 'none',
+                          boxShadow: focused ? '0 0 0 3px rgba(139,59,255,0.08)' : 'none',
                           transition: 'border-color .2s, box-shadow .2s',
                           boxSizing: 'border-box',
                         }}
@@ -175,7 +175,7 @@ export function ForgotPassword() {
                         style={{
                           color: '#ff9a8a', fontSize: '.84rem', margin: '0 0 16px',
                           fontWeight: 600, padding: '11px 14px', borderRadius: 10,
-                          background: 'rgba(255,90,45,0.08)', border: '1px solid rgba(255,90,45,0.2)',
+                          background: 'rgba(139,59,255,0.08)', border: '1px solid rgba(139,59,255,0.2)',
                         }}
                       >{error}</motion.p>
                     )}
@@ -191,12 +191,12 @@ export function ForgotPassword() {
                       letterSpacing: '.08em', textTransform: 'uppercase',
                       cursor: loading ? 'not-allowed' : 'pointer',
                       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-                      boxShadow: loading ? 'none' : '0 8px 26px rgba(255,90,45,.3)',
+                      boxShadow: loading ? 'none' : '0 8px 26px rgba(139,59,255,.3)',
                       transition: 'transform .18s, box-shadow .2s, opacity .2s',
                       opacity: loading ? 0.75 : 1,
                     }}
-                    onMouseEnter={e => { if (!loading) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 14px 34px rgba(255,90,45,.45)'; } }}
-                    onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = loading ? 'none' : '0 8px 26px rgba(255,90,45,.3)'; }}
+                    onMouseEnter={e => { if (!loading) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 14px 34px rgba(139,59,255,.45)'; } }}
+                    onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = loading ? 'none' : '0 8px 26px rgba(139,59,255,.3)'; }}
                     onMouseDown={e => { if (!loading) e.currentTarget.style.transform = 'scale(0.99)'; }}
                     onMouseUp={e => { if (!loading) e.currentTarget.style.transform = 'translateY(-2px)'; }}
                   >
@@ -217,7 +217,7 @@ export function ForgotPassword() {
               >
                 <div style={{
                   width: 56, height: 56, borderRadius: '50%',
-                  background: 'rgba(255,90,45,0.12)', border: `1px solid rgba(255,90,45,0.25)`,
+                  background: 'rgba(139,59,255,0.12)', border: `1px solid rgba(139,59,255,0.25)`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   margin: '0 auto 24px',
                 }}>

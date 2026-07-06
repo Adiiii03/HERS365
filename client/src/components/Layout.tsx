@@ -79,6 +79,7 @@ export const Layout = () => {
     };
     return (
       <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: '#0a0a0a', color: '#fff' }}>
+        <a href="#main-content" className="skip-link">Skip to content</a>
         <header style={{
           height: 56, display: 'flex', alignItems: 'center', padding: '0 20px',
           borderBottom: '1px solid rgba(255,255,255,0.06)',
@@ -93,7 +94,7 @@ export const Layout = () => {
               fontSize: '1.35rem', letterSpacing: '0.04em',
               textTransform: 'uppercase', color: '#fff',
             }}>
-              HERS<span style={{ color: '#ff5a2d' }}>365</span>
+              HERS<span style={{ color: '#8B3BFF' }}>365</span>
             </span>
           </Link>
 
@@ -110,12 +111,12 @@ export const Layout = () => {
               className="k-btn k-btn-primary"
               style={{ padding: '8px 18px', borderRadius: 9999, fontSize: '0.8rem', textDecoration: 'none' }}
             >
-              Get Recruited
+              Get Started
             </Link>
           </div>
         </header>
 
-        <main style={{ flex: 1 }}>
+        <main id="main-content" style={{ flex: 1 }}>
           <AnimatePresence mode="wait">
             <motion.div key={location.pathname} {...pageTransition}>
               <Outlet />
@@ -128,6 +129,7 @@ export const Layout = () => {
 
   return (
     <div style={{ display: 'flex', height: '100vh', background: '#0a0a0a', color: '#fff', overflow: 'hidden' }}>
+      <a href="#main-content" className="skip-link">Skip to content</a>
 
       {/* ─── Desktop Sidebar ─── */}
       <aside
@@ -151,7 +153,7 @@ export const Layout = () => {
             textTransform: 'uppercase',
             color: '#fff',
           }}>
-            HERS<span style={{ color: '#ff5a2d' }}>365</span>
+            HERS<span style={{ color: '#8B3BFF' }}>365</span>
           </span>
         </div>
 
@@ -168,7 +170,7 @@ export const Layout = () => {
             onClick={() => setMode('athlete')}
             style={{
               flex: 1, padding: '6px 0', borderRadius: 9999,
-              background: mode === 'athlete' ? '#ff5a2d' : 'transparent',
+              background: mode === 'athlete' ? '#8B3BFF' : 'transparent',
               color: mode === 'athlete' ? '#fff' : '#555',
               fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.08em',
               textTransform: 'uppercase', border: 'none', cursor: 'pointer',
@@ -208,13 +210,13 @@ export const Layout = () => {
                   style={{ justifyContent: 'space-between', fontWeight: 700, fontSize: '0.78rem', letterSpacing: '0.04em' }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <Icon size={17} color={active ? '#ff5a2d' : undefined} />
+                    <Icon size={17} color={active ? '#8B3BFF' : undefined} />
                     {label}
                   </div>
                   {badge && (
                     <div style={{
                       minWidth: 18, height: 18, borderRadius: 9999,
-                      background: '#ff5a2d',
+                      background: '#8B3BFF',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       padding: '0 5px', flexShrink: 0,
                     }}>
@@ -250,7 +252,7 @@ export const Layout = () => {
               color: '#777', cursor: 'pointer', width: '100%',
               fontSize: '0.78rem', fontWeight: 700, letterSpacing: '0.04em',
             }}
-            onMouseEnter={e => { e.currentTarget.style.color = '#ff5a2d'; }}
+            onMouseEnter={e => { e.currentTarget.style.color = '#8B3BFF'; }}
             onMouseLeave={e => { e.currentTarget.style.color = '#777'; }}
           >
             <LogOut size={17} />
@@ -271,7 +273,7 @@ export const Layout = () => {
             }}
             onMouseEnter={e => {
               (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.06)';
-              (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,90,45,0.2)';
+              (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(139,59,255,0.2)';
             }}
             onMouseLeave={e => {
               (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.03)';
@@ -282,7 +284,7 @@ export const Layout = () => {
               <img
                 src={p.profileImage || athleteAvatar(user?.name ?? 'You')}
                 alt={user?.name ?? 'Profile'}
-                style={{ width: 32, height: 32, borderRadius: '50%', background: '#1c1c1c', border: '1.5px solid rgba(255,90,45,0.4)', objectFit: 'cover' }}
+                style={{ width: 32, height: 32, borderRadius: '50%', background: '#1c1c1c', border: '1.5px solid rgba(139,59,255,0.4)', objectFit: 'cover' }}
               />
               <div style={{
                 position: 'absolute', bottom: 0, right: 0,
@@ -298,7 +300,7 @@ export const Layout = () => {
                 {[p.position, p.gradYear].filter(Boolean).join(' | ') || 'Complete your profile'}
               </div>
             </div>
-            <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 800, fontSize: '0.9rem', color: '#ff5a2d', flexShrink: 0 }}>
+            <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 800, fontSize: '0.9rem', color: '#8B3BFF', flexShrink: 0 }}>
               {p.g5Rating ?? '—'}
             </div>
           </motion.button>
@@ -331,7 +333,7 @@ export const Layout = () => {
               textTransform: 'uppercase',
               color: '#fff',
             }}>
-              HERS<span style={{ color: '#ff5a2d' }}>365</span>
+              HERS<span style={{ color: '#8B3BFF' }}>365</span>
             </span>
           </div>
 
@@ -352,7 +354,7 @@ export const Layout = () => {
                 outline: 'none',
                 transition: 'border-color 0.18s',
               }}
-              onFocus={e => (e.target.style.borderColor = 'rgba(255,90,45,0.4)')}
+              onFocus={e => (e.target.style.borderColor = 'rgba(139,59,255,0.4)')}
               onBlur={e => (e.target.style.borderColor = 'rgba(255,255,255,0.08)')}
             />
           </div>
@@ -377,14 +379,14 @@ export const Layout = () => {
               onClick={() => navigate('/profile')}
               style={{
                 width: 32, height: 32, borderRadius: '50%',
-                background: 'linear-gradient(135deg, #ff5a2d, #ff8c66)',
-                border: '2px solid rgba(255,90,45,0.5)',
+                background: 'linear-gradient(135deg, #8B3BFF, #C4A3FF)',
+                border: '2px solid rgba(139,59,255,0.5)',
                 cursor: 'pointer', flexShrink: 0, padding: 0,
                 transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
               }}
               whileHover={{
-                boxShadow: '0 0 0 3px rgba(255,90,45,0.2)',
-                borderColor: '#ff5a2d',
+                boxShadow: '0 0 0 3px rgba(139,59,255,0.2)',
+                borderColor: '#8B3BFF',
               }}
             />
           </div>
@@ -393,6 +395,7 @@ export const Layout = () => {
         <ProfileCompletionBanner />
         {/* Page Content */}
         <main
+          id="main-content"
           className="main-scroll"
           style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden' }}
         >

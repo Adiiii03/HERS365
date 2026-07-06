@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { Search, SlidersHorizontal, X, ArrowUpRight, Flame } from 'lucide-react';
 import { POSITION_FILTERS } from '../lib/positions';
 
-const FLAME = '#ff5a2d';
+const FLAME = '#8B3BFF';
 const INK = '#0a0a0a';
 const INK_2 = '#111111';
 const LINE = 'rgba(255,255,255,0.07)';
@@ -18,7 +18,7 @@ const GRAD_YEARS = ['All', '2025', '2026', '2027', '2028', '2029'];
 const STATES = ['All', 'CA', 'TX', 'FL', 'NY', 'GA', 'OH', 'PA', 'IL', 'NC', 'AZ'];
 
 const AVATAR_GRADS = [
-  `linear-gradient(135deg,${FLAME},#ff8c66)`,
+  `linear-gradient(135deg,${FLAME},#C4A3FF)`,
   'linear-gradient(135deg,#3a3a3a,#1c1c1c)',
   'linear-gradient(135deg,#2a2a2a,#161616)',
   'linear-gradient(135deg,#1e1e3a,#111)',
@@ -41,19 +41,19 @@ interface Athlete {
 
 const css = `
   .explore-card{transition:transform .26s cubic-bezier(.25,1,.5,1),border-color .26s,box-shadow .26s}
-  .explore-card:hover{transform:translateY(-4px);border-color:rgba(255,90,45,.32);
-    box-shadow:0 20px 50px rgba(0,0,0,.5),0 0 0 1px rgba(255,90,45,.12)}
+  .explore-card:hover{transform:translateY(-4px);border-color:rgba(139,59,255,.32);
+    box-shadow:0 20px 50px rgba(0,0,0,.5),0 0 0 1px rgba(139,59,255,.12)}
   .explore-card:hover .card-reveal{clip-path:inset(0 0% 0 0)}
   .card-reveal{clip-path:inset(0 100% 0 0);transition:clip-path .4s cubic-bezier(.25,1,.5,1);
     color:${FLAME};position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none}
   .pill-filter{font-family:${DISP};font-weight:700;font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;
     padding:7px 14px;border-radius:9999px;cursor:pointer;border:1px solid rgba(255,255,255,.1);
     background:transparent;color:${MUTED};transition:all .2s cubic-bezier(.25,1,.5,1);white-space:nowrap}
-  .pill-filter:hover,.pill-filter.active{background:rgba(255,90,45,.12);border-color:rgba(255,90,45,.35);color:${FLAME}}
+  .pill-filter:hover,.pill-filter.active{background:rgba(139,59,255,.12);border-color:rgba(139,59,255,.35);color:${FLAME}}
   .search-input{background:${INK_2};border:1px solid ${LINE};border-radius:9999px;
     color:#f4f4f2;font-family:'DM Sans',sans-serif;font-size:.9rem;padding:10px 44px 10px 40px;
     transition:border-color .2s,box-shadow .2s;width:100%}
-  .search-input:focus{border-color:rgba(255,90,45,.4);box-shadow:0 0 0 3px rgba(255,90,45,.08)}
+  .search-input:focus{border-color:rgba(139,59,255,.4);box-shadow:0 0 0 3px rgba(139,59,255,.08)}
   .explore-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px}
   @media(max-width:640px){.explore-grid{grid-template-columns:repeat(2,1fr);gap:10px}}
   @media(max-width:380px){.explore-grid{grid-template-columns:1fr}}
@@ -173,7 +173,7 @@ export const Explore = () => {
             <button
               className="pill-filter"
               onClick={() => setFiltersOpen(f => !f)}
-              style={{ display: 'flex', alignItems: 'center', gap: 5, borderColor: filtersOpen ? 'rgba(255,90,45,.35)' : undefined, color: filtersOpen ? FLAME : undefined }}
+              style={{ display: 'flex', alignItems: 'center', gap: 5, borderColor: filtersOpen ? 'rgba(139,59,255,.35)' : undefined, color: filtersOpen ? FLAME : undefined }}
             >
               <SlidersHorizontal size={12} /> More Filters
             </button>
@@ -273,7 +273,7 @@ export const Explore = () => {
                       )}
                       {/* Hover CTA */}
                       <div style={{
-                        position: 'absolute', inset: 0, background: 'rgba(255,90,45,.08)',
+                        position: 'absolute', inset: 0, background: 'rgba(139,59,255,.08)',
                         opacity: 0, transition: 'opacity .26s', display: 'flex', alignItems: 'center', justifyContent: 'center',
                       }} className="card-hover-overlay">
                         <ArrowUpRight size={22} color={FLAME} />

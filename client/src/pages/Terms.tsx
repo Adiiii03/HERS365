@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-const FLAME = '#ff5a2d';
+const FLAME = '#8B3BFF';
 const INK = '#0a0a0a';
 const INK_2 = '#111111';
 const LINE = 'rgba(255,255,255,0.07)';

@@ -1,6 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import { makeLimiterStore } from './lib/limiterStore';
 
 import coachRouter from './coachRoutes';
 import paymentRouter from './paymentRoutes';
@@ -24,23 +26,65 @@ import { followsRouter } from './api/follows';
 import { badgesRouter } from './api/badges';
 import { faqsRouter } from './api/faqs';
 import { contactRouter } from './api/contact';
+import { newsletterRouter } from './api/newsletter';
 import { adminStatsRouter } from './api/admin';
 import { leaguesRouter } from './api/leagues';
 import { teamsRouter } from './api/teams';
 import { errorsRouter } from './api/errors';
+import { guardianRouter } from './api/guardian';
 import errorHandler from './middleware/errorHandler';
 import { pool } from './db';
 
 export function createApp() {
   const app = express();
 
-  app.use(helmet());
+  // Railway fronts the app with exactly one proxy hop, so trust exactly that
+  // hop: req.ip becomes the rightmost X-Forwarded-For entry (Railway-appended)
+  // and attacker-prepended entries are ignored. 'trust proxy true' would let a
+  // spoofed XFF defeat every IP-keyed rate limit. Env-overridable in case the
+  // hop count ever changes (e.g. a CDN in front).
+  const trustProxyHops = parseInt(process.env.TRUST_PROXY_HOPS || '1', 10);
+  app.set('trust proxy', isNaN(trustProxyHops) ? 1 : trustProxyHops);
+
+  app.use(helmet({
+    hsts: { maxAge: 15552000, includeSubDomains: true },
+    // API serves JSON plus the newsletter confirm/unsubscribe HTML pages,
+    // which use inline styles only — everything else is locked down.
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'none'"],
+        styleSrc: ["'unsafe-inline'"],
+        frameAncestors: ["'none'"],
+        baseUri: ["'none'"],
+        formAction: ["'none'"],
+      },
+    },
+  }));
   app.use(cors({
     origin: (process.env.CORS_ORIGIN || process.env.ALLOWED_ORIGINS || 'http://localhost:5173')
       .split(',').map(o => o.trim()),
     credentials: true,
   }));
   app.use(express.json({ limit: '5mb' }));
+
+  // Loose global ceiling so unauthenticated reads cannot be scraped at scale.
+  // Per-endpoint limiters stay the primary control. Skipped under test unless
+  // a test opts in by setting GLOBAL_RATE_LIMIT_MAX.
+  const globalLimiter = rateLimit({
+    windowMs: 5 * 60 * 1000,
+    limit: () => {
+      const raw = Number(process.env.GLOBAL_RATE_LIMIT_MAX);
+      return Number.isFinite(raw) && raw > 0 ? raw : 600;
+    },
+    standardHeaders: true,
+    legacyHeaders: false,
+    store: makeLimiterStore('global'),
+    skip: () =>
+      (process.env.APP_ENV ?? process.env.NODE_ENV) === 'test' &&
+      !process.env.GLOBAL_RATE_LIMIT_MAX,
+    message: { error: 'Too many requests — slow down' },
+  });
+  app.use('/api', globalLimiter);
 
   // Public health probe — used by Railway's deploy healthcheck (so a crash-looping
   // deploy is never promoted, the previous good one keeps serving) and by the
@@ -52,7 +96,19 @@ export function createApp() {
     res.set('Access-Control-Allow-Origin', '*');
     let db = 'down';
     try { await pool.query('SELECT 1'); db = 'up'; } catch { /* db unreachable */ }
-    res.json({ status: 'ok', db, uptime: Math.round(process.uptime()), time: new Date().toISOString() });
+    res.json({
+      status: db === 'up' ? 'ok' : 'degraded',
+      db,
+      integrations: {
+        stripe: Boolean(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_WEBHOOK_SECRET),
+        openai: Boolean(process.env.OPENAI_API_KEY),
+        maxpreps: Boolean(process.env.MAXPREPS_API_KEY),
+        'google-oauth': Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.env.GOOGLE_CALLBACK_URL),
+        'github-oauth': Boolean(process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET && process.env.GITHUB_CALLBACK_URL),
+      },
+      uptime: Math.round(process.uptime()),
+      time: new Date().toISOString(),
+    });
   });
 
   // Client error sink — mounted before every other /api/* router so an auth
@@ -70,6 +126,7 @@ export function createApp() {
   app.use('/api/coaches', coachesRouter);
   app.use('/api/parent', parentRouter);
   app.use('/api/coach', coachRouter);
+  app.use('/api/auth/guardian', guardianRouter);
   app.use('/api/auth', authRoutesRouter);
   app.use('/api/auth/secure', authRoutesRouter);
   app.use('/api/auth/email', emailAuthRouter);
@@ -83,6 +140,7 @@ export function createApp() {
   app.use('/api/badges', badgesRouter);
   app.use('/api/faqs', faqsRouter);
   app.use('/api/contact', contactRouter);
+  app.use('/api/newsletter', newsletterRouter);
   app.use('/api/leagues', leaguesRouter);
   app.use('/api/teams', teamsRouter);
   app.use('/api', mainApiRouter);

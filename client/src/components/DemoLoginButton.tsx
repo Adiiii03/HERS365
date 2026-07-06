@@ -54,10 +54,10 @@ export const DemoLoginButton: React.FC<Props> = ({ role, variant, onLoadingChang
         opacity: loading ? 0.6 : 1,
         transition: 'background .2s, border-color .2s',
       }}
-      onMouseEnter={e => { if (!loading) { e.currentTarget.style.borderColor = 'rgba(255,90,45,0.55)'; e.currentTarget.style.background = 'rgba(255,90,45,0.06)'; } }}
+      onMouseEnter={e => { if (!loading) { e.currentTarget.style.borderColor = 'rgba(139,59,255,0.55)'; e.currentTarget.style.background = 'rgba(139,59,255,0.06)'; } }}
       onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.background = 'transparent'; }}
     >
-      <Zap size={15} style={{ color: '#ff5a2d' }} />
+      <Zap size={15} style={{ color: '#8B3BFF' }} />
       {loading ? 'Entering Demo…' : 'Try Demo Athlete Account'}
     </button>
   );

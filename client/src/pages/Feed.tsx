@@ -152,14 +152,14 @@ const PostCard = ({
       style={{
         position: 'relative',
         background: `linear-gradient(165deg, ${INK_3}, ${INK_2})`,
-        border: `1px solid ${hovered ? 'rgba(255,90,45,0.34)' : LINE}`,
+        border: `1px solid ${hovered ? 'rgba(139,59,255,0.34)' : LINE}`,
         borderRadius: 22,
         marginBottom: 22,
         cursor: 'pointer',
         overflow: 'hidden',
         transform: hovered ? 'translateY(-3px)' : 'translateY(0)',
         boxShadow: hovered
-          ? '0 22px 60px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,90,45,0.12)'
+          ? '0 22px 60px rgba(0,0,0,0.55), 0 0 0 1px rgba(139,59,255,0.12)'
           : '0 12px 34px rgba(0,0,0,0.4)',
         transition: 'transform .3s cubic-bezier(0.2,0.8,0.2,1), border-color .3s, box-shadow .3s',
       }}
@@ -258,7 +258,7 @@ const PostCard = ({
                 >
                   {post.user.name}
                 </span>
-                <BadgeCheck size={15} style={{ color: FLAME, flexShrink: 0 }} fill="rgba(255,90,45,0.16)" />
+                <BadgeCheck size={15} style={{ color: FLAME, flexShrink: 0 }} fill="rgba(139,59,255,0.16)" />
                 {/* rating chip */}
                 <span
                   style={{
@@ -267,8 +267,8 @@ const PostCard = ({
                     gap: 3,
                     padding: '2px 7px',
                     borderRadius: 9999,
-                    background: 'rgba(255,90,45,0.12)',
-                    border: '1px solid rgba(255,90,45,0.28)',
+                    background: 'rgba(139,59,255,0.12)',
+                    border: '1px solid rgba(139,59,255,0.28)',
                     fontFamily: DISP,
                     fontWeight: 900,
                     fontSize: '.64rem',
@@ -438,7 +438,7 @@ const PostCard = ({
               position: 'relative',
               borderRadius: 16,
               overflow: 'hidden',
-              border: `1px solid ${hovered ? 'rgba(255,90,45,0.3)' : LINE}`,
+              border: `1px solid ${hovered ? 'rgba(139,59,255,0.3)' : LINE}`,
               marginBottom: 16,
               aspectRatio: '16 / 9',
               background: `radial-gradient(120% 120% at 30% 10%, ${INK_3}, ${INK} 70%)`,
@@ -515,10 +515,10 @@ const PostCard = ({
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  background: `radial-gradient(circle, ${FLAME}, #cc3a12)`,
+                  background: `radial-gradient(circle, ${FLAME}, #5E1BC2)`,
                   boxShadow: hovered
-                    ? '0 0 0 10px rgba(255,90,45,0.12), 0 14px 34px rgba(255,90,45,0.5)'
-                    : '0 10px 26px rgba(255,90,45,0.4)',
+                    ? '0 0 0 10px rgba(139,59,255,0.12), 0 14px 34px rgba(139,59,255,0.5)'
+                    : '0 10px 26px rgba(139,59,255,0.4)',
                   transform: hovered ? 'scale(1.1)' : 'scale(1)',
                   transition: 'transform .3s cubic-bezier(0.2,0.8,0.2,1), box-shadow .3s',
                 }}
@@ -620,7 +620,7 @@ const PostCard = ({
               padding: '0 12px',
               borderRadius: 11,
               border: 'none',
-              background: post.isLiked ? 'rgba(255,90,45,0.12)' : 'transparent',
+              background: post.isLiked ? 'rgba(139,59,255,0.12)' : 'transparent',
               color: post.isLiked ? FLAME : MUTED,
               cursor: 'pointer',
               transition: 'background .2s, color .2s',
@@ -1019,7 +1019,7 @@ export const Feed = () => {
                     padding: 2.5,
                     background: `conic-gradient(from 120deg, ${FLAME}, ${FLAME_SOFT}, ${FLAME})`,
                     display: 'block',
-                    boxShadow: '0 6px 18px rgba(255,90,45,0.28)',
+                    boxShadow: '0 6px 18px rgba(139,59,255,0.28)',
                   }}
                 >
                   <span
@@ -1164,7 +1164,7 @@ export const Feed = () => {
                       inset: 0,
                       borderRadius: 9999,
                       background: FLAME,
-                      boxShadow: '0 4px 14px rgba(255,90,45,0.34)',
+                      boxShadow: '0 4px 14px rgba(139,59,255,0.34)',
                       zIndex: 0,
                     }}
                   />
@@ -1424,8 +1424,8 @@ export const Feed = () => {
                   gap: 3,
                   padding: '2px 6px',
                   borderRadius: 9999,
-                  background: 'rgba(255,90,45,0.12)',
-                  border: '1px solid rgba(255,90,45,0.28)',
+                  background: 'rgba(139,59,255,0.12)',
+                  border: '1px solid rgba(139,59,255,0.28)',
                   fontFamily: DISP,
                   fontWeight: 900,
                   fontSize: '.62rem',

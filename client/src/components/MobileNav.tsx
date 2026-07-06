@@ -25,9 +25,9 @@ interface MobileNavProps {
 }
 
 const defaultAccent: AccentTheme = {
-  color: '#ff5a2d',
-  bg: 'rgba(255,90,45,0.1)',
-  border: 'rgba(255,90,45,0.3)',
+  color: '#8B3BFF',
+  bg: 'rgba(139,59,255,0.1)',
+  border: 'rgba(139,59,255,0.3)',
 };
 
 export const MobileNav: React.FC<MobileNavProps> = ({

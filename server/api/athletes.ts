@@ -259,17 +259,21 @@ router.get('/:id',optionalAuth, async (req, res) => {
 
     // Fire-and-forget coach view tracking (u already declared above)
     if (u?.role === 'coach') {
+      // Token payload no longer carries name; hydrate it from the coaches row
+      // via a subselect so both inserts still fire immediately.
+      const coachId = typeof u.id === 'number' ? u.id : Number(u.userId);
+      const coachName = sql`(select name from coaches where id = ${coachId})`;
       Promise.all([
         db.insert(schema.profileViews).values({
           athleteId: id,
           viewerType: 'coach',
-          viewerName: typeof u.name === 'string' ? u.name : null,
-          viewerCoachId: typeof u.id === 'number' ? u.id : null,
+          viewerName: coachName as any,
+          viewerCoachId: Number.isFinite(coachId) ? coachId : null,
         }),
         db.insert(schema.notifications).values({
           playerId: id,
           type: 'coach_interest',
-          actorName: typeof u.name === 'string' ? u.name : 'A coach',
+          actorName: sql`coalesce((select name from coaches where id = ${coachId}), 'A coach')` as any,
         }),
       ]).catch(() => {});
     }

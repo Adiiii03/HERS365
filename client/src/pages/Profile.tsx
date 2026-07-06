@@ -354,7 +354,7 @@ export const Profile = () => {
   if (isLoading) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#0a0a0a', color: '#888', gap: 16 }}>
-        <Loader2 size={40} color="#ff5a2d" style={{ animation: 'spin 1s linear infinite' }} />
+        <Loader2 size={40} color="#8B3BFF" style={{ animation: 'spin 1s linear infinite' }} />
         <p style={{ fontSize: '0.9rem', letterSpacing: '0.05em' }}>Loading profile...</p>
         <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
       </div>
@@ -410,7 +410,7 @@ export const Profile = () => {
 
       {/* Hero card */}
       <div className="k-card" style={{ padding: '28px 24px', marginBottom: 20, position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', top: -80, right: -80, width: 280, height: 280, background: 'radial-gradient(circle, rgba(255,90,45,0.12) 0%, transparent 65%)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', top: -80, right: -80, width: 280, height: 280, background: 'radial-gradient(circle, rgba(139,59,255,0.12) 0%, transparent 65%)', pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px)', backgroundSize: '32px 32px', pointerEvents: 'none', borderRadius: 12 }} />
 
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 20, position: 'relative' }}>
@@ -420,7 +420,7 @@ export const Profile = () => {
               alt={profile.name}
               style={{
                 width: 80, height: 80, borderRadius: '50%', background: '#1c1c1c',
-                border: '2px solid rgba(255,90,45,0.3)', objectFit: 'cover',
+                border: '2px solid rgba(139,59,255,0.3)', objectFit: 'cover',
                 opacity: photoUploading ? 0.5 : 1, transition: 'opacity .2s',
               }}
             />
@@ -446,7 +446,7 @@ export const Profile = () => {
                   style={{
                     position: 'absolute', bottom: -2, left: -2,
                     width: 26, height: 26, borderRadius: '50%',
-                    background: '#ff5a2d', border: '2px solid #111',
+                    background: '#8B3BFF', border: '2px solid #111',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     cursor: photoUploading ? 'wait' : 'pointer', color: '#fff',
                     boxShadow: '0 2px 8px rgba(0,0,0,.5)',
@@ -460,8 +460,8 @@ export const Profile = () => {
               <div style={{ position: 'absolute', bottom: 2, right: 2 }}>
                 <CheckCircle2
                   size={18}
-                  color="#ff5a2d"
-                  fill="#ff5a2d"
+                  color="#8B3BFF"
+                  fill="#8B3BFF"
                   className={revealing ? 'hers-badge' : undefined}
                   style={{ background: '#111', borderRadius: '50%' }}
                 />
@@ -474,7 +474,7 @@ export const Profile = () => {
               <div>
                 <h1 style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 800, fontSize: '1.6rem', textTransform: 'uppercase', color: '#fff', lineHeight: 1, marginBottom: 4 }}>{profile.name}</h1>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                  <span style={{ background: 'rgba(255,90,45,0.1)', color: '#ff5a2d', fontSize: '0.72rem', fontWeight: 700, padding: '2px 8px', borderRadius: 4, letterSpacing: '0.06em' }}>{profile.position}</span>
+                  <span style={{ background: 'rgba(139,59,255,0.1)', color: '#8B3BFF', fontSize: '0.72rem', fontWeight: 700, padding: '2px 8px', borderRadius: 4, letterSpacing: '0.06em' }}>{profile.position}</span>
                   <span style={{ fontSize: '0.78rem', color: '#666' }}>{profile.school}</span>
                   <span style={{ fontSize: '0.78rem', color: '#444' }}>·</span>
                   <span style={{ fontSize: '0.78rem', color: '#666' }}>Class of {profile.gradYear}</span>
@@ -503,7 +503,7 @@ export const Profile = () => {
                   className="hers-rating-number"
                   style={{
                     fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 800, fontSize: '3.5rem',
-                    color: '#ff5a2d', lineHeight: 1, textShadow: '0 0 30px rgba(255,90,45,0.5)',
+                    color: '#8B3BFF', lineHeight: 1, textShadow: '0 0 30px rgba(139,59,255,0.5)',
                     position: 'relative',
                   }}
                 >
@@ -534,12 +534,12 @@ export const Profile = () => {
                       transition={{ duration: 0.12 }}
                       style={{ position: 'absolute', top: 'calc(100% + 8px)', left: 0, zIndex: 50, background: '#161616', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, padding: '6px', minWidth: 230, boxShadow: '0 8px 32px rgba(0,0,0,0.6)' }}
                     >
-                      <ShareItem icon={<Link2 size={15} color="#ff5a2d" />} label="Copy Link" onClick={() => { navigator.clipboard.writeText(profileUrl); showNotification('success', 'Link copied!', profileUrl); setShareOpen(false); }} />
+                      <ShareItem icon={<Link2 size={15} color="#8B3BFF" />} label="Copy Link" onClick={() => { navigator.clipboard.writeText(profileUrl); showNotification('success', 'Link copied!', profileUrl); setShareOpen(false); }} />
                       <ShareItem icon={<svg width="15" height="15" viewBox="0 0 24 24" fill="#ccc"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.857L1.254 2.25H8.08l4.253 5.622 5.911-5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>} label="Share on X" onClick={() => { window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent('Check out my HERS365 profile')}&url=${encodeURIComponent(profileUrl)}`, '_blank', 'noopener,noreferrer'); setShareOpen(false); }} />
                       <ShareItem icon={<Instagram size={15} color="#e1306c" />} label="Share on Instagram" onClick={() => { showNotification('info', 'Instagram', 'Copy the link and paste it in your Instagram bio.'); setShareOpen(false); }} />
                       {isOwnProfile && profile && (
                         <ShareItem
-                          icon={<Trophy size={15} color="#ff5a2d" />}
+                          icon={<Trophy size={15} color="#8B3BFF" />}
                           label={exportingCard ? 'Building card…' : 'Share my rating card'}
                           onClick={() => {
                             if (exportingCard) return;
@@ -662,7 +662,7 @@ export const Profile = () => {
           <div className="k-card" style={{ padding: '16px 20px', marginBottom: 20 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, gap: 12, flexWrap: 'wrap' }}>
               <div>
-                <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 800, fontSize: '0.78rem', letterSpacing: '0.16em', textTransform: 'uppercase', color: '#ff5a2d' }}>
+                <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 800, fontSize: '0.78rem', letterSpacing: '0.16em', textTransform: 'uppercase', color: '#8B3BFF' }}>
                   Profile {pct}% Complete
                 </div>
                 <div style={{ fontSize: '0.78rem', color: '#888', marginTop: 4 }}>
@@ -674,7 +674,7 @@ export const Profile = () => {
               </span>
             </div>
             <div style={{ height: 6, borderRadius: 9999, background: 'rgba(255,255,255,0.06)', overflow: 'hidden', marginBottom: 14 }}>
-              <div style={{ width: `${pct}%`, height: '100%', background: 'linear-gradient(90deg,#ff5a2d,#ff8c66)', transition: 'width .4s' }} />
+              <div style={{ width: `${pct}%`, height: '100%', background: 'linear-gradient(90deg,#8B3BFF,#C4A3FF)', transition: 'width .4s' }} />
             </div>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {steps.filter(s => !s.done).slice(0, 3).map(s => (
@@ -682,12 +682,12 @@ export const Profile = () => {
                   key={s.key}
                   onClick={s.action}
                   style={{
-                    background: 'rgba(255,90,45,0.08)', border: '1px solid rgba(255,90,45,0.25)',
+                    background: 'rgba(139,59,255,0.08)', border: '1px solid rgba(139,59,255,0.25)',
                     color: '#ffb091', borderRadius: 9999, padding: '7px 14px', fontSize: '0.74rem',
                     fontWeight: 700, cursor: 'pointer', transition: 'all .18s',
                   }}
-                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,90,45,0.16)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,90,45,0.08)'; }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(139,59,255,0.16)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(139,59,255,0.08)'; }}
                 >
                   + {s.label}
                 </button>
@@ -700,7 +700,7 @@ export const Profile = () => {
       {/* Tabs */}
       <div style={{ display: 'flex', gap: 4, marginBottom: 16 }}>
         {tabs.map(tab => (
-          <button key={tab} onClick={() => setActiveTab(tab)} style={{ background: activeTab === tab ? '#ff5a2d' : 'transparent', border: '1px solid', borderColor: activeTab === tab ? '#ff5a2d' : 'rgba(255,255,255,0.08)', borderRadius: 7, padding: '7px 16px', color: activeTab === tab ? '#fff' : '#666', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s' }}>{tab}</button>
+          <button key={tab} onClick={() => setActiveTab(tab)} style={{ background: activeTab === tab ? '#8B3BFF' : 'transparent', border: '1px solid', borderColor: activeTab === tab ? '#8B3BFF' : 'rgba(255,255,255,0.08)', borderRadius: 7, padding: '7px 16px', color: activeTab === tab ? '#fff' : '#666', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s' }}>{tab}</button>
         ))}
       </div>
 
@@ -743,7 +743,7 @@ export const Profile = () => {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {achievementList.map((a, i) => (
                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                      <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#ff5a2d', flexShrink: 0 }} />
+                      <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#8B3BFF', flexShrink: 0 }} />
                       <span style={{ fontSize: '0.82rem', color: '#ccc' }}>{a}</span>
                     </div>
                   ))}
@@ -760,7 +760,7 @@ export const Profile = () => {
               {badges.length > 0 ? (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
                   {badges.map(b => (
-                    <div key={b.id} title={b.description ?? b.name} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,90,45,0.07)', border: '1px solid rgba(255,90,45,0.2)', borderRadius: 8, padding: '8px 12px' }}>
+                    <div key={b.id} title={b.description ?? b.name} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(139,59,255,0.07)', border: '1px solid rgba(139,59,255,0.2)', borderRadius: 8, padding: '8px 12px' }}>
                       <BadgeIcon icon={b.icon} />
                       <div>
                         <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#ddd' }}>{b.name}</div>
@@ -833,7 +833,7 @@ export const Profile = () => {
                         ]},
                       ].map(({ section, items }) => (
                         <div key={section}>
-                          <div style={{ fontSize: '0.62rem', fontWeight: 700, color: '#ff5a2d', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>{section}</div>
+                          <div style={{ fontSize: '0.62rem', fontWeight: 700, color: '#8B3BFF', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>{section}</div>
                           {items.map(({ label, value }) => (
                             <div key={label} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
                               <span style={{ fontSize: '0.74rem', color: '#666' }}>{label}</span>
@@ -960,7 +960,7 @@ export const Profile = () => {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {profile.archetype && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                    <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(255,90,45,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Trophy size={14} color="#ff5a2d" /></div>
+                    <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(139,59,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Trophy size={14} color="#8B3BFF" /></div>
                     <div>
                       <div style={{ fontSize: '0.82rem', color: '#ccc', fontWeight: 600 }}>Archetype: {profile.archetype}</div>
                       <div style={{ fontSize: '0.7rem', color: '#555' }}>Playing style identified</div>
@@ -1021,7 +1021,7 @@ export const Profile = () => {
                       placeholder={placeholder}
                       inputMode={inputMode}
                       style={{ width: '100%', background: '#1a1a1a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '10px 12px', color: '#fff', fontSize: '0.88rem', outline: 'none', boxSizing: 'border-box' }}
-                      onFocus={e => (e.currentTarget.style.borderColor = 'rgba(255,90,45,0.5)')}
+                      onFocus={e => (e.currentTarget.style.borderColor = 'rgba(139,59,255,0.5)')}
                       onBlur={e => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
                     />
                   </div>
@@ -1035,14 +1035,14 @@ export const Profile = () => {
                     placeholder="A short bio about yourself"
                     rows={3}
                     style={{ width: '100%', background: '#1a1a1a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '10px 12px', color: '#fff', fontSize: '0.88rem', outline: 'none', resize: 'vertical', boxSizing: 'border-box', fontFamily: 'inherit' }}
-                    onFocus={e => (e.currentTarget.style.borderColor = 'rgba(255,90,45,0.5)')}
+                    onFocus={e => (e.currentTarget.style.borderColor = 'rgba(139,59,255,0.5)')}
                     onBlur={e => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
                   />
                 </div>
               </div>
 
               {editError && (
-                <div style={{ marginTop: 14, padding: '10px 12px', background: 'rgba(255,90,45,0.1)', border: '1px solid rgba(255,90,45,0.3)', borderRadius: 8, color: '#ff5a2d', fontSize: '0.82rem' }}>{editError}</div>
+                <div style={{ marginTop: 14, padding: '10px 12px', background: 'rgba(139,59,255,0.1)', border: '1px solid rgba(139,59,255,0.3)', borderRadius: 8, color: '#8B3BFF', fontSize: '0.82rem' }}>{editError}</div>
               )}
 
               <div style={{ display: 'flex', gap: 10, marginTop: 22, justifyContent: 'flex-end' }}>
@@ -1073,7 +1073,7 @@ export const Profile = () => {
 };
 
 function BadgeIcon({ icon }: { icon: string | null }) {
-  const s = { size: 16, color: '#ff5a2d' };
+  const s = { size: 16, color: '#8B3BFF' };
   switch ((icon ?? '').toLowerCase()) {
     case 'star': return <Star {...s} />;
     case 'shield': return <Shield {...s} />;

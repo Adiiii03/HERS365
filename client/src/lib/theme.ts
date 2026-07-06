@@ -1,7 +1,10 @@
 import type { CSSProperties } from 'react';
 
-export const FLAME = '#ff5a2d';
-export const FLAME_SOFT = '#ff8a6a';
+export const FLAME = '#8B3BFF';
+export const FLAME_SOFT = '#A66BFF';
+export const PINK = '#FF2E93';
+export const PINK_SOFT = '#FF6FB3';
+export const NEON = '#39FF14';
 export const INK = '#161616';
 export const INK_2 = '#111111';
 export const INK_3 = '#0d0d0d';
@@ -43,7 +46,7 @@ export function glowBlob({
     top,
     right,
     borderRadius: '50%',
-    background: `radial-gradient(circle, rgba(255,90,45,${opacity * strength}) 0%, transparent 70%)`,
+    background: `radial-gradient(circle, rgba(139,59,255,${opacity * strength}) 0%, transparent 70%)`,
     pointerEvents: 'none',
     zIndex: 0,
   };

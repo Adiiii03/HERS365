@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { HelpCircle, ChevronDown, ChevronUp, Search, Send } from 'lucide-react';
 
-const FLAME_C = '#ff5a2d';
+const FLAME_C = '#8B3BFF';
 const LINE = 'rgba(255,255,255,0.07)';
 const MUTED = '#8a8a86';
 const MUTED_2 = '#5a5a56';

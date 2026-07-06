@@ -112,7 +112,7 @@ export const Teams = () => {
         </div>
         <button style={{
           display: 'flex', alignItems: 'center', gap: 6,
-          background: '#ff5a2d', border: 'none', borderRadius: 8,
+          background: '#8B3BFF', border: 'none', borderRadius: 8,
           color: '#fff', fontSize: '0.78rem', fontWeight: 700,
           padding: '10px 16px', cursor: 'pointer', letterSpacing: '0.04em',
         }}>
@@ -124,9 +124,9 @@ export const Teams = () => {
       <div style={{ display: 'flex', gap: 4, marginBottom: 20 }}>
         {divisions.map(d => (
           <button key={d} onClick={() => setDivision(d)} style={{
-            background: division === d ? '#ff5a2d' : 'transparent',
+            background: division === d ? '#8B3BFF' : 'transparent',
             border: '1px solid',
-            borderColor: division === d ? '#ff5a2d' : 'rgba(255,255,255,0.08)',
+            borderColor: division === d ? '#8B3BFF' : 'rgba(255,255,255,0.08)',
             borderRadius: 7, padding: '7px 16px',
             color: division === d ? '#fff' : '#666',
             fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s',
@@ -143,15 +143,15 @@ export const Teams = () => {
               onClick={() => setSelected(t.id)}
               style={{
                 padding: '16px',
-                background: selected === t.id ? 'rgba(255,90,45,0.08)' : '#111',
-                border: `1px solid ${selected === t.id ? 'rgba(255,90,45,0.35)' : 'rgba(255,255,255,0.06)'}`,
+                background: selected === t.id ? 'rgba(139,59,255,0.08)' : '#111',
+                border: `1px solid ${selected === t.id ? 'rgba(139,59,255,0.35)' : 'rgba(255,255,255,0.06)'}`,
                 borderRadius: 12, cursor: 'pointer', transition: 'all 0.15s',
               }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
                     <span style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 800, fontSize: '1rem', color: '#fff' }}>{t.name}</span>
-                    {t.ranking <= 3 && <Shield size={12} color="#ff5a2d" fill="rgba(255,90,45,0.2)" />}
+                    {t.ranking <= 3 && <Shield size={12} color="#8B3BFF" fill="rgba(139,59,255,0.2)" />}
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                     <MapPin size={10} color="#444" />
@@ -159,7 +159,7 @@ export const Teams = () => {
                   </div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 800, fontSize: '1.4rem', color: '#ff5a2d', lineHeight: 1 }}>#{t.ranking}</div>
+                  <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 800, fontSize: '1.4rem', color: '#8B3BFF', lineHeight: 1 }}>#{t.ranking}</div>
                   <div style={{ fontSize: '0.62rem', color: '#444', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Rank</div>
                 </div>
               </div>
@@ -177,7 +177,7 @@ export const Teams = () => {
 
           {/* Header card */}
           <div className="k-card" style={{ padding: '22px 20px', marginBottom: 14, position: 'relative', overflow: 'hidden' }}>
-            <div style={{ position: 'absolute', top: -40, right: -40, width: 180, height: 180, background: 'radial-gradient(circle, rgba(255,90,45,0.07) 0%, transparent 70%)', pointerEvents: 'none' }} />
+            <div style={{ position: 'absolute', top: -40, right: -40, width: 180, height: 180, background: 'radial-gradient(circle, rgba(139,59,255,0.07) 0%, transparent 70%)', pointerEvents: 'none' }} />
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
@@ -194,7 +194,7 @@ export const Teams = () => {
                 </div>
               </div>
               <div style={{ textAlign: 'right' }}>
-                <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 800, fontSize: '3.5rem', color: '#ff5a2d', lineHeight: 1 }}>#{activeTeam.ranking}</div>
+                <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 800, fontSize: '3.5rem', color: '#8B3BFF', lineHeight: 1 }}>#{activeTeam.ranking}</div>
                 <div style={{ fontSize: '0.62rem', color: '#444', textTransform: 'uppercase', letterSpacing: '0.1em' }}>National</div>
               </div>
             </div>
@@ -219,7 +219,7 @@ export const Teams = () => {
           <div className="k-card" style={{ padding: '18px 16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
               <span style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#555' }}>Key Players</span>
-              <button style={{ background: 'none', border: 'none', color: '#ff5a2d', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+              <button style={{ background: 'none', border: 'none', color: '#8B3BFF', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
                 Full Roster <ChevronRight size={13} />
               </button>
             </div>
@@ -230,11 +230,11 @@ export const Teams = () => {
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                       <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#ddd' }}>{player.name}</span>
-                      {player.verified && <CheckCircle2 size={11} color="#ff5a2d" fill="#ff5a2d" />}
+                      {player.verified && <CheckCircle2 size={11} color="#8B3BFF" fill="#8B3BFF" />}
                     </div>
-                    <span style={{ background: 'rgba(255,90,45,0.1)', color: '#ff5a2d', fontSize: '0.63rem', fontWeight: 700, padding: '1px 6px', borderRadius: 4 }}>{player.pos}</span>
+                    <span style={{ background: 'rgba(139,59,255,0.1)', color: '#8B3BFF', fontSize: '0.63rem', fontWeight: 700, padding: '1px 6px', borderRadius: 4 }}>{player.pos}</span>
                   </div>
-                  <span style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 800, fontSize: '1.3rem', color: '#ff5a2d' }}>{player.score}</span>
+                  <span style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 800, fontSize: '1.3rem', color: '#8B3BFF' }}>{player.score}</span>
                 </div>
               ))}
             </div>

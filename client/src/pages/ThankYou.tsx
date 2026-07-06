@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Check, ArrowRight, Star } from 'lucide-react';
 
-const FLAME = '#ff5a2d';
+const FLAME = '#8B3BFF';
 const INK = '#0a0a0a';
 const INK_2 = '#111111';
 const LINE = 'rgba(255,255,255,0.07)';
@@ -49,7 +49,7 @@ export const ThankYou = () => {
       {/* BG glow */}
       <div style={{
         position: 'fixed', inset: 0, pointerEvents: 'none',
-        background: 'radial-gradient(ellipse 60% 50% at 50% 0%, rgba(255,90,45,.18) 0%, transparent 70%)',
+        background: 'radial-gradient(ellipse 60% 50% at 50% 0%, rgba(139,59,255,.18) 0%, transparent 70%)',
       }} />
 
       <motion.div
@@ -66,9 +66,9 @@ export const ThankYou = () => {
             transition={{ delay: 0.2, duration: 0.5, ease: [0.2, 0.8, 0.2, 1] }}
             style={{
               width: 72, height: 72, borderRadius: '50%',
-              background: 'rgba(255,90,45,.12)', border: `2px solid ${FLAME}`,
+              background: 'rgba(139,59,255,.12)', border: `2px solid ${FLAME}`,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 0 40px rgba(255,90,45,.3)',
+              boxShadow: '0 0 40px rgba(139,59,255,.3)',
               color: FLAME,
             }}
           >
@@ -147,7 +147,7 @@ export const ThankYou = () => {
               >
                 <div style={{
                   width: 20, height: 20, borderRadius: '50%', flexShrink: 0,
-                  background: 'rgba(255,90,45,.12)', border: '1px solid rgba(255,90,45,.3)',
+                  background: 'rgba(139,59,255,.12)', border: '1px solid rgba(139,59,255,.3)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', color: FLAME,
                 }}>
                   <Check size={10} strokeWidth={3} />
@@ -175,11 +175,11 @@ export const ThankYou = () => {
                   letterSpacing: '.06em', fontSize: '.92rem',
                   padding: '14px 24px', borderRadius: 9999, border: 'none',
                   cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9,
-                  boxShadow: '0 8px 26px rgba(255,90,45,.38)',
+                  boxShadow: '0 8px 26px rgba(139,59,255,.38)',
                   transition: 'transform .18s, box-shadow .2s',
                 }}
-                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 14px 32px rgba(255,90,45,.52)'; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'none'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 8px 26px rgba(255,90,45,.38)'; }}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 14px 32px rgba(139,59,255,.52)'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'none'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 8px 26px rgba(139,59,255,.38)'; }}
               >
                 Complete Your Profile <ArrowRight size={15} />
               </button>
@@ -196,7 +196,7 @@ export const ThankYou = () => {
                 letterSpacing: '.06em', fontSize: '.92rem',
                 padding: '14px 24px', borderRadius: 9999,
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9,
-                boxShadow: '0 8px 26px rgba(255,90,45,.38)',
+                boxShadow: '0 8px 26px rgba(139,59,255,.38)',
                 textDecoration: 'none',
               }}
             >

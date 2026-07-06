@@ -22,10 +22,18 @@
   --text-secondary:#A0A0AB;
   --text-tertiary:#6B6B76;
 
-  /* orange — action + "your rank" only */
-  --accent:#FF5A2D;        /* fills + large/display orange (>=24px or >=18.66 bold) */
-  --accent-text:#FF7A52;   /* small orange text/links — AA >=4.5:1 on dark */
-  --accent-on:#0A0A0C;     /* text/icon ON orange fills (near-black, not white) */
+  /* purple — primary action + brand */
+  --accent:#8B3BFF;
+  --accent-hover:#A66BFF;
+  --accent-text:#C4A3FF;              /* small purple text/links on dark, AA >= 4.5:1 */
+  --accent-on:#FFFFFF;                /* text/icons ON a purple fill */
+  --pink:#FF2E93;
+  --pink-text:#FF6FB3;                /* small pink text on dark, AA */
+  --pink-on:#0A0A0C;
+  --pink-glow:0 8px 32px -8px rgba(255,46,147,.35);
+  --neon:#39FF14;                      /* high signal only */
+  --neon-on:#0A0A0C;
+  --gradient-brand:linear-gradient(135deg, #8B3BFF 0%, #FF2E93 100%);
 
   /* radius */
   --radius-sm:8px;
@@ -38,7 +46,7 @@
   --elev-card:    inset 0 1px 0 0 rgba(255,255,255,.05), 0 1px 2px 0 rgba(0,0,0,.4);
   --elev-raised:  inset 0 1px 0 0 rgba(255,255,255,.07), 0 8px 24px -8px rgba(0,0,0,.6);
   --elev-overlay: inset 0 1px 0 0 rgba(255,255,255,.08), 0 24px 64px -16px rgba(0,0,0,.8);
-  --accent-glow:  0 0 0 1px rgba(255,90,45,.4), 0 8px 32px -8px rgba(255,90,45,.35);
+  --accent-glow:  0 0 0 1px rgba(139,59,255,.4), 0 8px 32px -8px rgba(139,59,255,.35);
 
   /* display tracking */
   --tracking-display:-0.03em;
@@ -128,7 +136,7 @@ html, body {
   backdrop-filter: blur(12px) saturate(120%);
   -webkit-backdrop-filter: blur(12px) saturate(120%);
   border-bottom: 1px solid rgba(255,255,255,0.08);
-  box-shadow: 0 1px 0 rgba(255,90,45,0.12);
+  box-shadow: 0 1px 0 rgba(139,59,255,0.12);
   border-top-left-radius: 12px;
   border-top-right-radius: 12px;
 }
@@ -136,8 +144,8 @@ html, body {
 /* The athlete's own row — orange identity rail on the left + soft wash so
    "you are here" never disappears even when the dock is dismissed. */
 .rk-row-self {
-  box-shadow: inset 3px 0 0 #FF5A2D;
-  background: linear-gradient(90deg, rgba(255,90,45,0.06), transparent 40%);
+  box-shadow: inset 3px 0 0 var(--neon);
+  background: linear-gradient(90deg, rgba(57,255,20,0.06), transparent 40%);
 }
 
 /* The bottom dock. transform/opacity enter via the .rk-dock--in class flip;
@@ -180,8 +188,8 @@ html, body {
   }
 }
 @keyframes rk-dock-arrive {
-  0%   { box-shadow: 0 -1px 0 rgba(255,90,45,0.45), 0 -16px 40px -12px rgba(255,90,45,0.30); }
-  100% { box-shadow: 0 -1px 0 rgba(255,90,45,0.40), 0 -16px 40px -12px rgba(255,90,45,0.22); }
+  0%   { box-shadow: 0 -1px 0 rgba(139,59,255,0.45), 0 -16px 40px -12px rgba(139,59,255,0.30); }
+  100% { box-shadow: 0 -1px 0 rgba(139,59,255,0.40), 0 -16px 40px -12px rgba(139,59,255,0.22); }
 }
 .rk-dock--in .rk-dock-surface {
   animation: rk-dock-arrive 600ms ease 80ms 1 both;
@@ -204,8 +212,8 @@ html, body {
 }
 
 @keyframes glow-coral {
-  0%, 100% { text-shadow: 0 0 12px rgba(255,90,45,0.35); }
-  50%       { text-shadow: 0 0 24px rgba(255,90,45,0.6); }
+  0%, 100% { text-shadow: 0 0 12px rgba(139,59,255,0.35); }
+  50%       { text-shadow: 0 0 24px rgba(139,59,255,0.6); }
 }
 
 @keyframes score-tick {
@@ -214,8 +222,8 @@ html, body {
 }
 
 @keyframes border-glow {
-  0%, 100% { border-color: rgba(255,90,45,0.15); }
-  50%       { border-color: rgba(255,90,45,0.35); }
+  0%, 100% { border-color: rgba(139,59,255,0.15); }
+  50%       { border-color: rgba(139,59,255,0.35); }
 }
 
 /* ─── Base ─── */
@@ -256,7 +264,7 @@ html, body {
     inset: 0;
     border-radius: inherit;
     padding: 1px;
-    background: linear-gradient(135deg, rgba(255,90,45,0.06) 0%, transparent 50%, rgba(255,90,45,0.03) 100%);
+    background: linear-gradient(135deg, rgba(139,59,255,0.06) 0%, transparent 50%, rgba(139,59,255,0.03) 100%);
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
@@ -285,7 +293,7 @@ html, body {
     inset: 0;
     border-radius: inherit;
     padding: 1px;
-    background: linear-gradient(135deg, rgba(255,90,45,0.08) 0%, transparent 50%, rgba(255,90,45,0.04) 100%);
+    background: linear-gradient(135deg, rgba(139,59,255,0.08) 0%, transparent 50%, rgba(139,59,255,0.04) 100%);
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
@@ -296,8 +304,8 @@ html, body {
 
   .k-card-hover:hover {
     background: #141414;
-    border-color: rgba(255,90,45,0.2);
-    box-shadow: 0 0 0 1px rgba(255,90,45,0.05), 0 12px 40px rgba(0,0,0,0.5), 0 0 60px rgba(255,90,45,0.04);
+    border-color: rgba(139,59,255,0.2);
+    box-shadow: 0 0 0 1px rgba(139,59,255,0.05), 0 12px 40px rgba(0,0,0,0.5), 0 0 60px rgba(139,59,255,0.04);
     transform: translateY(-2px);
   }
 
@@ -311,27 +319,27 @@ html, body {
   }
 
   /* ── Coral helpers ── */
-  .coral    { color: #ff5a2d; }
-  .bg-coral { background-color: #ff5a2d; }
+  .coral    { color: #8B3BFF; }
+  .bg-coral { background-color: #8B3BFF; }
 
   /* ── Score / display number ── */
   .score-badge {
     font-family: 'Barlow Condensed', sans-serif;
     font-weight: 800;
     font-size: 1.25rem;
-    color: #ff5a2d;
+    color: #8B3BFF;
     line-height: 1;
-    text-shadow: 0 0 16px rgba(255,90,45,0.3);
+    text-shadow: 0 0 16px rgba(139,59,255,0.3);
   }
 
   .score-glow {
-    color: #ff5a2d;
-    text-shadow: 0 0 20px rgba(255,90,45,0.45);
+    color: #8B3BFF;
+    text-shadow: 0 0 20px rgba(139,59,255,0.45);
   }
 
   /* ── Tags ── */
   .k-tag {
-    color: #ff5a2d;
+    color: var(--accent-text);
     font-size: 0.75rem;
     font-weight: 500;
   }
@@ -394,13 +402,13 @@ html, body {
 
   /* Active nav — macOS sidebar style: filled rounded rect, no left border */
   .nav-active {
-    background: rgba(255,90,45,0.11);
-    color: #ff5a2d !important;
+    background: rgba(139,59,255,0.11);
+    color: #8B3BFF !important;
     border-radius: 9px;
   }
 
   .nav-active:hover {
-    background: rgba(255,90,45,0.15) !important;
+    background: rgba(139,59,255,0.15) !important;
   }
 
   /* ── Divider ── */
@@ -416,7 +424,7 @@ html, body {
   }
 
   .k-progress-fill {
-    background: linear-gradient(90deg, #ff5a2d, #ff7a52);
+    background: var(--gradient-brand);
     height: 100%;
     border-radius: 99px;
     position: relative;
@@ -452,10 +460,32 @@ html, body {
     animation: pulse-dot 2s ease-in-out infinite;
   }
 
+  /* ── Skip to content ── */
+  .skip-link {
+    position: absolute;
+    top: 8px; left: 8px;
+    z-index: 200;
+    padding: 10px 18px;
+    border-radius: 9px;
+    background: #8B3BFF;
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.82rem;
+    text-decoration: none;
+    transform: translateY(-200%);
+  }
+  .skip-link:focus-visible {
+    transform: translateY(0);
+    outline: 2px solid #fff;
+    outline-offset: 2px;
+  }
+
   /* ── Buttons ── */
   .k-btn {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
+    min-height: 44px;
     gap: 7px;
     border: none;
     border-radius: 9px;
@@ -475,21 +505,21 @@ html, body {
   }
 
   .k-btn-primary {
-    background: #ff5a2d;
+    background: #8B3BFF;
     color: #fff;
     padding: 10px 18px;
-    box-shadow: 0 2px 16px rgba(255,90,45,0.22);
+    box-shadow: 0 2px 16px rgba(139,59,255,0.22);
   }
 
   .k-btn-primary:hover {
-    background: #ff6840;
-    box-shadow: 0 6px 28px rgba(255,90,45,0.38);
+    background: #A66BFF;
+    box-shadow: 0 6px 28px rgba(139,59,255,0.38);
     transform: translateY(-1px);
   }
 
   .k-btn-primary:active {
     transform: scale(0.95) !important;
-    box-shadow: 0 1px 8px rgba(255,90,45,0.2) !important;
+    box-shadow: 0 1px 8px rgba(139,59,255,0.2) !important;
   }
 
   .k-btn-ghost {
@@ -533,15 +563,15 @@ html, body {
 
   /* ── Position badge ── */
   .k-pos-badge {
-    background: rgba(255,90,45,0.1);
-    color: #ff5a2d;
+    background: rgba(139,59,255,0.1);
+    color: var(--accent-text);
     font-size: 0.68rem;
     font-weight: 700;
     padding: 3px 9px;
     border-radius: 5px;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    border: 1px solid rgba(255,90,45,0.12);
+    border: 1px solid rgba(139,59,255,0.12);
   }
 
   /* ── Stat block (measurables) ── */
@@ -560,13 +590,13 @@ html, body {
     position: absolute;
     bottom: 0; left: 0; right: 0;
     height: 2px;
-    background: rgba(255,90,45,0.08);
+    background: rgba(139,59,255,0.08);
   }
 
   /* ── Status badges ── */
   .k-badge-green  { background: rgba(74,222,128,0.1);  color: #4ade80; font-size: 0.65rem; font-weight: 700; padding: 3px 8px; border-radius: 5px; border: 1px solid rgba(74,222,128,0.15); }
   .k-badge-yellow { background: rgba(251,191,36,0.1);  color: #fbbf24; font-size: 0.65rem; font-weight: 700; padding: 3px 8px; border-radius: 5px; border: 1px solid rgba(251,191,36,0.15); }
-  .k-badge-coral  { background: rgba(255,90,45,0.1);   color: #ff5a2d; font-size: 0.65rem; font-weight: 700; padding: 3px 8px; border-radius: 5px; border: 1px solid rgba(255,90,45,0.15); }
+  .k-badge-coral  { background: rgba(139,59,255,0.1);   color: #8B3BFF; font-size: 0.65rem; font-weight: 700; padding: 3px 8px; border-radius: 5px; border: 1px solid rgba(139,59,255,0.15); }
   .k-badge-dim    { background: rgba(255,255,255,0.05); color: #666;    font-size: 0.65rem; font-weight: 700; padding: 3px 8px; border-radius: 5px; border: 1px solid rgba(255,255,255,0.08); }
 
   /* ── Input focus style ──
@@ -584,11 +614,11 @@ html, body {
   }
 
   .k-input:focus {
-    border-color: rgba(255,90,45,0.4);
-    box-shadow: 0 0 0 3px rgba(255,90,45,0.08);
+    border-color: rgba(139,59,255,0.4);
+    box-shadow: 0 0 0 3px rgba(139,59,255,0.08);
   }
 
-  .k-input::placeholder { color: #3a3a3a; }
+  .k-input::placeholder { color: #6b6b76; }
 
   /* ── Animate on mount ── */
   .k-fade-up {
@@ -712,15 +742,15 @@ html { scroll-behavior: smooth; }
 /* ─── Scrollbar ─── */
 ::-webkit-scrollbar              { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track        { background: transparent; }
-::-webkit-scrollbar-thumb        { background: rgba(255,90,45,0.25); border-radius: 9999px; }
-::-webkit-scrollbar-thumb:hover  { background: rgba(255,90,45,0.5); }
+::-webkit-scrollbar-thumb        { background: rgba(139,59,255,0.25); border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover  { background: rgba(139,59,255,0.5); }
 
 /* ─── Scroll progress bar ─── */
 .scroll-progress {
   position: fixed;
   top: 0; left: 0;
   height: 2px;
-  background: linear-gradient(90deg, #ff5a2d, #ff8c66);
+  background: var(--gradient-brand);
   z-index: 9999;
   transform-origin: left center;
   pointer-events: none;
@@ -728,7 +758,7 @@ html { scroll-behavior: smooth; }
 }
 
 /* ─── Selection ─── */
-::selection { background: rgba(255,90,45,0.25); color: #fff; }
+::selection { background: rgba(139,59,255,0.25); color: #fff; }
 
 /* ─── Page transition ─── */
 .page-transition-enter { opacity: 0; transform: translateY(10px); }
@@ -746,7 +776,7 @@ html { scroll-behavior: smooth; }
    Two layers: a solid 2px branded ring, plus a 4px near-black halo so the
    ring still reads on top of an orange button or a busy hero photo. */
 :focus-visible {
-  outline: 2px solid var(--accent, #FF5A2D);
+  outline: 2px solid var(--accent, #8B3BFF);
   outline-offset: 2px;
   box-shadow: 0 0 0 4px rgba(10, 10, 12, 0.9);
   border-radius: 4px;
@@ -778,8 +808,8 @@ html { scroll-behavior: smooth; }
   border-radius: 50%;
   background: radial-gradient(
     circle at center,
-    rgba(255,90,45,.42) 0%,
-    rgba(255,90,45,.12) 42%,
+    rgba(57,255,20,.42) 0%,
+    rgba(57,255,20,.12) 42%,
     transparent 70%
   );
   pointer-events: none;
@@ -804,7 +834,7 @@ html { scroll-behavior: smooth; }
 }
 .hers-rank-delta {
   font-weight: 600;
-  color: #FF7A52;
+  color: var(--accent-text);
   font-variant-numeric: tabular-nums;
   animation: hers-delta-in 200ms cubic-bezier(.22,1,.36,1) 1280ms both;
 }

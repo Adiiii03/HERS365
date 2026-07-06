@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { LayoutGrid, Trophy, User, Dumbbell, MessageSquare } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-const FLAME = '#ff5a2d';
+const FLAME = '#8B3BFF';
 
 const tabs = [
   { icon: LayoutGrid,    label: 'Grid',     path: '/feed' },

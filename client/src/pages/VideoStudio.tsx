@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Video, Upload, Play, Pause, Tag, ChevronRight, CheckCircle2, X, Plus } from 'lucide-react';
 
-const FLAME = '#ff5a2d';
+const FLAME = '#8B3BFF';
 const LINE = 'rgba(255,255,255,0.07)';
 const MUTED = '#8a8a86';
 const MUTED_2 = '#5a5a56';
@@ -187,7 +187,7 @@ export const VideoStudio = () => {
 
             <div style={{ display: 'flex', gap: 10 }}>
               <motion.button whileTap={{ scale: 0.96 }} onClick={reset} style={{ padding: '12px 20px', background: 'rgba(255,255,255,0.05)', border: `1px solid ${LINE}`, borderRadius: 10, color: MUTED, fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', flex: 0 }}>Back</motion.button>
-              <motion.button whileTap={{ scale: 0.96 }} onClick={publish} disabled={!title.trim() || uploading} style={{ flex: 1, padding: '12px 24px', background: title.trim() ? FLAME : 'rgba(255,90,45,0.3)', color: '#fff', border: 'none', borderRadius: 10, fontSize: '0.85rem', fontWeight: 700, fontFamily: DISP, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: title.trim() ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+              <motion.button whileTap={{ scale: 0.96 }} onClick={publish} disabled={!title.trim() || uploading} style={{ flex: 1, padding: '12px 24px', background: title.trim() ? FLAME : 'rgba(139,59,255,0.3)', color: '#fff', border: 'none', borderRadius: 10, fontSize: '0.85rem', fontWeight: 700, fontFamily: DISP, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: title.trim() ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                 {uploading ? (
                   <><span style={{ display: 'inline-block', width: 14, height: 14, borderRadius: '50%', border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', animation: 'spin 0.8s linear infinite' }} />Uploading…</>
                 ) : 'Publish Clip'}

@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Shield, Lock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-const FLAME = '#ff5a2d';
+const FLAME = '#8B3BFF';
 const INK = '#0a0a0a';
 const LINE = 'rgba(255,255,255,0.07)';
 const MUTED = '#8a8a86';

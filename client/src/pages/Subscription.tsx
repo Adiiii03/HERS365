@@ -4,7 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Check, Zap, Star, Shield, ArrowRight, Flame } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';
 
-const FLAME = '#ff5a2d';
+const FLAME = '#8B3BFF';
 const INK = '#0a0a0a';
 const INK_2 = '#111111';
 const LINE = 'rgba(255,255,255,0.07)';
@@ -143,7 +143,7 @@ export const Subscription = () => {
   return (
     <div style={{ background: INK, minHeight: '100vh', color: '#f4f4f2', fontFamily: "'DM Sans', sans-serif", padding: '0 0 120px' }}>
       {/* BG gradient */}
-      <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', background: 'radial-gradient(ellipse 80% 40% at 50% 0%, rgba(255,90,45,.12) 0%, transparent 65%)' }} />
+      <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', background: 'radial-gradient(ellipse 80% 40% at 50% 0%, rgba(139,59,255,.12) 0%, transparent 65%)' }} />
 
       <div style={{ maxWidth: 1020, margin: '0 auto', padding: '52px 20px 0', position: 'relative' }}>
         {/* Header */}
@@ -194,14 +194,14 @@ export const Subscription = () => {
                 style={{
                   position: 'relative',
                   background: isPro
-                    ? `linear-gradient(145deg, rgba(255,90,45,.1) 0%, rgba(255,90,45,.04) 100%)`
+                    ? `linear-gradient(145deg, rgba(139,59,255,.1) 0%, rgba(139,59,255,.04) 100%)`
                     : 'rgba(255,255,255,0.03)',
                   border: `1px solid ${isPro ? `${FLAME}50` : isHovered ? `rgba(255,255,255,0.12)` : LINE}`,
                   borderRadius: 18,
                   padding: '28px 26px 26px',
                   transform: isHovered && !isBusy ? 'translateY(-4px)' : isPro ? 'translateY(-8px)' : 'none',
                   transition: 'transform 0.25s ease, border-color 0.2s, box-shadow 0.25s',
-                  boxShadow: isPro ? `0 24px 60px rgba(255,90,45,.18)` : isHovered ? '0 12px 40px rgba(0,0,0,0.4)' : 'none',
+                  boxShadow: isPro ? `0 24px 60px rgba(139,59,255,.18)` : isHovered ? '0 12px 40px rgba(0,0,0,0.4)' : 'none',
                 }}
               >
                 {/* Popular badge */}
@@ -270,7 +270,7 @@ export const Subscription = () => {
                       alignItems: 'center',
                       justifyContent: 'center',
                       gap: 2,
-                      boxShadow: isPro ? '0 8px 24px rgba(255,90,45,.35)' : 'none',
+                      boxShadow: isPro ? '0 8px 24px rgba(139,59,255,.35)' : 'none',
                       transition: 'box-shadow 0.2s',
                     }}
                   >
@@ -302,7 +302,7 @@ export const Subscription = () => {
                       alignItems: 'center',
                       justifyContent: 'center',
                       gap: 8,
-                      boxShadow: isPro ? '0 8px 24px rgba(255,90,45,.35)' : 'none',
+                      boxShadow: isPro ? '0 8px 24px rgba(139,59,255,.35)' : 'none',
                       transition: 'box-shadow 0.2s',
                     }}
                   >

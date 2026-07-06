@@ -73,11 +73,11 @@ const positions     = FLAG_POSITIONS;
 function ProgramAvatar({ name }: { name: string }) {
   return (
     <div style={{
-      width: 48, height: 48, borderRadius: 12, background: 'rgba(255,90,45,0.12)',
-      border: '1px solid rgba(255,90,45,0.25)', display: 'flex', alignItems: 'center',
+      width: 48, height: 48, borderRadius: 12, background: 'rgba(139,59,255,0.12)',
+      border: '1px solid rgba(139,59,255,0.25)', display: 'flex', alignItems: 'center',
       justifyContent: 'center', flexShrink: 0,
     }}>
-      <span style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 800, fontSize: '1.1rem', color: '#ff5a2d' }}>
+      <span style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 800, fontSize: '1.1rem', color: '#8B3BFF' }}>
         {name.split(' ').map(w => w[0]).slice(0, 2).join('')}
       </span>
     </div>
@@ -378,14 +378,14 @@ export const Recruiting = () => {
   };
 
   const btnSecondary: React.CSSProperties = {
-    background: 'rgba(255,90,45,0.1)', border: '1px solid rgba(255,90,45,0.2)',
-    borderRadius: 7, color: '#ff5a2d', fontSize: '0.72rem', fontWeight: 700,
+    background: 'rgba(139,59,255,0.1)', border: '1px solid rgba(139,59,255,0.2)',
+    borderRadius: 7, color: '#8B3BFF', fontSize: '0.72rem', fontWeight: 700,
     padding: '8px 12px', cursor: 'pointer', letterSpacing: '0.05em', flex: 1,
     transition: 'all 0.15s',
   };
 
   const btnPrimary: React.CSSProperties = {
-    background: '#ff5a2d', border: '1px solid #ff5a2d',
+    background: '#8B3BFF', border: '1px solid #8B3BFF',
     borderRadius: 7, color: '#fff', fontSize: '0.72rem', fontWeight: 700,
     padding: '8px 12px', cursor: 'pointer', letterSpacing: '0.05em', flex: 1,
     transition: 'all 0.15s',
@@ -432,8 +432,8 @@ export const Recruiting = () => {
             padding: '10px 14px', fontSize: '0.75rem', fontWeight: 700,
             letterSpacing: '0.05em', textTransform: 'uppercase',
             display: 'flex', alignItems: 'center', gap: 5,
-            color: activeTab === key ? '#ff5a2d' : '#555',
-            borderBottom: activeTab === key ? '2px solid #ff5a2d' : '2px solid transparent',
+            color: activeTab === key ? '#8B3BFF' : '#555',
+            borderBottom: activeTab === key ? '2px solid #8B3BFF' : '2px solid transparent',
             transition: 'all 0.15s',
           }}>
             {icon} {label}
@@ -455,7 +455,7 @@ export const Recruiting = () => {
             </div>
             <button onClick={() => setShowFilters(!showFilters)} style={{
               display: 'flex', alignItems: 'center', gap: 6,
-              background: showFilters ? '#ff5a2d' : '#161616',
+              background: showFilters ? '#8B3BFF' : '#161616',
               border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8,
               padding: '10px 16px', color: showFilters ? '#fff' : '#888',
               fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer',
@@ -563,10 +563,10 @@ export const Recruiting = () => {
               {/* Save button */}
               <button onClick={e => toggleSave(program.id, e)} style={{
                 position: 'absolute', top: 14, right: 14, background: 'none', border: 'none',
-                cursor: 'pointer', color: isSaved ? '#ff5a2d' : '#333', padding: 4, transition: 'color 0.15s',
+                cursor: 'pointer', color: isSaved ? '#8B3BFF' : '#333', padding: 4, transition: 'color 0.15s',
               }}>
                 {isSaved
-                  ? <BookmarkCheck size={16} fill="#ff5a2d" />
+                  ? <BookmarkCheck size={16} fill="#8B3BFF" />
                   : <Bookmark size={16} />}
               </button>
 
@@ -584,14 +584,14 @@ export const Recruiting = () => {
 
               {/* Badges row */}
               <div style={{ display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap' }}>
-                <span style={{ background: 'rgba(255,90,45,0.1)', color: '#ff5a2d', fontSize: '0.68rem', fontWeight: 700, padding: '3px 8px', borderRadius: 4, letterSpacing: '0.06em' }}>
+                <span style={{ background: 'rgba(139,59,255,0.1)', color: '#8B3BFF', fontSize: '0.68rem', fontWeight: 700, padding: '3px 8px', borderRadius: 4, letterSpacing: '0.06em' }}>
                   {program.division}
                 </span>
                 <span style={{ background: 'rgba(255,255,255,0.05)', color: '#888', fontSize: '0.68rem', fontWeight: 600, padding: '3px 8px', borderRadius: 4 }}>
                   {program.conference}
                 </span>
                 {program.hasScholarships && (
-                  <span style={{ background: 'rgba(255,90,45,0.08)', color: '#ff5a2d', fontSize: '0.68rem', fontWeight: 700, padding: '3px 8px', borderRadius: 4, display: 'flex', alignItems: 'center', gap: 3 }}>
+                  <span style={{ background: 'rgba(139,59,255,0.08)', color: '#8B3BFF', fontSize: '0.68rem', fontWeight: 700, padding: '3px 8px', borderRadius: 4, display: 'flex', alignItems: 'center', gap: 3 }}>
                     <Award size={10} /> Scholarship
                   </span>
                 )}
@@ -616,8 +616,8 @@ export const Recruiting = () => {
                 <button
                   onClick={e => openCoachModal(program, e)}
                   style={btnSecondary}
-                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,90,45,0.2)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,90,45,0.1)'; }}>
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(139,59,255,0.2)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(139,59,255,0.1)'; }}>
                   VIEW COACH
                 </button>
                 <button
@@ -625,8 +625,8 @@ export const Recruiting = () => {
                   style={isApplied
                     ? { ...btnSecondary, color: '#555', borderColor: 'rgba(255,255,255,0.08)', cursor: 'default', background: 'rgba(255,255,255,0.03)' }
                     : btnPrimary}
-                  onMouseEnter={e => { if (!isApplied) e.currentTarget.style.background = '#e64a1f'; }}
-                  onMouseLeave={e => { if (!isApplied) e.currentTarget.style.background = '#ff5a2d'; }}>
+                  onMouseEnter={e => { if (!isApplied) e.currentTarget.style.background = '#7526E8'; }}
+                  onMouseLeave={e => { if (!isApplied) e.currentTarget.style.background = '#8B3BFF'; }}>
                   {isApplied ? (
                     <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
                       <CheckCircle2 size={12} /> APPLIED
@@ -673,9 +673,9 @@ export const Recruiting = () => {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                       <div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#fff' }}>{s.name}</div>
-                      {s.category && <span style={{ background: 'rgba(255,90,45,0.1)', color: '#ff5a2d', fontSize: '0.6rem', fontWeight: 700, padding: '2px 7px', borderRadius: 4 }}>{s.category}</span>}
+                      {s.category && <span style={{ background: 'rgba(139,59,255,0.1)', color: '#8B3BFF', fontSize: '0.6rem', fontWeight: 700, padding: '2px 7px', borderRadius: 4 }}>{s.category}</span>}
                     </div>
-                    {s.amount && <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#ff5a2d', marginBottom: 4 }}>${s.amount.toLocaleString()}</div>}
+                    {s.amount && <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#8B3BFF', marginBottom: 4 }}>${s.amount.toLocaleString()}</div>}
                     {s.requirements && <div style={{ fontSize: '0.75rem', color: '#666', lineHeight: 1.5 }}>{s.requirements}</div>}
                   </div>
                   <div style={{ flexShrink: 0, textAlign: 'right' }}>
@@ -686,9 +686,9 @@ export const Recruiting = () => {
                     )}
                     <button onClick={() => toggleSaveScholarship(s.id)} style={{
                       background: 'none', border: 'none', cursor: 'pointer',
-                      color: isSaved ? '#ff5a2d' : '#333', padding: 4,
+                      color: isSaved ? '#8B3BFF' : '#333', padding: 4,
                     }}>
-                      {isSaved ? <BookmarkCheck size={18} fill="#ff5a2d" /> : <Bookmark size={18} />}
+                      {isSaved ? <BookmarkCheck size={18} fill="#8B3BFF" /> : <Bookmark size={18} />}
                     </button>
                   </div>
                 </div>
@@ -755,7 +755,7 @@ export const Recruiting = () => {
                   { label: 'Unique Coaches (30d)', value: insights.uniqueCoachesLast30d },
                 ].map(({ label, value }) => (
                   <div key={label} className="k-card" style={{ padding: '20px 18px' }}>
-                    <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontSize: '2.2rem', fontWeight: 900, color: '#ff5a2d' }}>{value}</div>
+                    <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontSize: '2.2rem', fontWeight: 900, color: '#8B3BFF' }}>{value}</div>
                     <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#555', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: 4 }}>{label}</div>
                   </div>
                 ))}
@@ -813,7 +813,7 @@ export const Recruiting = () => {
                     />
                     <div>
                       <div style={{ fontSize: '1rem', fontWeight: 700, color: '#fff' }}>{coachModal.coach.name}</div>
-                      <div style={{ fontSize: '0.78rem', color: '#ff5a2d', fontWeight: 600, marginTop: 2 }}>{coachModal.coach.title}</div>
+                      <div style={{ fontSize: '0.78rem', color: '#8B3BFF', fontWeight: 600, marginTop: 2 }}>{coachModal.coach.title}</div>
                       <div style={{ fontSize: '0.72rem', color: '#555', marginTop: 2 }}>{coachModal.coach.school} · {coachModal.coach.sport}</div>
                     </div>
                   </div>
@@ -846,8 +846,8 @@ export const Recruiting = () => {
                         style={appliedPrograms.has(coachModal.program.id)
                           ? { ...btnSecondary, color: '#555', borderColor: 'rgba(255,255,255,0.08)', cursor: 'default', background: 'rgba(255,255,255,0.03)' }
                           : btnPrimary}
-                        onMouseEnter={e => { if (!appliedPrograms.has(coachModal.program!.id)) e.currentTarget.style.background = '#e64a1f'; }}
-                        onMouseLeave={e => { if (!appliedPrograms.has(coachModal.program!.id)) e.currentTarget.style.background = '#ff5a2d'; }}>
+                        onMouseEnter={e => { if (!appliedPrograms.has(coachModal.program!.id)) e.currentTarget.style.background = '#7526E8'; }}
+                        onMouseLeave={e => { if (!appliedPrograms.has(coachModal.program!.id)) e.currentTarget.style.background = '#8B3BFF'; }}>
                         {appliedPrograms.has(coachModal.program.id)
                           ? <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}><CheckCircle2 size={12} /> APPLIED</span>
                           : 'APPLY NOW'}
@@ -892,8 +892,8 @@ export const Recruiting = () => {
               {applySubmitted ? (
                 /* Success state */
                 <div style={{ textAlign: 'center', padding: '24px 0' }}>
-                  <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'rgba(255,90,45,0.12)', border: '1px solid rgba(255,90,45,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-                    <CheckCircle2 size={26} color="#ff5a2d" />
+                  <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'rgba(139,59,255,0.12)', border: '1px solid rgba(139,59,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+                    <CheckCircle2 size={26} color="#8B3BFF" />
                   </div>
                   <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontSize: '1.3rem', fontWeight: 800, color: '#fff', marginBottom: 6, textTransform: 'uppercase' }}>Interest Submitted!</div>
                   <p style={{ fontSize: '0.82rem', color: '#888', margin: '0 0 24px', lineHeight: 1.5 }}>
@@ -907,7 +907,7 @@ export const Recruiting = () => {
                 /* Form — identity comes from the athlete's profile, not free text */
                 <>
                   <div style={{ marginBottom: 20 }}>
-                    <div style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#ff5a2d', marginBottom: 4 }}>Express Interest</div>
+                    <div style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#8B3BFF', marginBottom: 4 }}>Express Interest</div>
                     <div style={{ fontSize: '1.05rem', fontWeight: 700, color: '#fff' }}>{applyModal.program.name}</div>
                     <div style={{ fontSize: '0.72rem', color: '#555', marginTop: 2 }}>{applyModal.program.division} · {applyModal.program.conference}</div>
                   </div>
@@ -929,7 +929,7 @@ export const Recruiting = () => {
                     </div>
 
                     <div>
-                      <label style={fieldLabel}>Position <span style={{ color: '#ff5a2d' }}>*</span></label>
+                      <label style={fieldLabel}>Position <span style={{ color: '#8B3BFF' }}>*</span></label>
                       <select value={applyForm.position} onChange={e => setApplyForm(f => ({ ...f, position: e.target.value }))}
                         style={{ ...sel, width: '100%', padding: '10px 12px', color: applyForm.position ? '#fff' : '#555' }}>
                         <option value="">Select...</option>

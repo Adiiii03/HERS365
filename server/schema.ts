@@ -46,6 +46,14 @@ export const players = pgTable('players', {
   // Defaults true so existing users are grandfathered. New registrations set this
   // false explicitly and must verify before appearing in coach search.
   emailVerified: boolean('email_verified').notNull().default(true),
+  // Guardian gate: 'pending_guardian' | 'active' | 'deactivated'. New signups fail
+  // closed as pending; a DB trigger blocks activation without verified consent.
+  status: text('status').notNull().default('pending_guardian'),
+  activatedAt: timestamp('activated_at'),
+  deactivatedAt: timestamp('deactivated_at'),
+  // Opaque token returned to the girl's client so the pending screen can advance
+  // without exposing playerId.
+  pendingToken: text('pending_token').unique(),
   createdAt: timestamp('created_at').default(sql`now()`),
 });
 
@@ -247,6 +255,9 @@ export const parents = pgTable('parents', {
   // defaults, etc.). Server-backed replacement for the local useState
   // toggles that lived in ParentHub and ParentDashboard.
   preferences: jsonb('preferences').default(sql`'{}'::jsonb`),
+  emailVerified: boolean('email_verified').notNull().default(false),
+  phoneVerified: boolean('phone_verified').notNull().default(false),
+  phoneE164: text('phone_e164'), // normalized; `phone` stays as display
   createdAt: timestamp('created_at').default(sql`now()`),
 });
 
@@ -256,6 +267,104 @@ export const parentChildRelations = pgTable('parent_child_relations', {
   parentId: integer('parent_id').references(() => parents.id),
   playerId: integer('player_id').references(() => players.id),
   relationship: text('relationship'), // 'mother', 'father', 'guardian', etc.
+  isPrimary: boolean('is_primary').default(false),
+  status: text('status').notNull().default('pending'), // pending | verified | active | revoked
+  consentId: integer('consent_id').references(() => guardianConsents.id),
+  verifiedAt: timestamp('verified_at'),
+  revokedAt: timestamp('revoked_at'),
+  createdAt: timestamp('created_at').default(sql`now()`),
+});
+
+// Real backing for ConsentRecord. Rows are never deleted; revocation is an
+// UPDATE to revoked_at (enforced by a DB trigger).
+export const guardianConsents = pgTable('guardian_consents', {
+  id: serial('id').primaryKey(),
+  parentId: integer('parent_id').references(() => parents.id),
+  playerId: integer('player_id').references(() => players.id),
+  consentType: text('consent_type').notNull(),
+  framework: text('framework').notNull(),
+  consented: boolean('consented').notNull(),
+  consentVersion: text('consent_version').notNull(),
+  consentText: text('consent_text').notNull(),
+  method: text('method'),
+  grantedAt: timestamp('granted_at').default(sql`now()`),
+  revokedAt: timestamp('revoked_at'),
+  expiresAt: timestamp('expires_at'),
+  grantedBy: text('granted_by'),
+  ipAddress: text('ip_address'),
+  userAgent: text('user_agent'),
+  withdrawalReason: text('withdrawal_reason'),
+  metadata: jsonb('metadata').default(sql`'{}'::jsonb`),
+});
+
+// Durable, peppered verification codes — replaces the in memory Maps.
+export const guardianVerificationCodes = pgTable('guardian_verification_codes', {
+  id: serial('id').primaryKey(),
+  parentId: integer('parent_id').references(() => parents.id),
+  playerId: integer('player_id').references(() => players.id),
+  relationId: integer('relation_id').references(() => parentChildRelations.id),
+  channel: text('channel').notNull(), // email | sms
+  destination: text('destination').notNull(),
+  codeHash: text('code_hash').notNull(), // keyed HMAC over CODE_PEPPER, never plaintext
+  linkToken: text('link_token').unique(),
+  purpose: text('purpose').notNull(), // link_consent | email_verify | phone_verify | password_reset
+  attempts: integer('attempts').notNull().default(0),
+  maxAttempts: integer('max_attempts').notNull().default(5),
+  expiresAt: timestamp('expires_at').notNull(),
+  consumedAt: timestamp('consumed_at'),
+  used: boolean('used').notNull().default(false),
+  metadata: jsonb('metadata').default(sql`'{}'::jsonb`),
+  createdAt: timestamp('created_at').default(sql`now()`),
+});
+
+// Append only, tamper evident (row_hash chains over prev_hash). Never UPDATE or
+// DELETE — enforced by DB trigger + REVOKE in migration 0009.
+export const consentAuditLog = pgTable('consent_audit_log', {
+  id: serial('id').primaryKey(),
+  consentId: integer('consent_id').references(() => guardianConsents.id),
+  parentId: integer('parent_id'),
+  playerId: integer('player_id'),
+  action: text('action').notNull(),
+  actorType: text('actor_type'),
+  actorId: integer('actor_id'),
+  ipAddress: text('ip_address'),
+  userAgent: text('user_agent'),
+  detail: jsonb('detail').default(sql`'{}'::jsonb`),
+  prevHash: text('prev_hash'),
+  rowHash: text('row_hash'),
+  createdAt: timestamp('created_at').default(sql`now()`),
+});
+
+// Append only, same immutability protection as consent_audit_log.
+export const adminAccessLog = pgTable('admin_access_log', {
+  id: serial('id').primaryKey(),
+  adminId: integer('admin_id').references(() => adminUsers.id),
+  action: text('action').notNull(), // pii_read | bulk_read | export
+  subjectType: text('subject_type'),
+  subjectId: integer('subject_id'),
+  fields: text('fields'),
+  count: integer('count'),
+  ipAddress: text('ip_address'),
+  userAgent: text('user_agent'),
+  prevHash: text('prev_hash'),
+  rowHash: text('row_hash'),
+  createdAt: timestamp('created_at').default(sql`now()`),
+});
+
+// Double opt in: rows start pending and only become subscribed after the
+// confirm link is clicked.
+export const newsletterSubscribers = pgTable('newsletter_subscribers', {
+  id: serial('id').primaryKey(),
+  email: text('email').notNull().unique(),
+  name: text('name'),
+  source: text('source'), // signup | footer | landing | coming_soon
+  status: text('status').notNull().default('pending'), // pending | subscribed | unsubscribed | bounced
+  parentId: integer('parent_id').references(() => parents.id),
+  confirmToken: text('confirm_token').unique(),
+  confirmedAt: timestamp('confirmed_at'),
+  consentAt: timestamp('consent_at').default(sql`now()`),
+  unsubscribedAt: timestamp('unsubscribed_at'),
+  unsubscribeToken: text('unsubscribe_token').unique(),
   createdAt: timestamp('created_at').default(sql`now()`),
 });
 
@@ -765,6 +874,7 @@ export const refreshTokens = pgTable('refresh_tokens', {
   userId: integer('user_id').notNull(), // Can reference players, parents, coaches, or admin_users
   userType: text('user_type').notNull(), // 'athlete', 'parent', 'coach', 'admin'
   tokenHash: text('token_hash').notNull().unique(), // Hashed refresh token
+  familyId: text('family_id'), // rotation family; reuse of a consumed token revokes the whole family
   deviceFingerprint: text('device_fingerprint'), // Browser/device identifier
   ipAddress: text('ip_address'),
   userAgent: text('user_agent'),

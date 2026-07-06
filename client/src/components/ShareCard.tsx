@@ -4,8 +4,8 @@ import type { ShareCardData } from '../lib/shareCard';
 // ─── Card visual — 9:16 (540 × 960), exported at pixelRatio 2 → 1080 × 1920 ─
 
 const BG = '#0E0E11';
-const ACCENT = '#FF5A2D';
-const ACCENT_TEXT = '#FF7A52';
+const ACCENT = '#8B3BFF';
+const ACCENT_TEXT = '#C4A3FF';
 const TEXT_PRIMARY = '#F5F5F7';
 const TEXT_SECONDARY = '#B0B0B8';
 const DIVIDER = 'rgba(255,255,255,0.08)';
@@ -61,7 +61,7 @@ export const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(function Sha
           width: 720,
           height: 720,
           borderRadius: '50%',
-          background: `radial-gradient(circle at center, rgba(255,90,45,.42) 0%, rgba(255,90,45,.12) 42%, transparent 70%)`,
+          background: `radial-gradient(circle at center, rgba(139,59,255,.42) 0%, rgba(139,59,255,.12) 42%, transparent 70%)`,
           filter: 'blur(8px)',
           pointerEvents: 'none',
         }}
@@ -96,7 +96,7 @@ export const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(function Sha
           marginBottom: 18,
           letterSpacing: '-0.03em',
           fontVariantNumeric: 'tabular-nums',
-          textShadow: '0 0 60px rgba(255,90,45,0.4)',
+          textShadow: '0 0 60px rgba(139,59,255,0.4)',
           position: 'relative',
         }}
       >
@@ -123,7 +123,7 @@ export const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(function Sha
               width: 22,
               height: 22,
               borderRadius: '50%',
-              background: ACCENT,
+              background: '#39FF14',
               color: '#0A0A0C',
               fontSize: 14,
               fontWeight: 800,

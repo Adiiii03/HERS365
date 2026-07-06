@@ -135,7 +135,7 @@ export const PlayerProfile = () => {
       <div style={{ padding: '40px', textAlign: 'center', color: '#555' }}>
         <p style={{ fontSize: '1.2rem', marginBottom: 16 }}>Player not found.</p>
         <button onClick={() => navigate('/recruiting')}
-          style={{ background: '#ff5a2d', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 20px', cursor: 'pointer', fontWeight: 600 }}>
+          style={{ background: '#8B3BFF', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 20px', cursor: 'pointer', fontWeight: 600 }}>
           Back to Recruiting
         </button>
       </div>
@@ -163,10 +163,10 @@ export const PlayerProfile = () => {
               <h1 style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 800, fontSize: '1.8rem', textTransform: 'uppercase', color: '#fff', margin: 0 }}>
                 {player.name}
               </h1>
-              {player.verified && <CheckCircle2 size={16} color="#ff5a2d" fill="#ff5a2d" />}
+              {player.verified && <CheckCircle2 size={16} color="#0A0A0C" fill="#39FF14" />}
             </div>
             {player.position && (
-              <span style={{ background: 'rgba(255,90,45,0.1)', color: '#ff5a2d', fontSize: '0.72rem', fontWeight: 700, padding: '3px 8px', borderRadius: 4, letterSpacing: '0.06em', marginBottom: 8, display: 'inline-block' }}>
+              <span style={{ background: 'rgba(139,59,255,0.1)', color: '#8B3BFF', fontSize: '0.72rem', fontWeight: 700, padding: '3px 8px', borderRadius: 4, letterSpacing: '0.06em', marginBottom: 8, display: 'inline-block' }}>
                 {player.position}
               </span>
             )}
@@ -182,7 +182,7 @@ export const PlayerProfile = () => {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8, flexShrink: 0 }}>
             <button onClick={handleMessage}
-              style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#ff5a2d', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 18px', cursor: 'pointer', fontWeight: 700, fontSize: '0.82rem' }}>
+              style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#8B3BFF', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 18px', cursor: 'pointer', fontWeight: 700, fontSize: '0.82rem' }}>
               <MessageSquare size={15} /> Message
             </button>
             <button
@@ -190,9 +190,9 @@ export const PlayerProfile = () => {
               disabled={followLoading}
               style={{
                 display: 'flex', alignItems: 'center', gap: 8,
-                background: following ? 'rgba(255,90,45,0.12)' : 'transparent',
-                color: following ? '#ff5a2d' : '#888',
-                border: `1px solid ${following ? 'rgba(255,90,45,0.4)' : 'rgba(255,255,255,0.12)'}`,
+                background: following ? 'rgba(139,59,255,0.12)' : 'transparent',
+                color: following ? '#8B3BFF' : '#888',
+                border: `1px solid ${following ? 'rgba(139,59,255,0.4)' : 'rgba(255,255,255,0.12)'}`,
                 borderRadius: 8, padding: '8px 14px', cursor: followLoading ? 'wait' : 'pointer',
                 fontWeight: 700, fontSize: '0.78rem', transition: 'all 0.15s',
                 opacity: followLoading ? 0.6 : 1,
@@ -249,7 +249,7 @@ export const PlayerProfile = () => {
           </h2>
           {stats.map((s, i) => (
             <div key={i} style={{ fontSize: '0.82rem', color: '#888', padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-              {s.season && <span style={{ color: '#ff5a2d', marginRight: 8 }}>{s.season}</span>}
+              {s.season && <span style={{ color: '#8B3BFF', marginRight: 8 }}>{s.season}</span>}
               {s.touchdowns !== undefined && <span style={{ marginRight: 12 }}>TDs: <b style={{ color: '#ddd' }}>{s.touchdowns}</b></span>}
               {s.yards !== undefined && <span style={{ marginRight: 12 }}>Yds: <b style={{ color: '#ddd' }}>{s.yards}</b></span>}
               {s.completionPct !== undefined && <span>Comp%: <b style={{ color: '#ddd' }}>{s.completionPct}%</b></span>}

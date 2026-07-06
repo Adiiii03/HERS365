@@ -6,7 +6,7 @@ import {
   ChevronRight, Award, Bookmark,
 } from 'lucide-react';
 
-const FLAME_C = '#ff5a2d';
+const FLAME_C = '#8B3BFF';
 const INK_2 = '#111111';
 const LINE = 'rgba(255,255,255,0.07)';
 const MUTED = '#8a8a86';
@@ -157,7 +157,7 @@ export const ScholarshipTracker = () => {
           style={{ padding: '16px 18px', marginBottom: 10 }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
             {/* Icon */}
-            <div style={{ width: 42, height: 42, borderRadius: 10, background: 'rgba(255,90,45,0.1)', border: `1px solid ${FLAME_C}33`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <div style={{ width: 42, height: 42, borderRadius: 10, background: 'rgba(139,59,255,0.1)', border: `1px solid ${FLAME_C}33`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <GraduationCap size={18} color={FLAME_C} />
             </div>
 

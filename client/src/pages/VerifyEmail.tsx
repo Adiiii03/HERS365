@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { apiFetch, errorMessage } from '../lib/api';
 
-const FLAME = '#ff5a2d';
+const FLAME = '#8B3BFF';
 const INK   = '#0a0a0a';
 const TEXT  = '#f4f4f2';
 const MUTED = '#9a9a96';
