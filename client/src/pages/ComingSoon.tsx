@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion, useReducedMotion, MotionConfig } from 'framer-motion';
 import { ShieldCheck, Users, Mail, ArrowRight, Check } from 'lucide-react';
 import { apiFetch, errorMessage } from '../lib/api';
+import { useDemoLogin } from '../hooks/useDemoLogin';
 import { disp, kicker, reveal, DISP, LINE, MUTED } from '../lib/theme';
 
 const css = `
@@ -48,6 +49,7 @@ export const ComingSoon = () => {
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const reduced = !!useReducedMotion();
+  const dev = useDemoLogin('player');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -172,6 +174,28 @@ export const ComingSoon = () => {
               Contact Jonte <ArrowRight size={16} aria-hidden />
             </Link>
           </motion.section>
+
+          {dev.enabled && (
+            <div style={{ marginTop: 48, textAlign: 'center' }}>
+              <button
+                type="button"
+                onClick={dev.submit}
+                disabled={dev.loading}
+                style={{
+                  background: 'none', border: 'none', cursor: dev.loading ? 'default' : 'pointer',
+                  color: MUTED, fontSize: '.78rem', letterSpacing: '.04em',
+                  textDecoration: 'underline', textUnderlineOffset: 3, padding: 6,
+                }}
+              >
+                {dev.loading ? 'Opening…' : '(for developers) — skip the gate and open the app'}
+              </button>
+              {dev.error && (
+                <p role="alert" style={{ margin: '6px 0 0', color: 'var(--accent-text)', fontSize: '.78rem' }}>
+                  {dev.error}
+                </p>
+              )}
+            </div>
+          )}
         </main>
       </div>
     </MotionConfig>

@@ -141,7 +141,7 @@ html, body {
   border-top-right-radius: 12px;
 }
 
-/* The athlete's own row — orange identity rail on the left + soft wash so
+/* The athlete's own row — purple identity rail on the left + soft wash so
    "you are here" never disappears even when the dock is dismissed. */
 .rk-row-self {
   box-shadow: inset 3px 0 0 var(--neon);
@@ -211,7 +211,7 @@ html, body {
   to   { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes glow-coral {
+@keyframes glow-accent {
   0%, 100% { text-shadow: 0 0 12px rgba(139,59,255,0.35); }
   50%       { text-shadow: 0 0 24px rgba(139,59,255,0.6); }
 }
@@ -318,9 +318,9 @@ html, body {
     transition: transform 0.08s;
   }
 
-  /* ── Coral helpers ── */
-  .coral    { color: #8B3BFF; }
-  .bg-coral { background-color: #8B3BFF; }
+  /* ── Accent helpers ── */
+  .accent    { color: #8B3BFF; }
+  .bg-accent { background-color: #8B3BFF; }
 
   /* ── Score / display number ── */
   .score-badge {
@@ -596,11 +596,11 @@ html, body {
   /* ── Status badges ── */
   .k-badge-green  { background: rgba(74,222,128,0.1);  color: #4ade80; font-size: 0.65rem; font-weight: 700; padding: 3px 8px; border-radius: 5px; border: 1px solid rgba(74,222,128,0.15); }
   .k-badge-yellow { background: rgba(251,191,36,0.1);  color: #fbbf24; font-size: 0.65rem; font-weight: 700; padding: 3px 8px; border-radius: 5px; border: 1px solid rgba(251,191,36,0.15); }
-  .k-badge-coral  { background: rgba(139,59,255,0.1);   color: #8B3BFF; font-size: 0.65rem; font-weight: 700; padding: 3px 8px; border-radius: 5px; border: 1px solid rgba(139,59,255,0.15); }
+  .k-badge-accent { background: rgba(139,59,255,0.1);   color: #8B3BFF; font-size: 0.65rem; font-weight: 700; padding: 3px 8px; border-radius: 5px; border: 1px solid rgba(139,59,255,0.15); }
   .k-badge-dim    { background: rgba(255,255,255,0.05); color: #666;    font-size: 0.65rem; font-weight: 700; padding: 3px 8px; border-radius: 5px; border: 1px solid rgba(255,255,255,0.08); }
 
   /* ── Input focus style ──
-     Mouse click → :focus, soft orange wash via border + shadow.
+     Mouse click → :focus, soft purple wash via border + shadow.
      Keyboard tab → :focus-visible falls through to the global ring above.
      No outline:none here, otherwise the global ring is suppressed. */
   .k-input {
@@ -635,9 +635,9 @@ html, body {
     animation: border-glow 3s ease-in-out infinite;
   }
 
-  /* ── Glow coral text helper ── */
-  .k-glow-coral {
-    animation: glow-coral 2.5s ease-in-out infinite;
+  /* ── Glow accent text helper ── */
+  .k-glow-accent {
+    animation: glow-accent 2.5s ease-in-out infinite;
   }
 
   /* ── iOS-smooth main scroll area ── */
@@ -696,7 +696,7 @@ html, body {
   /* Landing-page marquee + pulses + glows + reveal animations. */
   .lp-ticker-track,
   .lp-pulse,
-  .k-glow-coral,
+  .k-glow-accent,
   .k-glow-border,
   .k-fade-up,
   .k-score-enter,
@@ -772,9 +772,9 @@ html { scroll-behavior: smooth; }
   transition: opacity 140ms ease;
 }
 
-/* ─── Focus ring — WCAG AA visible on dark, orange, and busy backgrounds ───
+/* ─── Focus ring — WCAG AA visible on dark, purple, and busy backgrounds ───
    Two layers: a solid 2px branded ring, plus a 4px near-black halo so the
-   ring still reads on top of an orange button or a busy hero photo. */
+   ring still reads on top of a purple button or a busy hero photo. */
 :focus-visible {
   outline: 2px solid var(--accent, #8B3BFF);
   outline-offset: 2px;
@@ -788,7 +788,7 @@ html { scroll-behavior: smooth; }
 }
 
 /* ─── HERS Rating reveal — the signature moment ───
-   Restraint disguised as drama. One orange bloom, one badge stamp, one
+   Restraint disguised as drama. One purple bloom, one badge stamp, one
    gentle delta. Numbers are tabular so the count-up doesn't reflow.
    See client/src/hooks/useRatingReveal.ts for the JS timing. */
 
