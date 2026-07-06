@@ -3,21 +3,18 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion, MotionConfig } from 'framer-motion';
 import { Check, Play, ArrowRight, Crosshair, Megaphone, Share2 } from 'lucide-react';
 import { athleteAvatar } from '../lib/avatar';
+import { colors, radii, type } from '../lib/tokens';
+import { Button, Card, Badge } from '../components/ui';
 
-const FLAME = '#8B3BFF';
-const FLAME_SOFT = '#C4A3FF';
-const INK = '#0a0a0a';
-const INK_2 = '#111111';
-const INK_3 = '#161616';
-const LINE = 'rgba(255,255,255,0.07)';
-const LINE_2 = 'rgba(255,255,255,0.12)';
-const MUTED = '#8a8a86';
-const MUTED_2 = '#5a5a56';
-const DISP = "'Barlow Condensed', sans-serif";
+const DISP = type.font.display;
+const MotionCard = motion.create(Card);
 
 const DEMO_VIDEO_URL =
   (import.meta.env.VITE_DEMO_VIDEO_URL as string | undefined) ||
   'https://www.youtube.com/watch?v=763pUAkLfWU';
+
+const LINE = 'rgba(255,255,255,0.07)';
+const LINE_2 = 'rgba(255,255,255,0.12)';
 
 const css = `
   *,*::before,*::after{box-sizing:border-box}
@@ -26,28 +23,28 @@ const css = `
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
 
   /* Buttons */
-  .lp-btn{font-family:${DISP};font-weight:800;text-transform:uppercase;letter-spacing:.06em;font-size:.92rem;
-    padding:13px 26px;border-radius:9999px;cursor:pointer;border:none;display:inline-flex;align-items:center;gap:9px;
+  .lp-btn{font-family:${DISP};font-weight:800;text-transform:uppercase;letter-spacing:.06em;font-size:${type.size.base};
+    padding:13px 26px;border-radius:${radii.pill};cursor:pointer;border:none;display:inline-flex;align-items:center;gap:9px;
     transition:transform .18s cubic-bezier(.25,1,.5,1),box-shadow .22s,border-color .22s,color .22s;
-    text-decoration:none;position:relative;overflow:hidden;white-space:nowrap}
-  .lp-btn-primary{background:${FLAME};color:var(--accent-on);box-shadow:0 6px 22px rgba(139,59,255,.32)}
+    text-decoration:none;position:relative;overflow:hidden;white-space:nowrap;min-height:44px}
+  .lp-btn-primary{background:${colors.accent};color:var(--accent-on);box-shadow:0 6px 22px rgba(139,59,255,.32)}
   .lp-btn-primary::after{content:'';position:absolute;inset:0;
     background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,.22) 50%,transparent 100%);
     transform:translateX(-110%);transition:transform .6s cubic-bezier(.25,1,.5,1);pointer-events:none}
   .lp-btn-primary:hover{transform:translateY(-2px) scale(1.015);box-shadow:0 14px 36px rgba(139,59,255,.54)}
   .lp-btn-primary:hover::after{transform:translateX(110%)}
-  .lp-btn-ghost{background:transparent;color:#f4f4f2;border:1px solid ${LINE_2}}
+  .lp-btn-ghost{background:transparent;color:${colors.textPrimary};border:1px solid ${LINE_2}}
   .lp-btn-ghost::after{content:'';position:absolute;inset:0;background:rgba(139,59,255,.06);
     transform:scaleX(0);transform-origin:left;transition:transform .3s cubic-bezier(.25,1,.5,1);pointer-events:none}
-  .lp-btn-ghost:hover{border-color:${FLAME};color:${FLAME}}
+  .lp-btn-ghost:hover{border-color:${colors.accent};color:${colors.accent}}
   .lp-btn-ghost:hover::after{transform:scaleX(1)}
 
   /* Nav */
-  .lp-nav-link{color:${MUTED};font-weight:600;font-size:.84rem;text-decoration:none;
+  .lp-nav-link{color:${colors.textSecondary};font-weight:600;font-size:.84rem;text-decoration:none;
     transition:color .22s;position:relative;display:inline-block;padding-bottom:2px}
   .lp-nav-link::after{content:'';position:absolute;bottom:-1px;left:0;width:0;height:1.5px;
-    background:${FLAME};border-radius:9999px;transition:width .35s cubic-bezier(.25,1,.5,1)}
-  .lp-nav-link:hover{color:#f4f4f2}
+    background:${colors.accent};border-radius:${radii.pill};transition:width .35s cubic-bezier(.25,1,.5,1)}
+  .lp-nav-link:hover{color:${colors.textPrimary}}
   .lp-nav-link:hover::after{width:100%}
 
   /* Cards */
@@ -58,7 +55,7 @@ const css = `
   /* Clip-text hover reveal */
   .clip-wrap{position:relative;display:inline-block}
   .clip-fg{position:absolute;top:0;left:0;width:100%;height:100%;
-    color:${FLAME};clip-path:inset(0 100% 0 0);transition:clip-path .5s cubic-bezier(.25,1,.5,1);pointer-events:none;
+    color:${colors.accent};clip-path:inset(0 100% 0 0);transition:clip-path .5s cubic-bezier(.25,1,.5,1);pointer-events:none;
     white-space:inherit}
   .clip-trigger{display:inline-block;cursor:default}
   .clip-trigger:hover .clip-fg{clip-path:inset(0 0% 0 0)}
@@ -68,20 +65,17 @@ const css = `
   @keyframes lpPulse{0%{box-shadow:0 0 0 0 rgba(139,59,255,.6)}70%{box-shadow:0 0 0 9px rgba(139,59,255,0)}100%{box-shadow:0 0 0 0 rgba(139,59,255,0)}}
 
   /* Live badge */
-  .lp-live{display:inline-flex;align-items:center;gap:5px;font-size:.67rem;font-weight:700;
-    letter-spacing:.1em;text-transform:uppercase;color:#4ade80;padding:4px 10px;border-radius:9999px;
-    background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);font-family:${DISP}}
-  .lp-live-dot{width:6px;height:6px;border-radius:50%;background:#4ade80;animation:livePulse 2s infinite;flex-shrink:0}
+  .lp-live-dot{width:6px;height:6px;border-radius:50%;background:${colors.success};animation:livePulse 2s infinite;flex-shrink:0}
   @keyframes livePulse{0%{box-shadow:0 0 0 0 rgba(74,222,128,.6)}70%{box-shadow:0 0 0 6px rgba(74,222,128,0)}100%{box-shadow:0 0 0 0 rgba(74,222,128,0)}}
 
   /* Ticker */
-  .lp-ticker{overflow:hidden;border-top:1px solid ${LINE};border-bottom:1px solid ${LINE};background:${INK_2};padding:11px 0}
+  .lp-ticker{overflow:hidden;border-top:1px solid ${LINE};border-bottom:1px solid ${LINE};background:${colors.surface1};padding:11px 0}
   .lp-ticker-track{display:flex;width:max-content;animation:tickerScroll 32s linear infinite}
   .lp-ticker-track:hover{animation-play-state:paused}
   @keyframes tickerScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
   .lp-ticker-item{white-space:nowrap;font-family:${DISP};font-weight:700;font-size:.8rem;letter-spacing:.13em;
-    text-transform:uppercase;color:${MUTED};padding:0 28px;display:inline-flex;align-items:center;gap:14px}
-  .lp-ticker-sep{color:${MUTED_2};opacity:.45}
+    text-transform:uppercase;color:${colors.textSecondary};padding:0 28px;display:inline-flex;align-items:center;gap:14px}
+  .lp-ticker-sep{color:${colors.textTertiary};opacity:.45}
 
   /* Stat band */
   .stat-cell{transition:background .22s}
@@ -99,7 +93,7 @@ const css = `
   /* Hamburger (desktop: hidden) */
   .lp-hamburger{display:none;flex-direction:column;justify-content:center;gap:5px;padding:6px;
     background:none;border:none;cursor:pointer;z-index:101;-webkit-tap-highlight-color:transparent}
-  .lp-hamburger span{display:block;width:22px;height:2px;background:#f4f4f2;border-radius:2px;
+  .lp-hamburger span{display:block;width:22px;height:2px;background:${colors.textPrimary};border-radius:2px;
     transition:transform .28s cubic-bezier(.25,1,.5,1),opacity .22s}
   .lp-hamburger.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
   .lp-hamburger.open span:nth-child(2){opacity:0}
@@ -111,10 +105,10 @@ const css = `
     justify-content:center;gap:36px;opacity:0;pointer-events:none;
     transition:opacity .28s cubic-bezier(.25,1,.5,1)}
   .lp-mobile-drawer.open{opacity:1;pointer-events:auto}
-  .lp-mobile-drawer a{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:2.2rem;
-    text-transform:uppercase;letter-spacing:.06em;color:#f4f4f2;text-decoration:none;
+  .lp-mobile-drawer a{font-family:${DISP};font-weight:800;font-size:2.2rem;
+    text-transform:uppercase;letter-spacing:.06em;color:${colors.textPrimary};text-decoration:none;
     transition:color .2s}
-  .lp-mobile-drawer a:active{color:#8B3BFF}
+  .lp-mobile-drawer a:active{color:${colors.accent}}
 
   @media(max-width:900px){
     .lp-hero-grid,.lp-split{grid-template-columns:1fr;gap:36px}
@@ -151,7 +145,7 @@ const reveal = {
 
 const wrap: React.CSSProperties = { maxWidth: 1200, margin: '0 auto', padding: '0 28px' };
 const disp: React.CSSProperties = { fontFamily: DISP, textTransform: 'uppercase', lineHeight: 0.92, letterSpacing: '.01em' };
-const kicker: React.CSSProperties = { ...disp, fontWeight: 700, letterSpacing: '.2em', fontSize: '.84rem', color: FLAME, marginBottom: 16, lineHeight: 1.2 };
+const kicker: React.CSSProperties = { ...disp, fontWeight: 700, letterSpacing: '.2em', fontSize: '.84rem', color: colors.accent, marginBottom: 16, lineHeight: 1.2 };
 
 const ClipText = ({ children }: { children: string }) => (
   <span className="clip-trigger">
@@ -191,10 +185,10 @@ interface GridRow {
 }
 
 const fallbackLeaderboard: GridRow[] = [
-  { name: 'Athlete Profile', meta: 'QB · 2026 · 12 offers', rank: 95, up: true, av: `linear-gradient(135deg,${FLAME},${FLAME_SOFT})` },
-  { name: 'Maya Johnson', meta: 'QB · 2026 · 8 offers', rank: 93, up: true, av: 'linear-gradient(135deg,#3a3a3a,#1c1c1c)' },
-  { name: 'Jordan Reyes', meta: 'QB · 2027 · 5 offers', rank: 91, up: false, av: 'linear-gradient(135deg,#2a2a2a,#161616)' },
-  { name: 'Taylor Brooks', meta: 'QB · 2026 · 4 offers', rank: 88, up: true, av: 'linear-gradient(135deg,#222,#111)' },
+  { name: 'Athlete Profile', meta: 'QB · 2026 · 12 offers', rank: 95, up: true, av: `linear-gradient(135deg,${colors.accent},${colors.accentText})` },
+  { name: 'Maya Johnson', meta: 'QB · 2026 · 8 offers', rank: 93, up: true, av: `linear-gradient(135deg,${colors.border},${colors.surface2})` },
+  { name: 'Jordan Reyes', meta: 'QB · 2027 · 5 offers', rank: 91, up: false, av: `linear-gradient(135deg,${colors.surface2},${colors.surface1})` },
+  { name: 'Taylor Brooks', meta: 'QB · 2026 · 4 offers', rank: 88, up: true, av: `linear-gradient(135deg,${colors.surface2},${colors.surface1})` },
 ];
 
 interface ApiRanking {
@@ -216,7 +210,11 @@ export const LandingPage = () => {
     const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', onScroll, { passive: true });
 
-    const fades = ['linear-gradient(135deg,#3a3a3a,#1c1c1c)', 'linear-gradient(135deg,#2a2a2a,#161616)', 'linear-gradient(135deg,#222,#111)'];
+    const fades = [
+      `linear-gradient(135deg,${colors.border},${colors.surface2})`,
+      `linear-gradient(135deg,${colors.surface2},${colors.surface1})`,
+      `linear-gradient(135deg,${colors.surface2},${colors.surface1})`,
+    ];
     fetch('/api/rankings?limit=4&sortBy=rating')
       .then(r => (r.ok ? r.json() : null))
       .then(j => {
@@ -227,7 +225,7 @@ export const LandingPage = () => {
           meta: [r.position, r.school].filter(Boolean).join(' · '),
           rank: Math.round(r.rating),
           up: (r.change ?? 0) > 0,
-          av: i === 0 ? `linear-gradient(135deg,${FLAME},${FLAME_SOFT})` : fades[i - 1],
+          av: i === 0 ? `linear-gradient(135deg,${colors.accent},${colors.accentText})` : fades[i - 1],
           avatarUrl: r.avatar,
         })));
       })
@@ -241,7 +239,7 @@ export const LandingPage = () => {
     // end state for visitors who prefer reduced motion, so the page never reads
     // as a blank void waiting on scroll animations that will not play.
     <MotionConfig reducedMotion="user">
-    <div className="lp-grain" style={{ background: INK, color: '#f4f4f2', fontFamily: "'DM Sans', sans-serif", fontSize: 17, lineHeight: 1.6, overflowX: 'hidden', minHeight: '100vh' }}>
+    <div className="lp-grain" style={{ background: colors.surface0, color: colors.textPrimary, fontFamily: type.font.body, fontSize: 17, lineHeight: 1.6, overflowX: 'hidden', minHeight: '100vh' }}>
       <style>{css}</style>
 
       {/* NAV */}
@@ -252,7 +250,7 @@ export const LandingPage = () => {
         borderBottom: `1px solid ${scrolled ? LINE : 'transparent'}`, transition: 'border-color .3s, background .3s',
       }}>
         <div style={{ ...disp, fontWeight: 900, fontSize: '1.5rem', letterSpacing: '.04em' }}>
-          HERS<b style={{ color: FLAME }}>365</b>
+          HERS<b style={{ color: colors.accent }}>365</b>
         </div>
         <div className="lp-nav-links" style={{ display: 'flex', gap: 32, alignItems: 'center' }}>
           <a className="lp-nav-link" href="#how">The Grid</a>
@@ -292,19 +290,19 @@ export const LandingPage = () => {
           position: 'absolute', inset: 0, opacity: 0.45, pointerEvents: 'none',
           backgroundImage: `linear-gradient(${LINE} 1px,transparent 1px),linear-gradient(90deg,${LINE} 1px,transparent 1px)`,
           backgroundSize: '64px 64px',
-          maskImage: 'radial-gradient(ellipse 70% 80% at 80% 10%,#000 0%,transparent 80%)',
-          WebkitMaskImage: 'radial-gradient(ellipse 70% 80% at 80% 10%,#000 0%,transparent 80%)',
+          maskImage: 'radial-gradient(ellipse 70% 80% at 80% 10%,black 0%,transparent 80%)',
+          WebkitMaskImage: 'radial-gradient(ellipse 70% 80% at 80% 10%,black 0%,transparent 80%)',
         }} />
 
         <div style={{ ...wrap, position: 'relative', maxWidth: 860 }}>
           {/* LEFT */}
-          <div style={{ borderLeft: `3px solid ${FLAME}`, paddingLeft: 28 }}>
+          <div style={{ borderLeft: `3px solid ${colors.accent}`, paddingLeft: 28 }}>
             <motion.span {...reveal} style={{
               display: 'inline-flex', alignItems: 'center', gap: 9, ...disp, fontWeight: 700, letterSpacing: '.18em',
               fontSize: '.79rem', color: 'var(--accent-text)', marginBottom: 22, border: '1px solid rgba(139,59,255,.28)',
-              padding: '7px 14px', borderRadius: 9999, background: 'rgba(139,59,255,.06)', lineHeight: 1.2,
+              padding: '7px 14px', borderRadius: radii.full, background: 'rgba(139,59,255,.06)', lineHeight: 1.2,
             }}>
-              <span className="lp-pulse" style={{ width: 7, height: 7, borderRadius: '50%', background: FLAME, flexShrink: 0 }} />
+              <span className="lp-pulse" style={{ width: 7, height: 7, borderRadius: '50%', background: colors.accent, flexShrink: 0 }} />
               Girls Flag Football · Class of 2026
             </motion.span>
 
@@ -316,36 +314,36 @@ export const LandingPage = () => {
             >
               Play.<br />
               Grow.<br />
-              <em style={{ color: FLAME, fontStyle: 'normal' }}>Belong.</em>
+              <em style={{ color: colors.accent, fontStyle: 'normal' }}>Belong.</em>
             </motion.h1>
 
             <motion.p
               {...reveal}
               transition={{ ...reveal.transition, delay: 0.16 }}
-              style={{ color: MUTED, fontSize: '1.1rem', maxWidth: 460, margin: '24px 0 0', lineHeight: 1.65 }}
+              style={{ color: colors.textSecondary, fontSize: '1.1rem', maxWidth: 460, margin: '24px 0 0', lineHeight: 1.65 }}
             >
               A safe home for girls flag football. Post your highlights, cheer on your friends, and grow your game, 365 days a year.
             </motion.p>
 
             {/* Social proof */}
-            <motion.div {...reveal} transition={{ ...reveal.transition, delay: 0.2 }} style={{ marginTop: 20, display: 'flex', alignItems: 'center', gap: 12, color: MUTED_2, fontSize: '.85rem' }}>
+            <motion.div {...reveal} transition={{ ...reveal.transition, delay: 0.2 }} style={{ marginTop: 20, display: 'flex', alignItems: 'center', gap: 12, color: colors.textTertiary, fontSize: '.85rem' }}>
               <div style={{ display: 'flex' }}>
                 {['Ava King', 'Maya Cruz', 'Zoe Bell', 'Tia Ford'].map((name, i) => (
                   <span key={name} style={{
-                    width: 32, height: 32, borderRadius: '50%', border: `2px solid ${INK}`, marginLeft: i ? -9 : 0,
+                    width: 32, height: 32, borderRadius: '50%', border: `2px solid ${colors.surface0}`, marginLeft: i ? -9 : 0,
                     backgroundImage: `url("${athleteAvatar(name)}")`,
                     backgroundSize: 'cover', backgroundPosition: 'center', display: 'inline-block', flexShrink: 0,
                   }} />
                 ))}
               </div>
-              <span>Join the girls already building their game on <b style={{ color: '#f4f4f2' }}>HERS365</b></span>
+              <span>Join the girls already building their game on <b style={{ color: colors.textPrimary }}>HERS365</b></span>
             </motion.div>
 
             <motion.div {...reveal} transition={{ ...reveal.transition, delay: 0.28 }} style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center', marginTop: 26 }}>
               <Link to="/auth?tab=signup" className="lp-btn lp-btn-primary">Claim Your Profile <ArrowRight size={15} /></Link>
-              <button type="button" className="lp-btn lp-btn-ghost" onClick={() => window.open(DEMO_VIDEO_URL, '_blank', 'noopener,noreferrer')}>
+              <Button variant="ghost" className="lp-btn lp-btn-ghost" onClick={() => window.open(DEMO_VIDEO_URL, '_blank', 'noopener,noreferrer')}>
                 <Play size={14} fill="currentColor" /> Watch Demo
-              </button>
+              </Button>
             </motion.div>
           </div>
 
@@ -353,7 +351,7 @@ export const LandingPage = () => {
       </header>
 
       {/* STAT BAND */}
-      <div style={{ borderTop: `1px solid ${LINE}`, borderBottom: `1px solid ${LINE}`, background: INK_2 }}>
+      <div style={{ borderTop: `1px solid ${LINE}`, borderBottom: `1px solid ${LINE}`, background: colors.surface1 }}>
         <div className="lp-band-grid" style={wrap}>
           {bandStats.map((s, i) => (
             <motion.div
@@ -364,9 +362,9 @@ export const LandingPage = () => {
               style={{ padding: '36px 24px', textAlign: 'center', borderRight: i < 3 ? `1px solid ${LINE}` : 'none' }}
             >
               <div className="tnum" style={{ ...disp, fontWeight: 900, fontSize: '3.2rem', lineHeight: 1 }}>
-                <span style={{ color: FLAME }}>{s.n}</span>
+                <span style={{ color: colors.accent }}>{s.n}</span>
               </div>
-              <div style={{ fontSize: '.77rem', letterSpacing: '.14em', textTransform: 'uppercase', color: MUTED, fontWeight: 600, marginTop: 8, fontFamily: DISP }}>{s.c}</div>
+              <div style={{ fontSize: '.77rem', letterSpacing: '.14em', textTransform: 'uppercase', color: colors.textSecondary, fontWeight: 600, marginTop: 8, fontFamily: DISP }}>{s.c}</div>
             </motion.div>
           ))}
         </div>
@@ -380,47 +378,53 @@ export const LandingPage = () => {
             <h2 style={{ ...disp, fontWeight: 900, fontSize: 'clamp(2.4rem,5vw,4rem)', margin: 0 }}>
               Your highlight reel<br />shouldn't sit in a folder.
             </h2>
-            <p style={{ color: MUTED, fontSize: '1.08rem', marginTop: 18 }}>HERS365 turns every rep into progress you can see, and every highlight into a moment worth sharing.</p>
+            <p style={{ color: colors.textSecondary, fontSize: '1.08rem', marginTop: 18 }}>HERS365 turns every rep into progress you can see, and every highlight into a moment worth sharing.</p>
           </motion.div>
           <div className="lp-triad">
             {triad.map((c, i) => (
-              <motion.div key={c.title} {...reveal} transition={{ ...reveal.transition, delay: i * 0.1 }} className="lp-card" style={{
-                position: 'relative', background: INK_2, border: `1px solid ${LINE}`, borderRadius: 20, padding: 30, overflow: 'hidden',
-              }}>
+              <MotionCard
+                key={c.title}
+                {...reveal}
+                transition={{ ...reveal.transition, delay: i * 0.1 }}
+                className="lp-card"
+                style={{
+                  position: 'relative', background: colors.surface1, border: `1px solid ${LINE}`, borderRadius: radii.xl, padding: 30, overflow: 'hidden',
+                }}
+              >
                 <div style={{
-                  width: 50, height: 50, borderRadius: 13, background: 'rgba(139,59,255,.1)', border: '1px solid rgba(139,59,255,.22)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20, color: FLAME,
+                  width: 50, height: 50, borderRadius: radii.md, background: 'rgba(139,59,255,.1)', border: '1px solid rgba(139,59,255,.22)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20, color: colors.accent,
                 }}><c.icon size={22} /></div>
                 <h3 style={{ ...disp, fontWeight: 800, fontSize: '1.55rem', letterSpacing: '.01em', marginBottom: 10 }}>
                   <ClipText>{c.title}</ClipText>
                 </h3>
-                <p style={{ color: MUTED, fontSize: '.98rem', margin: 0, lineHeight: 1.65 }}>{c.body}</p>
+                <p style={{ color: colors.textSecondary, fontSize: '.98rem', margin: 0, lineHeight: 1.65 }}>{c.body}</p>
                 <div className="tnum" style={{ position: 'absolute', bottom: 16, right: 22, ...disp, fontWeight: 900, fontSize: '3.6rem', color: 'rgba(255,255,255,.04)', lineHeight: 1, userSelect: 'none' }}>0{i + 1}</div>
-              </motion.div>
+              </MotionCard>
             ))}
           </div>
         </div>
       </section>
 
       {/* SPLIT FEATURE */}
-      <section id="features" style={{ padding: '100px 0', background: INK_2, borderTop: `1px solid ${LINE}`, borderBottom: `1px solid ${LINE}` }}>
+      <section id="features" style={{ padding: '100px 0', background: colors.surface1, borderTop: `1px solid ${LINE}`, borderBottom: `1px solid ${LINE}` }}>
         <div className="lp-split" style={wrap}>
           <motion.div {...reveal}>
             <div style={kicker}>The Grid</div>
             <h2 style={{ ...disp, fontWeight: 900, fontSize: 'clamp(2.4rem,5vw,4rem)', margin: 0 }}>Every athlete.<br />One leaderboard.</h2>
-            <p style={{ color: MUTED, fontSize: '1.08rem', marginTop: 18 }}>A living ranking of girls flag football talent — updated daily, visible to every coach, impossible to ignore.</p>
+            <p style={{ color: colors.textSecondary, fontSize: '1.08rem', marginTop: 18 }}>A living ranking of girls flag football talent — updated daily, visible to every coach, impossible to ignore.</p>
             <div style={{ marginTop: 30, display: 'flex', flexDirection: 'column', gap: 16 }}>
               {gridFeatures.map(f => (
                 <div key={f.h} style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
                   <div style={{
                     flexShrink: 0, width: 26, height: 26, borderRadius: '50%', background: 'rgba(139,59,255,.1)',
-                    border: '1px solid rgba(139,59,255,.28)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: FLAME, marginTop: 3,
+                    border: '1px solid rgba(139,59,255,.28)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: colors.accent, marginTop: 3,
                   }}><Check size={12} strokeWidth={3} /></div>
                   <div>
                     <h4 style={{ ...disp, fontWeight: 800, fontSize: '1.14rem', letterSpacing: '.02em', margin: 0 }}>
                       <ClipText>{f.h}</ClipText>
                     </h4>
-                    <p style={{ color: MUTED, fontSize: '.95rem', margin: 0, lineHeight: 1.6 }}>{f.p}</p>
+                    <p style={{ color: colors.textSecondary, fontSize: '.95rem', margin: 0, lineHeight: 1.6 }}>{f.p}</p>
                   </div>
                 </div>
               ))}
@@ -428,13 +432,13 @@ export const LandingPage = () => {
           </motion.div>
 
           <motion.div {...reveal} transition={{ ...reveal.transition, delay: 0.12 }} style={{
-            background: `linear-gradient(160deg,${INK_3},${INK})`, border: `1px solid ${LINE_2}`, borderRadius: 28,
+            background: `linear-gradient(160deg,${colors.surface2},${colors.surface0})`, border: `1px solid ${LINE_2}`, borderRadius: radii.xl,
             padding: 16, boxShadow: '0 40px 90px rgba(0,0,0,.6)',
           }}>
-            <div style={{ background: INK, borderRadius: 18, border: `1px solid ${LINE}`, overflow: 'hidden' }}>
+            <div style={{ background: colors.surface0, borderRadius: radii.lg, border: `1px solid ${LINE}`, overflow: 'hidden' }}>
               <div style={{ padding: '15px 18px 11px', borderBottom: `1px solid ${LINE}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ ...disp, fontWeight: 900, fontSize: '1.28rem', letterSpacing: '.04em' }}>THE <b style={{ color: FLAME }}>GRID</b> · TOP RATED</div>
-                <span className="lp-live"><span className="lp-live-dot" />Live</span>
+                <div style={{ ...disp, fontWeight: 900, fontSize: '1.28rem', letterSpacing: '.04em' }}>THE <b style={{ color: colors.accent }}>GRID</b> · TOP RATED</div>
+                <Badge tone="success" className="gap-[5px] rounded-full px-2.5 py-1 text-[0.67rem] font-bold uppercase tracking-[0.1em]" style={{ fontFamily: DISP }}><span className="lp-live-dot" />Live</Badge>
               </div>
               {leaderboard.map((r, i) => (
                 <button key={r.name} type="button" className="lb-row" onClick={() => navigate('/rankings')} aria-label={`View ${r.name} on the rankings`} style={{
@@ -444,18 +448,18 @@ export const LandingPage = () => {
                   borderBottom: i < leaderboard.length - 1 ? `1px solid ${LINE}` : 'none',
                   alignItems: 'center', cursor: 'pointer',
                 }}>
-                  <div className="tnum" style={{ width: 16, ...disp, fontWeight: 900, fontSize: '.8rem', color: MUTED_2, flexShrink: 0 }}>{i + 1}</div>
+                  <div className="tnum" style={{ width: 16, ...disp, fontWeight: 900, fontSize: '.8rem', color: colors.textTertiary, flexShrink: 0 }}>{i + 1}</div>
                   <div style={{
                     width: 38, height: 38, borderRadius: '50%', flexShrink: 0, background: r.av,
                     backgroundImage: `url("${athleteAvatar(r.name)}")`, backgroundSize: 'cover', backgroundPosition: 'center',
-                    border: i === 0 ? `2px solid ${FLAME}` : `2px solid ${LINE}`,
+                    border: i === 0 ? `2px solid ${colors.accent}` : `2px solid ${LINE}`,
                   }} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontWeight: 700, fontSize: '.88rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.name}</div>
-                    <div style={{ color: MUTED_2, fontSize: '.73rem' }}>{r.meta}</div>
+                    <div style={{ color: colors.textTertiary, fontSize: '.73rem' }}>{r.meta}</div>
                   </div>
-                  <div className="tnum" style={{ marginLeft: 'auto', ...disp, fontWeight: 900, fontSize: '1.28rem', color: i === 0 ? FLAME : '#f4f4f2', flexShrink: 0 }}>
-                    {r.up && <span style={{ fontSize: '.58rem', color: '#4ade80', marginRight: 2 }}>▲</span>}{r.rank}
+                  <div className="tnum" style={{ marginLeft: 'auto', ...disp, fontWeight: 900, fontSize: '1.28rem', color: i === 0 ? colors.accent : colors.textPrimary, flexShrink: 0 }}>
+                    {r.up && <span style={{ fontSize: '.58rem', color: colors.success, marginRight: 2 }}>▲</span>}{r.rank}
                   </div>
                 </button>
               ))}
@@ -468,8 +472,8 @@ export const LandingPage = () => {
       <section id="join" style={{ padding: '100px 0' }}>
         <div style={wrap}>
           <motion.div {...reveal} className="lp-cta-box" style={{
-            position: 'relative', borderRadius: 26, overflow: 'hidden',
-            background: 'linear-gradient(135deg,#1a0f0a,#0a0a0a)',
+            position: 'relative', borderRadius: radii.xl, overflow: 'hidden',
+            background: `linear-gradient(135deg,${colors.surface2},${colors.surface0})`,
             border: '1px solid rgba(139,59,255,.22)', padding: '76px 40px', textAlign: 'center',
           }}>
             <div style={{ position: 'absolute', width: 640, height: 640, borderRadius: '50%', filter: 'blur(96px)', opacity: 0.55, top: -260, right: '25%', background: 'radial-gradient(circle,rgba(139,59,255,.5),transparent 65%)', pointerEvents: 'none' }} />
@@ -478,14 +482,14 @@ export const LandingPage = () => {
               <ClipText>Your game is ready.</ClipText><br />
               <ClipText>Your team is waiting.</ClipText>
             </h2>
-            <p style={{ position: 'relative', color: MUTED, fontSize: '1.1rem', maxWidth: 500, margin: '18px auto 34px', lineHeight: 1.65 }}>
+            <p style={{ position: 'relative', color: colors.textSecondary, fontSize: '1.1rem', maxWidth: 500, margin: '18px auto 34px', lineHeight: 1.65 }}>
               Claim your profile, share your highlights, and grow with girls who love the game as much as you do. Free to start.
             </p>
             <div style={{ position: 'relative', display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-              <button className="lp-btn lp-btn-primary" onClick={() => navigate('/auth?tab=signup')}>Claim Your Profile <ArrowRight size={15} /></button>
-              <button className="lp-btn lp-btn-ghost" onClick={() => navigate('/coach/login')}>I'm A Coach</button>
+              <Button className="lp-btn lp-btn-primary" onClick={() => navigate('/auth?tab=signup')}>Claim Your Profile <ArrowRight size={15} /></Button>
+              <Button variant="ghost" className="lp-btn lp-btn-ghost" onClick={() => navigate('/coach/login')}>I'm A Coach</Button>
             </div>
-            <div style={{ position: 'relative', marginTop: 16, color: MUTED_2, fontSize: '.82rem' }}>No spam. No pressure. Just you and your game.</div>
+            <div style={{ position: 'relative', marginTop: 16, color: colors.textTertiary, fontSize: '.82rem' }}>No spam. No pressure. Just you and your game.</div>
           </motion.div>
         </div>
       </section>
@@ -494,14 +498,14 @@ export const LandingPage = () => {
       {/* FOOTER */}
       <footer style={{ borderTop: `1px solid ${LINE}`, padding: '44px 0 36px' }}>
         <div style={{ ...wrap, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 20 }}>
-          <div style={{ ...disp, fontWeight: 900, fontSize: '1.5rem', letterSpacing: '.04em' }}>HERS<b style={{ color: FLAME }}>365</b></div>
+          <div style={{ ...disp, fontWeight: 900, fontSize: '1.5rem', letterSpacing: '.04em' }}>HERS<b style={{ color: colors.accent }}>365</b></div>
           <div style={{ display: 'flex', gap: 26 }}>
             <a className="lp-nav-link" href="#how">The Grid</a>
             <a className="lp-nav-link" href="#features">Features</a>
             <Link className="lp-nav-link" to="/about">About</Link>
             <Link className="lp-nav-link" to="/privacy">Privacy</Link>
           </div>
-          <div style={{ color: MUTED_2, fontSize: '.8rem' }}>© 2026 HERS 365 · Girls Flag Football Community</div>
+          <div style={{ color: colors.textTertiary, fontSize: '.8rem' }}>© 2026 HERS 365 · Girls Flag Football Community</div>
         </div>
       </footer>
     </div>

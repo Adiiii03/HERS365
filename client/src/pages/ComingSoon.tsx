@@ -4,23 +4,29 @@ import { motion, useReducedMotion, MotionConfig } from 'framer-motion';
 import { ShieldCheck, Users, Mail, ArrowRight, Check } from 'lucide-react';
 import { apiFetch, errorMessage } from '../lib/api';
 import { useDemoLogin } from '../hooks/useDemoLogin';
-import { disp, kicker, reveal, DISP, LINE, MUTED } from '../lib/theme';
+import { reveal } from '../lib/theme';
+import { cn } from '../lib/cn';
+import { Button, Card, Input } from '../components/ui';
+import { colors, type as t, radii, spacing } from '../lib/tokens';
 
 const css = `
-  .cs-input{background:var(--surface-1);border:1px solid var(--border);border-radius:12px;
-    color:var(--text-primary);font-size:.95rem;padding:13px 16px;width:100%;outline:none;
-    transition:border-color .2s}
-  .cs-input:focus{border-color:var(--accent)}
-  .cs-input::placeholder{color:var(--text-secondary);opacity:.7}
-  .cs-btn{font-family:${DISP};font-weight:800;text-transform:uppercase;letter-spacing:.06em;
-    font-size:.92rem;padding:13px 26px;border-radius:9999px;cursor:pointer;border:none;
-    display:inline-flex;align-items:center;justify-content:center;gap:9px;white-space:nowrap;
-    transition:transform .18s cubic-bezier(.25,1,.5,1),box-shadow .22s;text-decoration:none}
-  .cs-btn-primary{background:var(--accent);color:var(--accent-on)}
-  .cs-btn-primary:hover{transform:translateY(-2px);box-shadow:var(--accent-glow)}
-  .cs-btn-primary:disabled{opacity:.6;cursor:default;transform:none;box-shadow:none}
-  .cs-btn-ghost{background:transparent;color:var(--text-primary);border:1px solid var(--border-strong)}
-  .cs-btn-ghost:hover{border-color:var(--accent);color:var(--accent-text)}
+  .cs-mesh{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+  .cs-mesh span{position:absolute;border-radius:50%;filter:blur(120px);opacity:.16;will-change:transform}
+  .cs-mesh .m1{width:560px;height:560px;top:-18%;right:-12%;
+    background:radial-gradient(circle,var(--accent),transparent 62%);
+    animation:cs-drift-a 22s ease-in-out infinite}
+  .cs-mesh .m2{width:520px;height:520px;bottom:-22%;left:-14%;
+    background:radial-gradient(circle,var(--pink),transparent 62%);
+    animation:cs-drift-b 26s ease-in-out infinite}
+  .cs-mesh .m3{width:420px;height:420px;top:34%;left:38%;opacity:.1;
+    background:radial-gradient(circle,var(--accent),transparent 60%);
+    animation:cs-drift-c 30s ease-in-out infinite}
+  @keyframes cs-drift-a{0%,100%{transform:translate3d(0,0,0)}50%{transform:translate3d(-6%,7%,0) scale(1.08)}}
+  @keyframes cs-drift-b{0%,100%{transform:translate3d(0,0,0)}50%{transform:translate3d(8%,-6%,0) scale(1.06)}}
+  @keyframes cs-drift-c{0%,100%{transform:translate3d(0,0,0)}50%{transform:translate3d(5%,-5%,0) scale(1.1)}}
+  @media (prefers-reduced-motion: reduce){
+    .cs-mesh .m1,.cs-mesh .m2,.cs-mesh .m3{animation:none}
+  }
 `;
 
 const PROMISES = [
@@ -42,6 +48,15 @@ const PROMISES = [
 ];
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const kicker = {
+  fontFamily: t.font.display,
+  fontSize: t.size.xs,
+  fontWeight: t.weight.bold,
+  letterSpacing: '0.12em',
+  textTransform: 'uppercase' as const,
+  color: colors.textTertiary,
+};
 
 export const ComingSoon = () => {
   const [email, setEmail] = useState('');
@@ -76,20 +91,28 @@ export const ComingSoon = () => {
   return (
     <MotionConfig reducedMotion={reduced ? 'always' : 'never'}>
       <style>{css}</style>
-      <div style={{ minHeight: '100vh', background: 'var(--surface-0)', color: 'var(--text-primary)', position: 'relative', overflow: 'hidden' }}>
-        <div aria-hidden style={{
-          position: 'absolute', width: 620, height: 620, borderRadius: '50%', top: '-22%', right: '-14%',
-          filter: 'blur(130px)', opacity: 0.14, pointerEvents: 'none',
-          background: 'radial-gradient(circle, var(--accent), transparent 62%)',
-        }} />
+      <div style={{ minHeight: '100vh', background: colors.surface0, color: colors.textPrimary, position: 'relative', overflow: 'hidden' }}>
+        <div aria-hidden className="cs-mesh">
+          <span className="m1" />
+          <span className="m2" />
+          <span className="m3" />
+        </div>
 
-        <main style={{ maxWidth: 880, margin: '0 auto', padding: '0 24px 96px', position: 'relative', zIndex: 1 }}>
+        <main style={{ maxWidth: 880, margin: '0 auto', padding: `0 ${spacing.space5} ${spacing.space9}`, position: 'relative', zIndex: 1 }}>
           <motion.section {...reveal} style={{ paddingTop: 'clamp(72px, 14vh, 140px)', textAlign: 'center' }}>
-            <span style={{ ...kicker, color: 'var(--accent-text)' }}>HERS365 · Launching soon</span>
-            <h1 style={{ ...disp, fontWeight: 900, fontSize: 'clamp(2.6rem, 6.5vw, 4.6rem)', lineHeight: 1.02, margin: '18px 0 20px' }}>
+            <span style={{ ...kicker, color: colors.accentText }}>HERS365 · Launching soon</span>
+            <h1 style={{
+              fontFamily: t.font.display,
+              fontWeight: t.weight.bold,
+              fontSize: 'clamp(2.8rem, 7vw, 5rem)',
+              letterSpacing: t.tracking.display,
+              lineHeight: 0.98,
+              textTransform: 'uppercase',
+              margin: '18px 0 20px',
+            }}>
               A safe community for girls who play flag football.
             </h1>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '1.08rem', lineHeight: 1.65, maxWidth: 620, margin: '0 auto' }}>
+            <p style={{ color: colors.textSecondary, fontSize: t.size.lg, lineHeight: 1.65, maxWidth: 620, margin: '0 auto' }}>
               HERS365 is where your daughter builds her profile, connects with teammates,
               and grows in the game — with you in the loop the whole way. All coach contact
               is gated through parents. No exceptions.
@@ -98,99 +121,98 @@ export const ComingSoon = () => {
 
           <motion.section {...reveal} style={{ marginTop: 64, display: 'grid', gap: 16, gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
             {PROMISES.map(({ icon: Icon, title, body }) => (
-              <div key={title} style={{
-                background: 'var(--surface-1)', border: `1px solid ${LINE}`, borderRadius: 16,
-                padding: '24px 22px', textAlign: 'left',
-              }}>
-                <Icon size={22} style={{ color: 'var(--accent-text)' }} aria-hidden />
-                <h2 style={{ ...disp, fontWeight: 800, fontSize: '1.05rem', margin: '14px 0 8px' }}>{title}</h2>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '.9rem', lineHeight: 1.6, margin: 0 }}>{body}</p>
-              </div>
+              <Card key={title} style={{ padding: '24px 22px', textAlign: 'left' }}>
+                <Icon size={22} style={{ color: colors.accentText }} aria-hidden />
+                <h2 style={{ fontFamily: t.font.display, fontWeight: t.weight.semibold, fontSize: t.size.lg, letterSpacing: t.tracking.h2, margin: '14px 0 8px' }}>{title}</h2>
+                <p style={{ color: colors.textSecondary, fontSize: t.size.md, lineHeight: 1.6, margin: 0 }}>{body}</p>
+              </Card>
             ))}
           </motion.section>
 
-          <motion.section {...reveal} style={{
-            marginTop: 64, background: 'var(--surface-1)', border: `1px solid ${LINE}`,
-            borderRadius: 20, padding: 'clamp(28px, 5vw, 44px)', textAlign: 'center',
-          }}>
-            <span style={kicker}>Be first to know</span>
-            <h2 style={{ ...disp, fontWeight: 900, fontSize: 'clamp(1.5rem, 3.4vw, 2.1rem)', margin: '12px 0 10px' }}>
-              Get the launch email
-            </h2>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '.95rem', lineHeight: 1.6, maxWidth: 460, margin: '0 auto 24px' }}>
-              We will send one email when HERS365 opens, plus the occasional update for
-              parents. No spam, and you can unsubscribe any time.
-            </p>
-            {done ? (
-              <p role="status" style={{
-                display: 'inline-flex', alignItems: 'center', gap: 8, margin: 0,
-                color: 'var(--accent-text)', fontWeight: 700, fontSize: '.95rem',
-              }}>
-                <Check size={18} aria-hidden /> You are on the list — check your inbox to confirm.
+          <motion.section {...reveal} style={{ marginTop: 64 }}>
+            <Card style={{ borderRadius: radii.lg, padding: 'clamp(28px, 5vw, 44px)', textAlign: 'center' }}>
+              <span style={kicker}>Be first to know</span>
+              <h2 style={{ fontFamily: t.font.display, fontWeight: t.weight.bold, fontSize: t.size['2xl'], letterSpacing: t.tracking.h1, textTransform: 'uppercase', margin: '12px 0 10px' }}>
+                Get the launch email
+              </h2>
+              <p style={{ color: colors.textSecondary, fontSize: t.size.md, lineHeight: 1.6, maxWidth: 460, margin: '0 auto 24px' }}>
+                We will send one email when HERS365 opens, plus the occasional update for
+                parents. No spam, and you can unsubscribe any time.
               </p>
-            ) : (
-              <form onSubmit={handleSubmit} noValidate style={{
-                display: 'flex', gap: 10, maxWidth: 460, margin: '0 auto', flexWrap: 'wrap', justifyContent: 'center',
-              }}>
-                <label htmlFor="cs-email" style={{
-                  position: 'absolute', width: 1, height: 1, padding: 0, margin: -1,
-                  overflow: 'hidden', clip: 'rect(0,0,0,0)', whiteSpace: 'nowrap', border: 0,
+              {done ? (
+                <p role="status" style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 8, margin: 0,
+                  color: colors.accentText, fontWeight: t.weight.bold, fontSize: t.size.md,
                 }}>
-                  Email address
-                </label>
-                <input
-                  id="cs-email"
-                  className="cs-input"
-                  type="email"
-                  autoComplete="email"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  style={{ flex: '1 1 240px' }}
-                />
-                <button type="submit" className="cs-btn cs-btn-primary" disabled={submitting}>
-                  {submitting ? 'Sending…' : 'Notify me'} <ArrowRight size={16} aria-hidden />
-                </button>
-                {error && (
-                  <p role="alert" style={{ width: '100%', margin: '4px 0 0', color: 'var(--accent-text)', fontSize: '.85rem' }}>
-                    {error}
-                  </p>
-                )}
-              </form>
-            )}
+                  <Check size={18} aria-hidden /> You are on the list — check your inbox to confirm.
+                </p>
+              ) : (
+                <form onSubmit={handleSubmit} noValidate style={{
+                  display: 'flex', gap: 10, maxWidth: 460, margin: '0 auto', flexWrap: 'wrap', justifyContent: 'center',
+                }}>
+                  <label htmlFor="cs-email" style={{
+                    position: 'absolute', width: 1, height: 1, padding: 0, margin: -1,
+                    overflow: 'hidden', clip: 'rect(0,0,0,0)', whiteSpace: 'nowrap', border: 0,
+                  }}>
+                    Email address
+                  </label>
+                  <Input
+                    id="cs-email"
+                    type="email"
+                    autoComplete="email"
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="flex-[1_1_240px]"
+                  />
+                  <Button type="submit" size="lg" loading={submitting}>
+                    {submitting ? 'Sending…' : 'Notify me'} {!submitting && <ArrowRight size={16} aria-hidden />}
+                  </Button>
+                  {error && (
+                    <p role="alert" style={{ width: '100%', margin: '4px 0 0', color: colors.accentText, fontSize: t.size.sm }}>
+                      {error}
+                    </p>
+                  )}
+                </form>
+              )}
+            </Card>
           </motion.section>
 
           <motion.section {...reveal} style={{ marginTop: 56, textAlign: 'center' }}>
-            <h2 style={{ ...disp, fontWeight: 800, fontSize: '1.15rem', margin: '0 0 10px' }}>What is coming</h2>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '.92rem', lineHeight: 1.65, maxWidth: 560, margin: '0 auto 28px' }}>
+            <h2 style={{ fontFamily: t.font.display, fontWeight: t.weight.semibold, fontSize: t.size.xl, letterSpacing: t.tracking.h2, textTransform: 'uppercase', margin: '0 0 10px' }}>What is coming</h2>
+            <p style={{ color: colors.textSecondary, fontSize: t.size.md, lineHeight: 1.65, maxWidth: 560, margin: '0 auto 28px' }}>
               At launch: athlete profiles your daughter is proud of, highlight reels, team and
               league discovery, and a parent dashboard where you approve every connection.
               We are starting in California and growing from there.
             </p>
-            <p style={{ color: MUTED, fontSize: '.85rem', margin: '0 0 14px' }}>
+            <p style={{ color: colors.textTertiary, fontSize: t.size.sm, margin: '0 0 14px' }}>
               Questions about safety, teams, or partnering with us?
             </p>
-            <Link to="/contact" className="cs-btn cs-btn-ghost">
+            <Link
+              to="/contact"
+              className={cn(
+                'k-btn k-btn-ghost inline-flex items-center gap-[7px] min-h-[44px] px-[18px]',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface-0)] no-underline',
+              )}
+            >
               Contact Jonte <ArrowRight size={16} aria-hidden />
             </Link>
           </motion.section>
 
           {dev.enabled && (
             <div style={{ marginTop: 48, textAlign: 'center' }}>
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="sm"
                 onClick={dev.submit}
-                disabled={dev.loading}
-                style={{
-                  background: 'none', border: 'none', cursor: dev.loading ? 'default' : 'pointer',
-                  color: MUTED, fontSize: '.78rem', letterSpacing: '.04em',
-                  textDecoration: 'underline', textUnderlineOffset: 3, padding: 6,
-                }}
+                loading={dev.loading}
+                className="!bg-transparent !border-0 !text-[var(--text-tertiary)] hover:!text-[var(--text-secondary)] underline underline-offset-[3px] tracking-[0.04em]"
               >
                 {dev.loading ? 'Opening…' : '(for developers) — skip the gate and open the app'}
-              </button>
+              </Button>
               {dev.error && (
-                <p role="alert" style={{ margin: '6px 0 0', color: 'var(--accent-text)', fontSize: '.78rem' }}>
+                <p role="alert" style={{ margin: '6px 0 0', color: colors.accentText, fontSize: t.size.sm }}>
                   {dev.error}
                 </p>
               )}
