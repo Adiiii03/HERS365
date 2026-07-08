@@ -169,6 +169,17 @@ async function findUserById(userId: number, role: auth.UserRole): Promise<FoundU
   return row ? { id: row.id, email: row.email, passwordHash: row.passwordHash, name: row.name, role: 'athlete', status: row.status } : null;
 }
 
+// Runs BEFORE registerLimiter so a closed registration kill-switch always
+// returns a deterministic 403, rather than a 429 once the rate limit has
+// already been tripped by prior attempts.
+function requireRegistrationEnabled(req: any, res: any, next: any): void {
+  if (!isRegistrationEnabled()) {
+    res.status(403).json({ error: 'Registration is currently closed.' });
+    return;
+  }
+  next();
+}
+
 function athleteStatusRefusal(user: FoundUser, res: any): boolean {
   if (user.role !== 'athlete' || user.status === 'active' || user.status == null) return false;
   res.status(403).json({ code: user.status === 'deactivated' ? 'ACCOUNT_DEACTIVATED' : 'GUARDIAN_PENDING' });
@@ -177,10 +188,7 @@ function athleteStatusRefusal(user: FoundUser, res: any): boolean {
 
 // ─── POST /api/auth/register ──────────────────────────────────────────────────
 
-router.post('/register', registerLimiter, async (req, res) => {
-  if (!isRegistrationEnabled()) {
-    return res.status(403).json({ error: 'Registration is currently closed.' });
-  }
+router.post('/register', requireRegistrationEnabled, registerLimiter, async (req, res) => {
   const { email, password, name, role = 'athlete', school, division, dob, parentEmail, guardianEmail, guardianPhone, relationship } = req.body ?? {};
 
   if (!email || !password || !name) {
@@ -312,10 +320,7 @@ router.post('/coach/login', loginLimiter, async (req, res) => {
 });
 
 // ─── POST /api/auth/(secure/)coach/register ───────────────────────────────────
-router.post('/coach/register', registerLimiter, async (req, res) => {
-  if (!isRegistrationEnabled()) {
-    return res.status(403).json({ error: 'Registration is currently closed.' });
-  }
+router.post('/coach/register', requireRegistrationEnabled, registerLimiter, async (req, res) => {
   const { email, password, name, school, university, division } = req.body ?? {};
   if (!email || !password || !name) {
     return res.status(400).json({ error: 'email, password, and name are required' });
