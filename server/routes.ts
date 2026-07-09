@@ -146,6 +146,61 @@ router.get('/profile/stats', requireAuth, async (req: Request, res: Response, ne
   }
 });
 
+//Parent Stat Submissions
+router.post('/parent/stats/submit', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const parentId = authUser(req)!.userId;
+
+    const {
+      playerId,
+      season,
+      school,
+      passingYards,
+      touchdowns,
+      flagPulls,
+      interceptions,
+      fortyDash,
+      shuttle,
+      vertical,
+      broadJump,
+      threeCone,
+      maxPrepsUrl
+    } = req.body;
+
+    if (!playerId) {
+      return res.status(400).json({
+        error: 'playerId is required'
+      });
+    }
+
+    const submission = await db
+      .insert(schema.parentStatSubmissions)
+      .values({
+        parentId,
+        playerId,
+        season,
+        school,
+        passingYards,
+        touchdowns,
+        flagPulls,
+        interceptions,
+        fortyDash,
+        shuttle,
+        vertical,
+        broadJump,
+        threeCone,
+        maxPrepsUrl,
+        verificationStatus: 'pending'
+      })
+      .returning();
+
+    res.json(submission[0]);
+
+  } catch (err: any) {
+    next(err);
+  }
+});
+
 // PLAYERS & TEAMS
 router.get('/players', optionalAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
