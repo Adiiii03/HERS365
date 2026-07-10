@@ -1,17 +1,6 @@
-// Email service for password resets, notifications, etc.
-// Uses Resend (resend.com) - free tier available
-
-class MockResend {
-  emails = {
-    send: async (data: any) => {
-      console.warn(`[email] DEV MODE — email to ${data.to} (${data.subject}) was not sent. Set RESEND_API_KEY for real delivery.`);
-      return { id: `mock_${Date.now()}` };
-    }
-  };
-  constructor(_apiKey: string) {}
-}
-
-const resend = new MockResend(process.env.RESEND_API_KEY || '');
+// Email service for password resets, guardian consent, and notifications.
+// Production sends through Resend's REST API. Dev/test without RESEND_API_KEY
+// use a local mock so offline tests stay fast.
 
 interface EmailOptions {
   to: string;
@@ -20,10 +9,42 @@ interface EmailOptions {
   from?: string;
 }
 
+function explicitNonProd(): boolean {
+  const env = process.env.APP_ENV ?? process.env.NODE_ENV;
+  return env === 'development' || env === 'test';
+}
+
+async function sendViaResend(data: Required<EmailOptions>) {
+  const response = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(`Resend send failed (${response.status}): ${JSON.stringify(body)}`);
+  }
+  return body;
+}
+
 export async function sendEmail({ to, subject, html, from }: EmailOptions) {
+  const sender = from || process.env.EMAIL_FROM || 'HERS365 <noreply@hers365.com>';
+
   try {
-    const result = await resend.emails.send({
-      from: from || 'noreply@hers365.com',
+    if (!process.env.RESEND_API_KEY) {
+      if (!explicitNonProd()) {
+        throw new Error('RESEND_API_KEY is required for email delivery outside development/test');
+      }
+      console.warn(`[email] DEV MODE — email to ${to} (${subject}) was not sent. Set RESEND_API_KEY for real delivery.`);
+      return { success: true, data: { id: `mock_${Date.now()}` } };
+    }
+
+    const result = await sendViaResend({
+      from: sender,
       to,
       subject,
       html,

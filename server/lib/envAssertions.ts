@@ -21,6 +21,17 @@ export function assertProductionEnv(env: NodeJS.ProcessEnv): void {
   if (!env.REDIS_URL) {
     problems.push('REDIS_URL must be set (shared rate-limit store + token revocation)');
   }
+  if (!env.RESEND_API_KEY) {
+    problems.push('RESEND_API_KEY must be set (guardian consent, verification, and password reset emails)');
+  }
+  if (!env.FRONTEND_URL) {
+    problems.push('FRONTEND_URL must be set so emailed links point at the production app');
+  } else if (/localhost|127\.0\.0\.1/i.test(env.FRONTEND_URL)) {
+    problems.push(`FRONTEND_URL must not be a localhost value (got "${env.FRONTEND_URL}")`);
+  }
+  if (!env.ANTHROPIC_API_KEY) {
+    problems.push('ANTHROPIC_API_KEY must be set (coach-athlete message moderation fails closed without it)');
+  }
   if (!env.CODE_PEPPER || env.CODE_PEPPER.length < 32) {
     problems.push(`CODE_PEPPER must be set and at least 32 characters (got ${env.CODE_PEPPER ? `${env.CODE_PEPPER.length} chars` : 'unset'})`);
   }
