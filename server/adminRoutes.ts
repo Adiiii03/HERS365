@@ -921,7 +921,51 @@ router.delete('/scholarships/:id', requireAdmin, async (req: Request, res: Respo
     const id = parseIdParam(req.params.id);
     if (id === null) return res.status(400).json({ success: false, error: 'Invalid id' });
     await db.delete(schema.scholarships).where(eq(schema.scholarships.id, id));
-    res.json({ success: true });
+    res.json({ success: true, message: 'Scholarship deleted' });
+  } catch (err) { next(err); }
+});
+
+// ----------------------
+// PARENT STAT SUBMISSION REVIEW
+// ----------------------
+
+// GET /admin/parent-stat-submissions — list submissions with optional status filter
+router.get('/parent-stat-submissions', requireAdmin, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { status } = req.query;
+    const baseQuery = db.select().from(schema.parentStatSubmissions).orderBy(desc(schema.parentStatSubmissions.createdAt));
+    const rows = status
+      ? await baseQuery.where(eq(schema.parentStatSubmissions.verificationStatus, status as string))
+      : await baseQuery;
+    res.json({ success: true, data: rows });
+  } catch (err) { next(err); }
+});
+
+// PATCH /admin/parent-stat-submissions/:id — approve or reject with admin notes
+router.patch('/parent-stat-submissions/:id', requireAdmin, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const id = parseIdParam(req.params.id);
+    if (id === null) return res.status(400).json({ success: false, error: 'Invalid id' });
+
+    const { status, adminNotes } = req.body;
+    const valid = ['pending', 'approved', 'rejected'];
+    if (!valid.includes(status)) return res.status(400).json({ success: false, error: 'status must be one of: pending, approved, rejected' });
+
+    const adminId = (req as any).user?.userId ?? (req as any).user?.id;
+
+    const updated = await db.update(schema.parentStatSubmissions)
+      .set({
+        verificationStatus: status as string,
+        adminNotes: adminNotes ?? null,
+        reviewedBy: adminId,
+        reviewedAt: new Date(),
+      })
+      .where(eq(schema.parentStatSubmissions.id, id))
+      .returning();
+
+    if (!updated[0]) return res.status(404).json({ success: false, error: 'Submission not found' });
+
+    res.json({ success: true, data: updated[0] });
   } catch (err) { next(err); }
 });
 

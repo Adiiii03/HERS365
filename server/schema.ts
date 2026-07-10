@@ -275,6 +275,41 @@ export const parentChildRelations = pgTable('parent_child_relations', {
   createdAt: timestamp('created_at').default(sql`now()`),
 });
 
+// Parent-submitted athlete stats pending admin verification against MaxPreps.
+// Rows start as pending and only become verified after admin approval.
+export const parentStatSubmissions = pgTable('parent_stat_submissions', {
+  id: serial('id').primaryKey(),
+  parentId: integer('parent_id').references(() => parents.id).notNull(),
+  playerId: integer('player_id').references(() => players.id).notNull(),
+  verificationStatus: text('verification_status').notNull().default('pending'), // pending | approved | rejected
+  season: text('season'),
+  school: text('school'),
+  email: text('email'),
+  name: text('name'),
+  dob: timestamp('dob'),
+  gradYear: integer('grad_year'),
+  position: text('position'),
+  state: text('state'),
+  division: text('division'),
+  maxPrepsUrl: text('max_preps_url'),
+  fortyYardDash: text('forty_yard_dash'),
+  verticalJump: text('vertical_jump'),
+  shuttle5105: text('shuttle_5105'),
+  broadJump: text('broad_jump'),
+  flagPulls: integer('flag_pulls'),
+  touchdownsPassing: integer('touchdowns_passing'),
+  touchdownsRushing: integer('touchdowns_rushing'),
+  touchdownsReceiving: integer('touchdowns_receiving'),
+  interceptions: integer('interceptions'),
+  sacks: doublePrecision('sacks'),
+  passingYards: integer('passing_yards'),
+  hersRating: doublePrecision('hers_rating'),
+  adminNotes: text('admin_notes'),
+  reviewedAt: timestamp('reviewed_at'),
+  reviewedBy: integer('reviewed_by').references(() => adminUsers.id),
+  createdAt: timestamp('created_at').default(sql`now()`),
+});
+
 // Real backing for ConsentRecord. Rows are never deleted; revocation is an
 // UPDATE to revoked_at (enforced by a DB trigger).
 export const guardianConsents = pgTable('guardian_consents', {

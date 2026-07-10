@@ -319,53 +319,132 @@ router.put('/settings', validateBody(parentSettingsBody), async (req, res) => {
   }
 });
 
-// POST /api/parent/invite-athlete — parent sends an invite to an athlete email.
-// Idempotent: if the athlete already exists, creates a pending relation. If not,
-// stores the pending email on a placeholder row to be claimed at signup.
-router.post('/invite-athlete', validateBody(parentInviteBody), async (req, res) => {
-  try {
-    const parentId = requireParent(req, res);
-    if (parentId == null) return;
-    const { email, relationship } = req.body ?? {};
-    if (!email || typeof email !== 'string') {
-      return res.status(400).json({ success: false, error: 'email is required' });
+  // POST /api/parent/invite-athlete — parent sends an invite to an athlete email.
+  // Idempotent: if the athlete already exists, creates a pending relation. If not,
+  // stores the pending email on a placeholder row to be claimed at signup.
+  router.post('/invite-athlete', validateBody(parentInviteBody), async (req, res) => {
+    try {
+      const parentId = requireParent(req, res);
+      if (parentId == null) return;
+      const { email, relationship } = req.body ?? {};
+      if (!email || typeof email !== 'string') {
+        return res.status(400).json({ success: false, error: 'email is required' });
+      }
+      const normalEmail = email.toLowerCase().trim();
+      const [athlete] = await db
+        .select({ id: schema.players.id })
+        .from(schema.players)
+        .where(eq(schema.players.email, normalEmail))
+        .limit(1);
+      if (!athlete) {
+        // No athlete yet — record the parent's email under the athlete email so
+        // a future signup can claim the link. We store it on a side table by
+        // reusing the relations table with a synthetic pending row.
+        return res.json({
+          success: true,
+          data: { status: 'queued', message: 'Invite queued. The athlete will be linked when they sign up.' },
+        });
+      }
+      // Skip if already linked.
+      const existing = await db
+        .select({ id: schema.parentChildRelations.id })
+        .from(schema.parentChildRelations)
+        .where(and(
+          eq(schema.parentChildRelations.parentId, parentId),
+          eq(schema.parentChildRelations.playerId, athlete.id),
+        ))
+        .limit(1);
+      if (existing.length === 0) {
+        await db.insert(schema.parentChildRelations).values({
+          parentId,
+          playerId: athlete.id,
+          relationship: (relationship as string | undefined) ?? 'pending',
+        });
+      }
+      res.json({ success: true, data: { status: 'linked' } });
+    } catch (err) {
+      console.error('[parent/invite-athlete]', err);
+      res.status(500).json({ success: false, error: 'Failed to send invite' });
     }
-    const normalEmail = email.toLowerCase().trim();
-    const [athlete] = await db
-      .select({ id: schema.players.id })
-      .from(schema.players)
-      .where(eq(schema.players.email, normalEmail))
-      .limit(1);
-    if (!athlete) {
-      // No athlete yet — record the parent's email under the athlete email so
-      // a future signup can claim the link. We store it on a side table by
-      // reusing the relations table with a synthetic pending row.
-      return res.json({
-        success: true,
-        data: { status: 'queued', message: 'Invite queued. The athlete will be linked when they sign up.' },
-      });
-    }
-    // Skip if already linked.
-    const existing = await db
-      .select({ id: schema.parentChildRelations.id })
-      .from(schema.parentChildRelations)
-      .where(and(
-        eq(schema.parentChildRelations.parentId, parentId),
-        eq(schema.parentChildRelations.playerId, athlete.id),
-      ))
-      .limit(1);
-    if (existing.length === 0) {
-      await db.insert(schema.parentChildRelations).values({
+  });
+
+  // POST /api/parent/stats/submit — submit athlete stats for admin verification.
+  // The parent must be linked to the athlete via parentChildRelations.
+  router.post('/stats/submit', async (req, res) => {
+    try {
+      const parentId = requireParent(req, res);
+      if (parentId == null) return;
+
+      const body = req.body ?? {};
+      const {
+        playerId,
+        season,
+        school,
+        email,
+        name,
+        dob,
+        gradYear,
+        position,
+        state,
+        division,
+        maxPrepsUrl,
+        fortyYardDash,
+        verticalJump,
+        shuttle5105,
+        broadJump,
+        flagPulls,
+        touchdownsPassing,
+        touchdownsRushing,
+        touchdownsReceiving,
+        interceptions,
+        sacks,
+        passingYards,
+        hersRating,
+      } = body;
+
+      if (!playerId) {
+        return res.status(400).json({ success: false, error: 'playerId is required' });
+      }
+
+      const childIds = await getChildIds(parentId);
+      const targetId = Number(playerId);
+      if (!childIds.includes(targetId)) {
+        return res.status(403).json({ success: false, error: 'Not your child' });
+      }
+
+      const submission = await db.insert(schema.parentStatSubmissions).values({
         parentId,
-        playerId: athlete.id,
-        relationship: (relationship as string | undefined) ?? 'pending',
-      });
+        playerId: targetId,
+        verificationStatus: 'pending' as const,
+        season,
+        school,
+        email,
+        name,
+        dob: dob ? new Date(dob) : undefined,
+        gradYear: gradYear ? Number(gradYear) : undefined,
+        position,
+        state,
+        division,
+        maxPrepsUrl,
+        fortyYardDash,
+        verticalJump,
+        shuttle5105,
+        broadJump,
+        flagPulls: flagPulls ? Number(flagPulls) : undefined,
+        touchdownsPassing: touchdownsPassing ? Number(touchdownsPassing) : undefined,
+        touchdownsRushing: touchdownsRushing ? Number(touchdownsRushing) : undefined,
+        touchdownsReceiving: touchdownsReceiving ? Number(touchdownsReceiving) : undefined,
+        interceptions: interceptions ? Number(interceptions) : undefined,
+        sacks: sacks !== undefined && sacks !== null && String(sacks) !== '' ? Number(sacks) : undefined,
+        passingYards: passingYards ? Number(passingYards) : undefined,
+        hersRating: hersRating !== undefined && hersRating !== null && String(hersRating) !== '' ? Number(hersRating) : undefined,
+      }).returning();
+
+      res.json({ success: true, data: submission[0] });
+    } catch (err) {
+      console.error('[parent/stats/submit]', err);
+      res.status(500).json({ success: false, error: 'Failed to submit stats' });
     }
-    res.json({ success: true, data: { status: 'linked' } });
-  } catch (err) {
-    console.error('[parent/invite-athlete]', err);
-    res.status(500).json({ success: false, error: 'Failed to send invite' });
-  }
-});
+  });
 
 export { router as parentRouter };
