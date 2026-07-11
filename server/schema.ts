@@ -350,6 +350,23 @@ export const guardianVerificationCodes = pgTable('guardian_verification_codes', 
   createdAt: timestamp('created_at').default(sql`now()`),
 });
 
+// Tracks the state of a single passwordless login attempt. The girl enters her
+// email, a one-time code is issued to her guardian (via issueCode, purpose
+// 'login_approval')
+export const loginRequests = pgTable('login_requests', {
+  id: serial('id').primaryKey(),
+  playerId: integer('player_id').references(() => players.id).notNull(),
+  parentId: integer('parent_id').references(() => parents.id),
+  relationId: integer('relation_id').references(() => parentChildRelations.id),
+  verificationCodeId: integer('verification_code_id').references(() => guardianVerificationCodes.id),
+  status: text('status').notNull().default('pending'), // pending | approved | denied | expired
+  ipAddress: text('ip_address'),
+  userAgent: text('user_agent'),
+  requestedAt: timestamp('requested_at').notNull().default(sql`now()`),
+  approvedAt: timestamp('approved_at'),
+  expiresAt: timestamp('expires_at').notNull(),
+});
+
 // Append only, tamper evident (row_hash chains over prev_hash). Never UPDATE or
 // DELETE — enforced by DB trigger + REVOKE in migration 0009.
 export const consentAuditLog = pgTable('consent_audit_log', {
