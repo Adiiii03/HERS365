@@ -21,8 +21,8 @@ export function assertProductionEnv(env: NodeJS.ProcessEnv): void {
   if (!env.REDIS_URL) {
     problems.push('REDIS_URL must be set (shared rate-limit store + token revocation)');
   }
-  if (!env.RESEND_API_KEY) {
-    problems.push('RESEND_API_KEY must be set (guardian consent, verification, and password reset emails)');
+  if (env.REGISTRATION_ENABLED === 'true' && !env.RESEND_API_KEY) {
+    problems.push('RESEND_API_KEY must be set when REGISTRATION_ENABLED=true (guardian consent, verification, and password reset emails)');
   }
   if (!env.FRONTEND_URL) {
     problems.push('FRONTEND_URL must be set so emailed links point at the production app');

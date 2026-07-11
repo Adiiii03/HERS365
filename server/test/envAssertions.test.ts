@@ -61,9 +61,14 @@ describe('assertProductionEnv', () => {
       .toThrow(/REDIS_URL must be set/);
   });
 
-  it('rejects missing email and moderation infrastructure', () => {
-    expect(() => assertProductionEnv({ ...GOOD_PROD, RESEND_API_KEY: undefined }))
-      .toThrow(/RESEND_API_KEY must be set/);
+  it('allows closed-mode production without Resend but rejects opening registration without it', () => {
+    expect(() => assertProductionEnv({ ...GOOD_PROD, RESEND_API_KEY: undefined, REGISTRATION_ENABLED: 'false' }))
+      .not.toThrow();
+    expect(() => assertProductionEnv({ ...GOOD_PROD, RESEND_API_KEY: undefined, REGISTRATION_ENABLED: 'true' }))
+      .toThrow(/RESEND_API_KEY must be set when REGISTRATION_ENABLED=true/);
+  });
+
+  it('rejects missing moderation infrastructure', () => {
     expect(() => assertProductionEnv({ ...GOOD_PROD, ANTHROPIC_API_KEY: undefined }))
       .toThrow(/ANTHROPIC_API_KEY must be set/);
   });
@@ -100,7 +105,7 @@ describe('assertProductionEnv', () => {
   it('collects ALL problems into a single message', () => {
     let message = '';
     try {
-      assertProductionEnv({ NODE_ENV: 'production', SMS_ENABLED: 'true' });
+      assertProductionEnv({ NODE_ENV: 'production', SMS_ENABLED: 'true', REGISTRATION_ENABLED: 'true' });
     } catch (err) {
       message = (err as Error).message;
     }
