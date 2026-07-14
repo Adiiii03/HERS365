@@ -146,60 +146,91 @@ router.get('/profile/stats', requireAuth, async (req: Request, res: Response, ne
   }
 });
 
-//Parent Stat Submissions
-router.post('/parent/stats/submit', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const parentId = authUser(req)!.userId;
+// Parent Stat Submissions
+router.post(
+  '/parent/stats/submit',
+  requireAuth,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const parentId = authUser(req)!.userId;
 
-    const {
-      playerId,
-      season,
-      school,
-      passingYards,
-      touchdowns,
-      flagPulls,
-      interceptions,
-      fortyDash,
-      shuttle,
-      vertical,
-      broadJump,
-      threeCone,
-      maxPrepsUrl
-    } = req.body;
-
-    if (!playerId) {
-      return res.status(400).json({
-        error: 'playerId is required'
-      });
-    }
-
-    const submission = await db
-      .insert(schema.parentStatSubmissions)
-      .values({
-        parentId,
+      const {
         playerId,
+
+        // Athlete identity
+        athleteEmail,
+        athleteName,
+        athleteDob,
+        gradYear,
+        position,
+        state,
+        division,
+
+        // Season
         season,
-        school,
-        passingYards,
-        touchdowns,
-        flagPulls,
-        interceptions,
-        fortyDash,
-        shuttle,
-        vertical,
-        broadJump,
-        threeCone,
-        maxPrepsUrl,
-        verificationStatus: 'pending'
-      })
-      .returning();
 
-    res.json(submission[0]);
+        // Stats
+        passingTds,
+        rushingTds,
+        receivingTds,
+        defensiveTds,
+        sacks,
+        hersRating,
 
-  } catch (err: any) {
-    next(err);
+        // Combine
+        fortyYardDash,
+        verticalJump,
+        shuttle5105,
+
+        // Verification
+        notes,
+      } = req.body;
+
+      if (!playerId) {
+        return res.status(400).json({
+          error: 'playerId is required',
+        });
+      }
+
+      const submission = await db
+        .insert(schema.parentStatSubmissions)
+        .values({
+          parentId,
+          playerId,
+
+          athleteEmail,
+          athleteName,
+          athleteDob,
+          gradYear,
+          position,
+          state,
+          division,
+
+          season,
+
+          passingTds,
+          rushingTds,
+          receivingTds,
+          defensiveTds,
+          sacks,
+          hersRating,
+
+          fortyYardDash,
+          verticalJump,
+          shuttle5105,
+
+          source: 'parent_portal',
+          notes,
+          status: 'pending',
+        })
+        .returning();
+
+      res.json(submission[0]);
+    } catch (err: any) {
+      next(err);
+    }
   }
-});
+);
 
 // PLAYERS & TEAMS
 router.get('/players', optionalAuth, async (req: Request, res: Response, next: NextFunction) => {

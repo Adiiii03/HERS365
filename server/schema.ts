@@ -277,44 +277,35 @@ export const parentChildRelations = pgTable('parent_child_relations', {
 
 export const parentStatSubmissions = pgTable('parent_stat_submissions', {
   id: serial('id').primaryKey(),
+  parentId: integer('parent_id').references(() => parents.id),
+  playerId: integer('player_id').references(() => players.id),
 
-  // Who submitted it
-  parentId: integer('parent_id')
-    .references(() => parents.id)
-    .notNull(),
+  athleteEmail: text('athlete_email'),
+  athleteName: text('athlete_name').notNull(),
+  athleteDob: timestamp('athlete_dob'),
+  gradYear: integer('grad_year'),
+  position: text('position'),
+  state: text('state'),
+  division: text('division'),
 
-  // Athlete receiving the stats
-  playerId: integer('player_id')
-    .references(() => players.id)
-    .notNull(),
-
-  // Season/school context
   season: text('season'),
-  school: text('school'),
+  passingTds: integer('passing_tds'),
+  rushingTds: integer('rushing_tds'),
+  receivingTds: integer('receiving_tds'),
+  defensiveTds: integer('defensive_tds'),
+  sacks: integer('sacks'),
+  hersRating: doublePrecision('hers_rating'),
 
-  // Stats submitted by parent
-  passingYards: integer('passing_yards'),
-  touchdowns: integer('touchdowns'),
-  flagPulls: integer('flag_pulls'),
-  interceptions: integer('interceptions'),
+  fortyYardDash: doublePrecision('forty_yard_dash'),
+  verticalJump: doublePrecision('vertical_jump'),
+  shuttle5105: doublePrecision('shuttle_5_10_5'),
 
-  // Combine measurables
-  fortyDash: text('forty_dash'),
-  shuttle: text('shuttle'),
-  vertical: text('vertical'),
-  broadJump: text('broad_jump'),
-  threeCone: text('three_cone'),
-
-  // External verification source
-  maxPrepsUrl: text('max_preps_url'),
-
-  // Workflow status
-  verificationStatus: text('verification_status')
-    .notNull()
-    .default('pending'), // pending | approved | rejected
-
-  createdAt: timestamp('created_at')
-    .default(sql`now()`),
+  source: text('source').default('parent_portal'),
+  notes: text('notes'),
+  status: text('status').notNull().default('pending'),
+  submittedAt: timestamp('submitted_at').default(sql`now()`),
+  reviewedAt: timestamp('reviewed_at'),
+  reviewedBy: integer('reviewed_by'),
 });
 
 // Real backing for ConsentRecord. Rows are never deleted; revocation is an
