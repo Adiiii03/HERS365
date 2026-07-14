@@ -12,6 +12,8 @@ const router = express.Router();
 import { publicPlayerView, selfPlayerView } from './lib/playerPrivacy';
 import { parseIdParam } from './lib/parseIdParam';
 import { recordCoachEvent } from './lib/coachEvents';
+import { isMediaUploadEnabled } from './lib/mediaUpload';
+import { publicAthleteDiscoveryEnabled } from './lib/publicExposure';
 
 // requireAuth attaches the token payload to req.user, but Express's Request
 // type doesn't know about it. Read it through here for typed access.
@@ -73,35 +75,22 @@ router.get('/player-subscription/:playerId', async (req: Request, res: Response,
 
 router.post('/player-subscription', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { playerId, planId, stripeSubscriptionId } = req.body;
-    if (!playerId || !planId) {
-      return res.status(400).json({ error: 'PlayerId and planId are required' });
-    }
-    if (authUser(req)!.userId !== playerId) return res.status(403).json({ error: 'Forbidden' });
-    const existing = await db.select()
-      .from(schema.playerSubscriptions)
-      .where(eq(schema.playerSubscriptions.playerId, playerId));
-    if (existing.length > 0) {
-      const updated = await db.update(schema.playerSubscriptions)
-        .set({ planId, stripeSubscriptionId, status: 'active' })
-        .where(eq(schema.playerSubscriptions.playerId, playerId))
-        .returning();
-      return res.json(updated[0]);
-    }
-    const newSub = await db.insert(schema.playerSubscriptions)
-      .values({ playerId, planId, stripeSubscriptionId, status: 'active' })
-      .returning();
-    const plan = await db.select().from(schema.subscriptionPlans).where(eq(schema.subscriptionPlans.id, planId));
-    if (plan.length > 0) {
-      await db.update(schema.players)
-        .set({ subscriptionTier: plan[0].tierLevel })
-        .where(eq(schema.players.id, playerId));
-    }
-    res.json(newSub[0]);
+    // Subscription state is financial state. It must be written by the Stripe
+    // checkout/webhook flow, not by a client-supplied planId or subscription id.
+    return res.status(410).json({ error: 'Use Stripe checkout to change subscriptions.' });
   } catch (err: any) {
     next(err);
   }
 });
+
+function mediaWritesAllowed(res: Response): boolean {
+  if (isMediaUploadEnabled()) return true;
+  res.status(403).json({
+    code: 'MEDIA_UPLOAD_DISABLED',
+    error: 'Photo and video uploads are not available yet.',
+  });
+  return false;
+}
 
 // CURRENT USER PROFILE
 router.get('/profile', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
@@ -126,9 +115,10 @@ router.put('/profile', requireAuth, requireActivated, async (req: Request, res: 
     if (heightIn !== undefined) updates.heightIn = heightIn === '' ? null : Number(heightIn);
     if (weightLbs !== undefined) updates.weightLbs = weightLbs === '' ? null : Number(weightLbs);
     if (phone !== undefined) updates.phone = phone || null;
-    // Custom profile photo URL. Client uploads to /api/upload/presign first,
-    // then sends the resulting publicUrl here.
-    if (profileImage !== undefined) updates.profileImage = profileImage || null;
+    if (profileImage !== undefined) {
+      if (profileImage && !mediaWritesAllowed(res)) return;
+      updates.profileImage = profileImage || null;
+    }
     const updated = await db.update(schema.players).set(updates).where(eq(schema.players.id, authUser(req)!.userId)).returning();
     res.json(stripPlayer(updated[0]));
   } catch (err: any) {
@@ -235,6 +225,9 @@ router.post(
 // PLAYERS & TEAMS
 router.get('/players', optionalAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
+    if (!authUser(req) && !publicAthleteDiscoveryEnabled()) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
     const allPlayers = await db.select().from(schema.players);
     // Coach discoverability: a coach listing athletes must not see those a
     // parent hid (mirrors the /api/coach/players/search filter). Non-coach
@@ -252,6 +245,9 @@ router.get('/players/:id', optionalAuth, async (req: Request, res: Response, nex
   try {
     const pId = parseIdParam(req.params.id);
     if (pId === null) return res.status(400).json({ error: 'Invalid id' });
+    if (!authUser(req) && !publicAthleteDiscoveryEnabled()) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
     const player = await db.select().from(schema.players).where(eq(schema.players.id, pId));
     const row = player[0];
     const viewer = authUser(req);
@@ -278,6 +274,9 @@ router.get('/players/:id/stats', optionalAuth, async (req: Request, res: Respons
   try {
     const pId = parseIdParam(req.params.id);
     if (pId === null) return res.status(400).json({ error: 'Invalid id' });
+    if (!authUser(req) && !publicAthleteDiscoveryEnabled()) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
     // Coach discoverability gate (see /players/:id). A hidden athlete is
     // invisible to coaches here too, so stats cannot leak around the toggle.
     if (authUser(req)?.role === 'coach') {
@@ -328,6 +327,7 @@ router.post('/players/:id/highlights', requireAuth, requireActivated, async (req
     if (pId === null) return res.status(400).json({ error: 'Invalid id' });
     if (authUser(req)!.userId !== pId) return res.status(403).json({ error: 'Forbidden' });
     const { videoUrl, thumbnailUrl, category, season, annotations, clipSettings } = req.body;
+    if ((videoUrl || thumbnailUrl) && !mediaWritesAllowed(res)) return;
     const newHighlight = await db.insert(schema.playerHighlights).values({
       playerId: pId,
       videoUrl,
@@ -353,8 +353,11 @@ router.get('/teams', async (req: Request, res: Response, next: NextFunction) => 
 });
 
 // SOCIAL FEED
-router.get('/posts', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/posts', optionalAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
+    if (!authUser(req) && !publicAthleteDiscoveryEnabled()) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
     const allPosts = await db
       .select({
         id: schema.posts.id,
@@ -385,6 +388,7 @@ router.get('/posts', async (req: Request, res: Response, next: NextFunction) => 
 router.post('/posts', requireAuth, requireActivated, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { content, mediaUrl, mediaType } = req.body;
+    if (mediaUrl && !mediaWritesAllowed(res)) return;
     const newPost = await db.insert(schema.posts).values({
       playerId: authUser(req)!.userId,
       content,
@@ -410,10 +414,12 @@ router.get('/stories', async (req: Request, res: Response, next: NextFunction) =
 });
 
 // AI BOTS & TRAINING
-router.get('/bot/:playerId', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/bot/:playerId', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const pId = parseIdParam(req.params.playerId);
     if (pId === null) return res.status(400).json({ error: 'Invalid id' });
+    const viewer = authUser(req)!;
+    if (viewer.role !== 'admin' && viewer.userId !== pId) return res.status(403).json({ error: 'Forbidden' });
     let bots = await db.select().from(schema.aiBots).where(eq(schema.aiBots.playerId, pId));
     if (bots.length === 0) {
       const generated = await ai.generateBotName();
@@ -429,10 +435,14 @@ router.get('/bot/:playerId', async (req: Request, res: Response, next: NextFunct
   }
 });
 
-router.post('/bot/:botId/chat', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/bot/:botId/chat', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const bId = parseIdParam(req.params.botId);
     if (bId === null) return res.status(400).json({ error: 'Invalid id' });
+    const [bot] = await db.select().from(schema.aiBots).where(eq(schema.aiBots.id, bId)).limit(1);
+    if (!bot) return res.status(404).json({ error: 'Bot not found' });
+    const viewer = authUser(req)!;
+    if (viewer.role !== 'admin' && bot.playerId !== viewer.userId) return res.status(403).json({ error: 'Forbidden' });
     const { message, context } = req.body;
     const reply = await ai.chatBot(bId, [{ role: 'user', content: message }], context);
     res.json({ reply });

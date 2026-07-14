@@ -26,6 +26,7 @@
     "services:logs": "docker-compose logs -f",
     "event-store:cleanup": "tsx scripts/cleanup-event-store.ts",
     "metrics:export": "tsx scripts/export-metrics.ts",
+    "smoke:production": "tsx scripts/production-smoke.ts",
     "tracing:setup": "tsx scripts/setup-tracing.ts",
     "test:e2e": "tsx scripts/run-e2e-tests.ts",
     "test:performance": "tsx scripts/run-performance-tests.ts",

@@ -13,6 +13,7 @@ import {
   markStripeEventProcessed,
   recordStripeEventError,
 } from './lib/webhookDedupe';
+import type { TokenPayload } from './auth';
 
 const router = express.Router();
 
@@ -36,6 +37,31 @@ function requireStripe(req: Request, res: Response, next: express.NextFunction) 
 function getStripe(): Stripe {
   if (!stripe) throw new Error('Stripe is not configured');
   return stripe;
+}
+
+function currentUser(req: Request): TokenPayload {
+  return (req as Request & { user: TokenPayload }).user;
+}
+
+function isAdmin(req: Request): boolean {
+  return currentUser(req)?.role === 'admin';
+}
+
+function canAccessPlayer(req: Request, playerId: number): boolean {
+  const user = currentUser(req);
+  return user?.role === 'admin' || user?.userId === playerId;
+}
+
+function requireAdminPaymentAccess(req: Request, res: Response): boolean {
+  if (isAdmin(req)) return true;
+  res.status(403).json({ error: 'Forbidden' });
+  return false;
+}
+
+function requirePlayerPaymentAccess(req: Request, res: Response, playerId: number): boolean {
+  if (canAccessPlayer(req, playerId)) return true;
+  res.status(403).json({ error: 'Forbidden' });
+  return false;
 }
 
 // ----------------------
@@ -238,9 +264,15 @@ router.post('/create-checkout-session', async (req: Request, res: Response) => {
     if (!planId || !playerId) {
       return res.status(400).json({ error: 'Plan ID and Player ID are required' });
     }
+    const playerIdNum = Number(playerId);
+    const planIdNum = Number(planId);
+    if (!Number.isInteger(playerIdNum) || !Number.isInteger(planIdNum)) {
+      return res.status(400).json({ error: 'Plan ID and Player ID must be integers' });
+    }
+    if (!requirePlayerPaymentAccess(req, res, playerIdNum)) return;
 
     // Get the subscription plan
-    const plans = await db.select().from(schema.subscriptionPlans).where(eq(schema.subscriptionPlans.id, planId));
+    const plans = await db.select().from(schema.subscriptionPlans).where(eq(schema.subscriptionPlans.id, planIdNum));
 
     if (plans.length === 0) {
       return res.status(404).json({ error: 'Subscription plan not found' });
@@ -252,7 +284,7 @@ router.post('/create-checkout-session', async (req: Request, res: Response) => {
     if (plan.price === 0) {
       // Directly update player's subscription
       await db.insert(schema.playerSubscriptions).values({
-        playerId,
+        playerId: playerIdNum,
         planId: plan.id,
         status: 'active',
       }).onConflictDoUpdate({
@@ -263,7 +295,7 @@ router.post('/create-checkout-session', async (req: Request, res: Response) => {
 
       await db.update(schema.players)
         .set({ subscriptionTier: plan.tierLevel })
-        .where(eq(schema.players.id, playerId));
+        .where(eq(schema.players.id, playerIdNum));
 
       return res.json({ url: successUrl || '/profile', free: true });
     }
@@ -300,7 +332,7 @@ router.post('/create-checkout-session', async (req: Request, res: Response) => {
       cancel_url: cancelUrl || `${process.env.ALLOWED_ORIGINS?.split(',')[0] || 'http://localhost:5173'}/subscribe?subscription=cancelled`,
       metadata: {
         playerId: playerId.toString(),
-        planId: planId.toString(),
+        planId: planIdNum.toString(),
         planName,
         planPrice: planPrice.toString(),
       },
@@ -320,6 +352,7 @@ router.get('/customer-portal/:playerId', async (req: Request, res: Response) => 
     if (playerId === null) {
       return res.status(400).json({ error: 'Invalid id' });
     }
+    if (!requirePlayerPaymentAccess(req, res, playerId)) return;
 
     // Find player's subscription
     const subs = await db.select().from(schema.playerSubscriptions)
@@ -359,7 +392,10 @@ router.get('/payments', async (req: Request, res: Response) => {
         if (playerId) {
             const n = parseIntQuery(playerId);
             if (n === null) return res.status(400).json({ error: 'playerId must be an integer' });
+            if (!requirePlayerPaymentAccess(req, res, n)) return;
             filters.push(eq(schema.payments.playerId, n));
+        } else if (!isAdmin(req)) {
+            filters.push(eq(schema.payments.playerId, currentUser(req).userId));
         }
         if (status) filters.push(eq(schema.payments.status, String(status)));
         if (paymentType) filters.push(eq(schema.payments.paymentType, String(paymentType)));
@@ -390,6 +426,8 @@ router.get('/payments/:id', async (req: Request, res: Response) => {
         if (!payment[0]) {
             return res.status(404).json({ error: 'Payment not found' });
         }
+        const paymentPlayerId = payment[0].playerId;
+        if (paymentPlayerId == null || !requirePlayerPaymentAccess(req, res, paymentPlayerId)) return;
 
         res.json(payment[0]);
     } catch (err: any) {
@@ -405,6 +443,7 @@ router.get('/payments/player/:playerId', async (req: Request, res: Response) => 
         if (playerId === null) {
             return res.status(400).json({ error: 'Invalid id' });
         }
+        if (!requirePlayerPaymentAccess(req, res, playerId)) return;
         const payments = await db.select({
             ...getTableColumns(schema.payments),
             playerName: schema.players.name,
@@ -424,6 +463,7 @@ router.get('/payments/player/:playerId', async (req: Request, res: Response) => 
 // POST /payments - Create a new payment record
 router.post('/payments', async (req: Request, res: Response) => {
     try {
+        if (!requireAdminPaymentAccess(req, res)) return;
         const {
             playerId,
             amount,
@@ -469,6 +509,7 @@ router.post('/payments', async (req: Request, res: Response) => {
 // PATCH /payments/:id - Update payment status
 router.patch('/payments/:id', async (req: Request, res: Response) => {
     try {
+        if (!requireAdminPaymentAccess(req, res)) return;
         const paymentId = parseIdParam(req.params.id);
         if (paymentId === null) {
             return res.status(400).json({ error: 'Invalid id' });
@@ -507,6 +548,7 @@ router.patch('/payments/:id', async (req: Request, res: Response) => {
 // POST /payments/:id/complete - Mark payment as completed
 router.post('/payments/:id/complete', async (req: Request, res: Response) => {
     try {
+        if (!requireAdminPaymentAccess(req, res)) return;
         const paymentId = parseIdParam(req.params.id);
         if (paymentId === null) {
             return res.status(400).json({ error: 'Invalid id' });
@@ -538,6 +580,7 @@ router.post('/payments/:id/complete', async (req: Request, res: Response) => {
 // POST /payments/:id/refund - Refund a payment
 router.post('/payments/:id/refund', async (req: Request, res: Response) => {
     try {
+        if (!requireAdminPaymentAccess(req, res)) return;
         const paymentId = parseIdParam(req.params.id);
         if (paymentId === null) {
             return res.status(400).json({ error: 'Invalid id' });
@@ -604,6 +647,7 @@ router.get('/payment-methods/player/:playerId', async (req: Request, res: Respon
         if (playerId === null) {
             return res.status(400).json({ error: 'Invalid id' });
         }
+        if (!requirePlayerPaymentAccess(req, res, playerId)) return;
         const methods = await db.select()
             .from(schema.paymentMethods)
             .where(eq(schema.paymentMethods.playerId, playerId))
@@ -633,16 +677,21 @@ router.post('/payment-methods', async (req: Request, res: Response) => {
         if (!playerId || !type) {
             return res.status(400).json({ error: 'PlayerId and type are required' });
         }
+        const playerIdNum = Number(playerId);
+        if (!Number.isInteger(playerIdNum)) {
+            return res.status(400).json({ error: 'PlayerId must be an integer' });
+        }
+        if (!requirePlayerPaymentAccess(req, res, playerIdNum)) return;
 
         // If this is set as default, unset other defaults
         if (isDefault) {
             await db.update(schema.paymentMethods)
                 .set({ isDefault: false })
-                .where(eq(schema.paymentMethods.playerId, playerId));
+                .where(eq(schema.paymentMethods.playerId, playerIdNum));
         }
 
         const newMethod = await db.insert(schema.paymentMethods).values({
-            playerId,
+            playerId: playerIdNum,
             type,
             last4,
             brand,
@@ -666,6 +715,10 @@ router.delete('/payment-methods/:id', async (req: Request, res: Response) => {
         if (methodId === null) {
             return res.status(400).json({ error: 'Invalid id' });
         }
+        const [method] = await db.select().from(schema.paymentMethods).where(eq(schema.paymentMethods.id, methodId)).limit(1);
+        if (!method) return res.status(404).json({ error: 'Payment method not found' });
+        if (method.playerId == null) return res.status(403).json({ error: 'Forbidden' });
+        if (!requirePlayerPaymentAccess(req, res, method.playerId)) return;
 
         await db.delete(schema.paymentMethods)
             .where(eq(schema.paymentMethods.id, methodId));
@@ -684,6 +737,7 @@ router.delete('/payment-methods/:id', async (req: Request, res: Response) => {
 // GET /invoices - Get all invoices
 router.get('/invoices', async (req: Request, res: Response) => {
     try {
+        if (!requireAdminPaymentAccess(req, res)) return;
         const { playerId, status } = req.query;
 
         const filters = [];
@@ -717,6 +771,7 @@ router.get('/invoices', async (req: Request, res: Response) => {
 // POST /invoices - Create an invoice
 router.post('/invoices', async (req: Request, res: Response) => {
     try {
+        if (!requireAdminPaymentAccess(req, res)) return;
         const {
             playerId,
             invoiceNumber,
@@ -755,6 +810,7 @@ router.post('/invoices', async (req: Request, res: Response) => {
 // PATCH /invoices/:id - Update invoice (e.g., mark as paid)
 router.patch('/invoices/:id', async (req: Request, res: Response) => {
     try {
+        if (!requireAdminPaymentAccess(req, res)) return;
         const invoiceId = parseIdParam(req.params.id);
         if (invoiceId === null) {
             return res.status(400).json({ error: 'Invalid id' });
@@ -787,6 +843,7 @@ router.patch('/invoices/:id', async (req: Request, res: Response) => {
 // GET /payments/summary - Get payment summary stats
 router.get('/payments/summary', async (req: Request, res: Response) => {
     try {
+        if (!requireAdminPaymentAccess(req, res)) return;
         const { startDate, endDate, playerId } = req.query;
 
         let dateFilter = undefined;
@@ -863,6 +920,7 @@ router.get('/payments/player/:playerId/summary', async (req: Request, res: Respo
         if (playerId === null) {
             return res.status(400).json({ error: 'Invalid id' });
         }
+        if (!requirePlayerPaymentAccess(req, res, playerId)) return;
 
         // Total paid
         const paidResult = await db.select({
