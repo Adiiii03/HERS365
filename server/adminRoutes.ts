@@ -948,8 +948,8 @@ router.patch('/parent-stat-submissions/:id', requireAdmin, async (req: Request, 
     if (id === null) return res.status(400).json({ success: false, error: 'Invalid id' });
 
     const { status, adminNotes } = req.body;
-    const valid = ['pending', 'approved', 'rejected'];
-    if (!valid.includes(status)) return res.status(400).json({ success: false, error: 'status must be one of: pending, approved, rejected' });
+    const valid = ['pending', 'verified', 'rejected'];
+    if (!valid.includes(status)) return res.status(400).json({ success: false, error: 'status must be one of: pending, verified, rejected' });
 
     const adminId = (req as any).user?.userId ?? (req as any).user?.id;
 
