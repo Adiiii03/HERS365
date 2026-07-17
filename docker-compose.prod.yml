@@ -1,0 +1,69 @@
+services:
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile.prod
+    container_name: hers365-client-prod
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+    networks:
+      - hers365
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: hers365-api-prod
+    env_file:
+      - .env.production
+    environment:
+      - NODE_ENV=production
+      - PORT=4000
+    expose:
+      - "4000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - hers365
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16
+    container_name: hers365-postgres-prod
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - hers365
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: hers365-redis-prod
+    volumes:
+      - redisdata:/data
+    networks:
+      - hers365
+    restart: unless-stopped
+
+networks:
+  hers365:
+    driver: bridge
+
+volumes:
+  pgdata:
+  redisdata:
