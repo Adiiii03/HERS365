@@ -131,7 +131,7 @@ export const PlayerProfile = () => {
       }
 
       try {
-        const sRes = await fetch(`/api/athletes/${playerId}/stats`);
+        const sRes = await fetch(`/api/players/${playerId}/stats`);
         if (sRes.ok) {
           const body = await sRes.json();
           setStats(Array.isArray(body) ? body : []);
@@ -264,6 +264,7 @@ export const PlayerProfile = () => {
   }
 
   const avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(player.name || '')}`;
+  const isVerified = player.verified ?? player.verificationStatus === 'verified';
   const hasRatingCard = player.g5Rating != null;
 
   return (
@@ -333,7 +334,7 @@ export const PlayerProfile = () => {
                 <h1 style={{ fontFamily: type.font.display, fontWeight: type.weight.bold, fontSize: type.size['2xl'], textTransform: 'uppercase', color: text.primary, margin: 0, letterSpacing: type.tracking.h1 }}>
                   {player.name}
                 </h1>
-                {player.verified && <CheckCircle2 size={16} color={colors.neonOn} fill={colors.neon} />}
+                {isVerified && <CheckCircle2 size={16} color={colors.neonOn} fill={colors.neon} />}
               </div>
               {player.position && (
                 <Badge tone="accent" style={{ marginBottom: 8 }}>{player.position}</Badge>
