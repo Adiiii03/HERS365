@@ -64,8 +64,8 @@ router.get('/player-subscription/:playerId', async (req: Request, res: Response,
     const subPlanId = subscription[0].planId;
     const plan = subPlanId != null
       ? await db.select()
-          .from(schema.subscriptionPlans)
-          .where(eq(schema.subscriptionPlans.id, subPlanId))
+        .from(schema.subscriptionPlans)
+        .where(eq(schema.subscriptionPlans.id, subPlanId))
       : [];
     res.json({ ...subscription[0], plan: plan[0] || null });
   } catch (err: any) {
@@ -155,6 +155,7 @@ router.post(
         position,
         state,
         division,
+        school,
 
         // Season
         season,
@@ -166,14 +167,21 @@ router.post(
         defensiveTds,
         sacks,
         hersRating,
+        flagPulls,
+        interceptions,
+        passingYards,
+        receivingYards,
+        rushingYards,
 
         // Combine
         fortyYardDash,
         verticalJump,
         shuttle5105,
+        broadJump,
 
         // Verification
         notes,
+        maxPrepsUrl,
       } = req.body;
 
       if (!playerId) {
@@ -195,6 +203,7 @@ router.post(
           position,
           state,
           division,
+          school,
 
           season,
 
@@ -204,11 +213,18 @@ router.post(
           defensiveTds,
           sacks,
           hersRating,
+          flagPulls,
+          interceptions,
+          passingYards,
+          rushingYards,
+          receivingYards,
 
           fortyYardDash,
           verticalJump,
           shuttle5105,
+          broadJump,
 
+          maxPrepsUrl,
           source: 'parent_portal',
           notes,
           status: 'pending',
