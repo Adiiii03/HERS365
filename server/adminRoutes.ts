@@ -564,6 +564,85 @@ router.post('/athletes/:id/verify', requireAdmin, async (req: Request, res: Resp
 });
 
 // ----------------------
+// PARENT STAT SUBMISSIONS
+// ----------------------
+
+// PATCH /admin/parent-stat-submissions/:id - Verify and approve/reject parent stats
+router.patch('/parent-stat-submissions/:id', requireAdmin, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const id = parseIdParam(req.params.id);
+    if (id === null) {
+      return res.status(400).json({ error: 'Invalid id' });
+    }
+    const { status } = req.body;
+
+    if (!['approved', 'rejected', 'pending'].includes(status)) {
+      return res.status(400).json({ error: 'Invalid status' });
+    }
+
+    const submissionRows = await db.select().from(schema.parentStatSubmissions).where(eq(schema.parentStatSubmissions.id, id)).limit(1);
+    if (!submissionRows[0]) {
+      return res.status(404).json({ error: 'Submission not found' });
+    }
+
+    const sub = submissionRows[0];
+    const adminId = (req as any).user?.id;
+
+    const updated = await db.update(schema.parentStatSubmissions)
+      .set({ 
+        status, 
+        reviewedAt: new Date(),
+        reviewedBy: adminId ? parseInt(adminId, 10) : null
+      })
+      .where(eq(schema.parentStatSubmissions.id, id))
+      .returning();
+
+    if (status === 'approved' && sub.playerId) {
+      // Update Game Stats
+      const hasGameStats = sub.passingTds != null || sub.rushingTds != null || sub.receivingTds != null || sub.defensiveTds != null;
+      if (hasGameStats) {
+        await db.insert(schema.gameStats).values({
+          playerId: sub.playerId,
+          passingTds: sub.passingTds,
+          rushingTds: sub.rushingTds,
+          receivingTds: sub.receivingTds,
+          defensiveTds: sub.defensiveTds,
+        });
+      }
+
+      // Update Combine Stats
+      const hasCombineStats = sub.fortyYardDash != null || sub.verticalJump != null || sub.shuttle5105 != null;
+      if (hasCombineStats) {
+        await db.insert(schema.combineStats).values({
+          playerId: sub.playerId,
+          season: sub.season,
+          fortyDash: sub.fortyYardDash?.toString(),
+          vertical: sub.verticalJump?.toString(),
+          shuttle: sub.shuttle5105?.toString(),
+        });
+      }
+
+      // Trigger Notification
+      await db.insert(schema.notifications).values({
+        playerId: sub.playerId,
+        type: 'stat_approved',
+        actorName: 'Admin',
+      });
+
+      // Award XP
+      const XP_REWARD = 500;
+      await db.update(schema.players)
+        .set({ xpPoints: sql`xp_points + ${XP_REWARD}` })
+        .where(eq(schema.players.id, sub.playerId));
+    }
+
+    res.json(updated[0]);
+  } catch (err: any) {
+    next(err);
+  }
+});
+
+// ----------------------
 // COACH MANAGEMENT
 // ----------------------
 

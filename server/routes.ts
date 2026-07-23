@@ -136,6 +136,138 @@ router.get('/profile/stats', requireAuth, async (req: Request, res: Response, ne
   }
 });
 
+
+// Parent Stat Submissions
+router.post(
+  '/parent/stats/submit',
+  requireAuth,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const parentId = authUser(req)!.userId;
+
+      const {
+        playerId,
+
+        // Athlete identity
+        athleteEmail,
+        athleteName,
+        athleteDob,
+        gradYear,
+        position,
+        state,
+        division,
+        school,
+
+        // Legacy identity
+        email,
+        name,
+        dob,
+
+        // Season
+        season,
+
+        // Stats
+        passingTds,
+        rushingTds,
+        receivingTds,
+        defensiveTds,
+        sacks,
+        hersRating,
+        flagPulls,
+        interceptions,
+        passingYards,
+        rushingYards,
+        receivingYards,
+
+        // Legacy touchdowns
+        touchdownsPassing,
+        touchdownsRushing,
+        touchdownsReceiving,
+
+        // Combine
+        fortyYardDash,
+        verticalJump,
+        shuttle5105,
+        broadJump,
+
+        // Verification
+        notes,
+        adminNotes,
+        maxPrepsUrl,
+      } = req.body;
+
+      if (!playerId) {
+        return res.status(400).json({
+          error: 'playerId is required',
+        });
+      }
+
+      const submission = await db
+        .insert(schema.parentStatSubmissions)
+        .values({
+          parentId,
+          playerId,
+
+          // Athlete identity
+          athleteEmail,
+          athleteName,
+          athleteDob,
+          gradYear,
+          position,
+          state,
+          division,
+          school,
+
+          // Legacy identity (fallback to athlete fields if not provided)
+          email: email ?? athleteEmail,
+          name: name ?? athleteName,
+          dob: dob ?? athleteDob,
+
+          // Season
+          season,
+
+          // Stats
+          passingTds,
+          rushingTds,
+          receivingTds,
+          defensiveTds,
+          sacks,
+          hersRating,
+          flagPulls,
+          interceptions,
+          passingYards,
+          rushingYards,
+          receivingYards,
+
+          // Legacy touchdown columns
+          touchdownsPassing: touchdownsPassing ?? passingTds,
+          touchdownsRushing: touchdownsRushing ?? rushingTds,
+          touchdownsReceiving: touchdownsReceiving ?? receivingTds,
+
+          // Combine
+          fortyYardDash,
+          verticalJump,
+          shuttle5105,
+          broadJump,
+
+          // Verification
+          maxPrepsUrl,
+          source: 'parent_portal',
+          notes,
+          adminNotes,
+
+          status: 'pending',
+          verificationStatus: 'pending',
+        })
+        .returning();
+
+      res.json(submission[0]);
+    } catch (err: any) {
+      next(err);
+    }
+  }
+);
+
 // PLAYERS & TEAMS
 router.get('/players', optionalAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {

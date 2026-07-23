@@ -129,23 +129,26 @@ export const gameStats = pgTable('game_stats', {
 
 export const parentStatSubmissions = pgTable('parent_stat_submissions', {
   id: serial('id').primaryKey(),
+
   parentId: integer('parent_id').references(() => parents.id),
   playerId: integer('player_id').references(() => players.id),
 
   athleteEmail: text('athlete_email'),
-  athleteName: text('athlete_name').notNull(),
+  athleteName: text('athlete_name'),
   athleteDob: timestamp('athlete_dob'),
+
   gradYear: integer('grad_year'),
   position: text('position'),
   state: text('state'),
   division: text('division'),
-
   season: text('season'),
+
   passingTds: integer('passing_tds'),
   rushingTds: integer('rushing_tds'),
   receivingTds: integer('receiving_tds'),
   defensiveTds: integer('defensive_tds'),
-  sacks: integer('sacks'),
+  sacks: doublePrecision('sacks'),
+
   hersRating: doublePrecision('hers_rating'),
 
   fortyYardDash: doublePrecision('forty_yard_dash'),
@@ -154,10 +157,40 @@ export const parentStatSubmissions = pgTable('parent_stat_submissions', {
 
   source: text('source').default('parent_portal'),
   notes: text('notes'),
+
   status: text('status').notNull().default('pending'),
+
   submittedAt: timestamp('submitted_at').default(sql`now()`),
   reviewedAt: timestamp('reviewed_at'),
   reviewedBy: integer('reviewed_by'),
+
+  school: text('school'),
+
+  // Legacy fields
+  email: text('email'),
+  name: text('name'),
+  dob: timestamp('dob'),
+
+  touchdownsPassing: integer('touchdowns_passing'),
+  touchdownsRushing: integer('touchdowns_rushing'),
+  touchdownsReceiving: integer('touchdowns_receiving'),
+
+  flagPulls: integer('flag_pulls'),
+  interceptions: integer('interceptions'),
+
+  passingYards: integer('passing_yards'),
+  rushingYards: integer('rushing_yards'),
+  receivingYards: integer('receiving_yards'),
+
+  broadJump: doublePrecision('broad_jump'),
+
+  maxPrepsUrl: text('max_preps_url'),
+
+  adminNotes: text('admin_notes'),
+
+  verificationStatus: text('verification_status')
+    .notNull()
+    .default('pending'),
 });
 
 export const badges = pgTable('badges', {
