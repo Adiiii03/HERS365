@@ -65,7 +65,14 @@ export const ScholarshipTracker = () => {
     e.stopPropagation();
     setSaving(prev => ({ ...prev, [id]: true }));
     try {
-      const res = await fetch(`/api/scholarships/${id}/save`, { method: 'POST' });
+      const token = localStorage.getItem('token');
+      const res = await fetch(`/api/scholarships/${id}/save`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
       const data = await res.json();
       if (data.success) setSaved(prev => ({ ...prev, [id]: true }));
     } finally {

@@ -47,7 +47,16 @@ export function CoachSettings() {
     });
   };
 
-  const handleSignOut = () => {
+  const handleSignOut = async () => {
+    try {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshToken: localStorage.getItem('coachToken') }),
+      });
+    } catch {
+      // Non-fatal: continue with local sign-out even if server revocation fails
+    }
     localStorage.removeItem('coachToken');
     localStorage.removeItem('coachUser');
     showNotification('info', 'Signed Out', 'You have been signed out of the Coach Portal.');

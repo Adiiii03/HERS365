@@ -324,7 +324,7 @@ function App() {
             </Route>
 
             {/* Parent shell — its own top bar, no athlete sidebar or tabs */}
-            <Route element={<RoleRouteGuard roles={['parent']} loginPath="/auth"><ParentLayout /></RoleRouteGuard>}>
+            <Route element={<RoleRouteGuard roles={['parent']} loginPath="/auth?role=parent"><ParentLayout /></RoleRouteGuard>}>
               <Route path="/parent" element={<ParentDashboard />} />
               <Route path="/parent/dashboard" element={<ParentDashboard />} />
             </Route>
