@@ -1,0 +1,10 @@
+=== V3 BASELINE (main) ===
+inline_styles: 2264
+raw_hex: 1224
+const_FLAME_files: 39
+const_MUTED_files: 39
+coral_orange_naming: 98
+clsx_tailwindmerge_files: 0
+haptics_files: 0
+loading_literals: 0
+coach_bootstrap_hits: 77

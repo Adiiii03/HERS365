@@ -12,6 +12,7 @@ import {
 } from '../middleware/safetySchemas';
 import { parseIdParam } from '../lib/parseIdParam';
 import { parseIntQuery, clampIntQuery } from '../lib/queryParam';
+import { publicAthleteDiscoveryEnabled } from '../lib/publicExposure';
 
 // Cross-user view: strips email/phone/dob/zip/pendingParentEmail/passwordHash
 // per the directive 1 rule "minor PII never leaves cross-user endpoints."
@@ -36,8 +37,11 @@ const UPDATABLE_FIELDS = [
 const INT_FIELDS = new Set(['age', 'gradYear']);
 
 // GET /api/athletes — real DB list with optional filters
-router.get('/', async (req, res) => {
+router.get('/', optionalAuth, async (req, res) => {
   try {
+    if (!authUser(req) && !publicAthleteDiscoveryEnabled()) {
+      return res.status(401).json({ success: false, error: 'Authentication required' });
+    }
     const { position, state, gradYear, limit, offset } = req.query;
     const conditions = [];
     if (position && position !== 'All') conditions.push(eq(schema.players.position, String(position)));
@@ -231,6 +235,9 @@ router.get('/:id',optionalAuth, async (req, res) => {
 
     //Privacy Check
     const u = authUser(req);
+    if (!u && !publicAthleteDiscoveryEnabled()) {
+      return res.status(401).json({ success: false, error: 'Authentication required' });
+    }
     const isOwner = u?.userId ? Number(u.userId) === id : false;
     const isCoach = u?.role === 'coach';
 

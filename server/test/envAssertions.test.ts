@@ -4,7 +4,10 @@ import { assertProductionEnv, isProductionEnv } from '../lib/envAssertions';
 const GOOD_PROD: NodeJS.ProcessEnv = {
   APP_ENV: 'production',
   CORS_ORIGIN: 'https://hers365.com',
+  FRONTEND_URL: 'https://hers365.com',
   REDIS_URL: 'redis://prod-redis:6379',
+  RESEND_API_KEY: 're_prod',
+  ANTHROPIC_API_KEY: 'sk-ant-prod',
   CODE_PEPPER: 'x'.repeat(40),
 };
 
@@ -58,6 +61,25 @@ describe('assertProductionEnv', () => {
       .toThrow(/REDIS_URL must be set/);
   });
 
+  it('allows closed-mode production without Resend but rejects opening registration without it', () => {
+    expect(() => assertProductionEnv({ ...GOOD_PROD, RESEND_API_KEY: undefined, REGISTRATION_ENABLED: 'false' }))
+      .not.toThrow();
+    expect(() => assertProductionEnv({ ...GOOD_PROD, RESEND_API_KEY: undefined, REGISTRATION_ENABLED: 'true' }))
+      .toThrow(/RESEND_API_KEY must be set when REGISTRATION_ENABLED=true/);
+  });
+
+  it('rejects missing moderation infrastructure', () => {
+    expect(() => assertProductionEnv({ ...GOOD_PROD, ANTHROPIC_API_KEY: undefined }))
+      .toThrow(/ANTHROPIC_API_KEY must be set/);
+  });
+
+  it('rejects a missing or localhost FRONTEND_URL', () => {
+    expect(() => assertProductionEnv({ ...GOOD_PROD, FRONTEND_URL: undefined }))
+      .toThrow(/FRONTEND_URL must be set/);
+    expect(() => assertProductionEnv({ ...GOOD_PROD, FRONTEND_URL: 'http://localhost:5173' }))
+      .toThrow(/FRONTEND_URL must not be a localhost/);
+  });
+
   it('rejects a missing or short CODE_PEPPER', () => {
     expect(() => assertProductionEnv({ ...GOOD_PROD, CODE_PEPPER: undefined }))
       .toThrow(/CODE_PEPPER must be set and at least 32/);
@@ -83,13 +105,16 @@ describe('assertProductionEnv', () => {
   it('collects ALL problems into a single message', () => {
     let message = '';
     try {
-      assertProductionEnv({ NODE_ENV: 'production', SMS_ENABLED: 'true' });
+      assertProductionEnv({ NODE_ENV: 'production', SMS_ENABLED: 'true', REGISTRATION_ENABLED: 'true' });
     } catch (err) {
       message = (err as Error).message;
     }
     expect(message).toMatch(/APP_ENV/);
     expect(message).toMatch(/CORS_ORIGIN/);
     expect(message).toMatch(/REDIS_URL/);
+    expect(message).toMatch(/RESEND_API_KEY/);
+    expect(message).toMatch(/FRONTEND_URL/);
+    expect(message).toMatch(/ANTHROPIC_API_KEY/);
     expect(message).toMatch(/CODE_PEPPER/);
     expect(message).toMatch(/TWILIO_ACCOUNT_SID/);
     expect(message).toMatch(/TWILIO_AUTH_TOKEN/);

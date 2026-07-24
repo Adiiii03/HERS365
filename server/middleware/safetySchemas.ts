@@ -80,6 +80,42 @@ export const parentInviteBody = z.object({
   relationship: z.string().trim().min(1).max(64).optional(),
 });
 
+const optionalNumber = z.coerce.number().finite().optional().nullable();
+const nonNegativeInt = z.coerce.number().int().min(0).optional().nullable();
+
+export const parentStatSubmissionBody = z.object({
+  playerId: positiveIdParam.optional(),
+  athleteEmail: z.string().trim().toLowerCase().email().optional().nullable(),
+  athleteName: z.string().trim().min(1).max(120),
+  athleteDob: z.coerce.date().optional().nullable(),
+  gradYear: z.coerce.number().int().min(2020).max(2100).optional().nullable(),
+  position: z.string().trim().min(1).max(64).optional().nullable(),
+  state: z.string().trim().min(1).max(64).optional().nullable(),
+  division: z.string().trim().min(1).max(64).optional().nullable(),
+  season: z.string().trim().min(1).max(16).optional().nullable(),
+  passingTds: nonNegativeInt,
+  rushingTds: nonNegativeInt,
+  receivingTds: nonNegativeInt,
+  defensiveTds: nonNegativeInt,
+  sacks: nonNegativeInt,
+  hersRating: optionalNumber,
+  fortyYardDash: optionalNumber,
+  verticalJump: optionalNumber,
+  shuttle5105: optionalNumber,
+  source: z.string().trim().min(1).max(64).optional().nullable(),
+  notes: z.string().trim().max(2000).optional().nullable(),
+}).passthrough().superRefine((body, ctx) => {
+  for (const legacy of ['fortyDash', 'vertical', 'shuttle']) {
+    if (legacy in body) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: [legacy],
+        message: `${legacy} is deprecated; use fortyYardDash, verticalJump, and shuttle5105`,
+      });
+    }
+  }
+});
+
 // ─── Token / NIL routes ──────────────────────────────────────────────────────
 // NOTE: these handlers currently sit behind `requireAuth` only — any logged-in
 // user can mint or redeem points for any playerId. That is a separate authz

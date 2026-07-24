@@ -121,74 +121,19 @@ describe('POST /api/player-subscription', () => {
     expect(res.status).toBe(401);
   });
 
-  it('returns 400 when playerId or planId is missing', async () => {
+  it('rejects the legacy client-owned mutation path', async () => {
     const athlete = await makeAthlete();
     const res = await request(app)
       .post('/api/player-subscription')
       .set('Authorization', `Bearer ${tokenFor(athlete, 'athlete')}`)
-      .send({ playerId: athlete.id });
-    expect(res.status).toBe(400);
-  });
-
-  it('returns 403 when the JWT userId does not match the body playerId', async () => {
-    const me = await makeAthlete();
-    const other = await makeAthlete();
-    const plan = await seedPlan();
-    const res = await request(app)
-      .post('/api/player-subscription')
-      .set('Authorization', `Bearer ${tokenFor(me, 'athlete')}`)
-      .send({ playerId: other.id, planId: plan.id });
-    expect(res.status).toBe(403);
-  });
-
-  it('happy path: inserts a subscription and bumps the player tier', async () => {
-    const athlete = await makeAthlete();
-    const plan = await seedPlan({ name: 'Pro', price: 1999, tierLevel: 'pro' });
-    const res = await request(app)
-      .post('/api/player-subscription')
-      .set('Authorization', `Bearer ${tokenFor(athlete, 'athlete')}`)
-      .send({ playerId: athlete.id, planId: plan.id, stripeSubscriptionId: 'sub_xyz' });
-    expect(res.status).toBe(200);
-    expect(res.body.playerId).toBe(athlete.id);
-    expect(res.body.planId).toBe(plan.id);
-    expect(res.body.status).toBe('active');
-
-    const [persisted] = await db
-      .select()
-      .from(schema.playerSubscriptions)
-      .where(eq(schema.playerSubscriptions.playerId, athlete.id));
-    expect(persisted.stripeSubscriptionId).toBe('sub_xyz');
-
-    const [updatedPlayer] = await db
-      .select()
-      .from(schema.players)
-      .where(eq(schema.players.id, athlete.id));
-    expect(updatedPlayer.subscriptionTier).toBe('pro');
-  });
-
-  it('updates an existing subscription in place rather than duplicating', async () => {
-    const athlete = await makeAthlete();
-    const planA = await seedPlan({ name: 'Pro', price: 1999, tierLevel: 'pro' });
-    const planB = await seedPlan({ name: 'Elite', price: 4999, tierLevel: 'elite' });
-    const token = tokenFor(athlete, 'athlete');
-
-    await request(app)
-      .post('/api/player-subscription')
-      .set('Authorization', `Bearer ${token}`)
-      .send({ playerId: athlete.id, planId: planA.id });
-
-    const res = await request(app)
-      .post('/api/player-subscription')
-      .set('Authorization', `Bearer ${token}`)
-      .send({ playerId: athlete.id, planId: planB.id, stripeSubscriptionId: 'sub_upgrade' });
-    expect(res.status).toBe(200);
+      .send({ playerId: athlete.id, planId: 1, stripeSubscriptionId: 'sub_forged' });
+    expect(res.status).toBe(410);
+    expect(res.body.error).toMatch(/stripe checkout/i);
 
     const persisted = await db
       .select()
       .from(schema.playerSubscriptions)
       .where(eq(schema.playerSubscriptions.playerId, athlete.id));
-    expect(persisted).toHaveLength(1);
-    expect(persisted[0].planId).toBe(planB.id);
-    expect(persisted[0].stripeSubscriptionId).toBe('sub_upgrade');
+    expect(persisted).toHaveLength(0);
   });
 });

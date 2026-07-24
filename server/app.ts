@@ -34,6 +34,17 @@ import { errorsRouter } from './api/errors';
 import { guardianRouter } from './api/guardian';
 import errorHandler from './middleware/errorHandler';
 import { pool } from './db';
+import { publicAthleteDiscoveryEnabled } from './lib/publicExposure';
+import { isMediaUploadEnabled } from './lib/mediaUpload';
+import { isRegistrationEnabled } from './lib/registration';
+
+function currentCommitSha(): string | null {
+  return process.env.RAILWAY_GIT_COMMIT_SHA
+    || process.env.VERCEL_GIT_COMMIT_SHA
+    || process.env.GIT_COMMIT_SHA
+    || process.env.SOURCE_COMMIT
+    || null;
+}
 
 export function createApp() {
   const app = express();
@@ -96,15 +107,32 @@ export function createApp() {
     res.set('Access-Control-Allow-Origin', '*');
     let db = 'down';
     try { await pool.query('SELECT 1'); db = 'up'; } catch { /* db unreachable */ }
+    const frontendUrl = process.env.FRONTEND_URL;
     res.json({
       status: db === 'up' ? 'ok' : 'degraded',
       db,
+      release: {
+        commit: currentCommitSha(),
+        environment: process.env.APP_ENV ?? process.env.NODE_ENV ?? null,
+      },
       integrations: {
         stripe: Boolean(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_WEBHOOK_SECRET),
-        openai: Boolean(process.env.OPENAI_API_KEY),
+        anthropic: Boolean(process.env.ANTHROPIC_API_KEY),
+        email: Boolean(process.env.RESEND_API_KEY),
+        redis: Boolean(process.env.REDIS_URL),
         maxpreps: Boolean(process.env.MAXPREPS_API_KEY),
         'google-oauth': Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.env.GOOGLE_CALLBACK_URL),
         'github-oauth': Boolean(process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET && process.env.GITHUB_CALLBACK_URL),
+      },
+      safety: {
+        productionEnv: (process.env.APP_ENV ?? process.env.NODE_ENV) === 'production',
+        guardianEmail: Boolean(process.env.RESEND_API_KEY),
+        sharedRateLimitsAndRevocation: Boolean(process.env.REDIS_URL),
+        moderation: Boolean(process.env.ANTHROPIC_API_KEY),
+        frontendLinks: Boolean(frontendUrl) && !/localhost|127\.0\.0\.1/i.test(frontendUrl!),
+        publicAthleteDiscovery: publicAthleteDiscoveryEnabled(),
+        mediaUploads: isMediaUploadEnabled(),
+        registration: isRegistrationEnabled(),
       },
       uptime: Math.round(process.uptime()),
       time: new Date().toISOString(),
