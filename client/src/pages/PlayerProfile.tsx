@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { motion, useReducedMotion } from 'framer-motion';
-import { MapPin, CheckCircle2, MessageSquare, ArrowLeft, UserPlus, UserCheck, Trophy } from 'lucide-react';
+import { motion, useReducedMotion, AnimatePresence } from 'framer-motion';
+import { MapPin, CheckCircle2, MessageSquare, ArrowLeft, UserPlus, UserCheck, Trophy, Plus, X } from 'lucide-react';
 import { tokens } from '../lib/tokens';
 import { Button, Card, Stat, Badge } from '../components/ui';
 import { variants, springs } from '../lib/motion';
@@ -9,6 +9,8 @@ import { useHaptics } from '../lib/haptics';
 import { useNotifications } from '../context/NotificationContext';
 import { ShareCard } from '../components/ShareCard';
 import { toShareCard, type ShareCardData } from '../lib/shareCard';
+import { apiFetch, errorMessage } from '../lib/api';
+import { useAuth } from '../context/AuthContext';
 
 const { colors, text, type, radii } = tokens;
 
@@ -73,11 +75,46 @@ function CountStat({ label, value }: { label: string; value: number }) {
   return <Stat label={label} value={<span className="tnum">{shown}</span>} />;
 }
 
+function Field({ label, value, onChange, placeholder, inputType = 'text', inputMode }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string; inputType?: string; inputMode?: React.InputHTMLAttributes<HTMLInputElement>['inputMode']; }) {
+  return (
+    <div>
+      <label style={{ display: 'block', fontSize: type.size.xs, fontWeight: type.weight.bold, letterSpacing: '0.08em', textTransform: 'uppercase', color: colors.textSecondary, marginBottom: 6 }}>{label}</label>
+      <input
+        type={inputType}
+        inputMode={inputMode}
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="k-input"
+        style={{ width: '100%', background: colors.surface0, border: `1px solid ${colors.border}`, borderRadius: radii.sm, padding: '10px 12px', color: colors.textPrimary, fontSize: type.size.base, outline: 'none', boxSizing: 'border-box' }}
+      />
+    </div>
+  );
+}
+
+function NumField({ label, value, onChange, placeholder, inputMode }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string; inputMode?: React.InputHTMLAttributes<HTMLInputElement>['inputMode']; }) {
+  return (
+    <div>
+      <label style={{ display: 'block', fontSize: type.size.xs, fontWeight: type.weight.bold, letterSpacing: '0.08em', textTransform: 'uppercase', color: colors.textSecondary, marginBottom: 6 }}>{label}</label>
+      <input
+        type="text"
+        inputMode={inputMode}
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="k-input"
+        style={{ width: '100%', background: colors.surface0, border: `1px solid ${colors.border}`, borderRadius: radii.sm, padding: '10px 12px', color: colors.textPrimary, fontSize: type.size.base, outline: 'none', boxSizing: 'border-box' }}
+      />
+    </div>
+  );
+}
+
 export const PlayerProfile = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const haptics = useHaptics();
   const { showNotification } = useNotifications();
+  const { user, isAuthenticated } = useAuth();
   const reduce = useReducedMotion() ?? false;
   const playerId = parseInt(id ?? '', 10);
 
@@ -92,6 +129,25 @@ export const PlayerProfile = () => {
   const shareCardRef = useRef<HTMLDivElement>(null);
   const [shareCardData, setShareCardData] = useState<ShareCardData | null>(null);
   const [exportingCard, setExportingCard] = useState(false);
+
+  const [submitStatsOpen, setSubmitStatsOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [form, setForm] = useState({
+    season: '',
+    position: '',
+    passingTds: '',
+    rushingTds: '',
+    receivingTds: '',
+    defensiveTds: '',
+    sacks: '',
+    fortyYardDash: '',
+    verticalJump: '',
+    shuttle5105: '',
+    maxprepsUrl: '',
+    notes: '',
+  });
 
   // Signature #2: subtle pointer parallax on the hero bloom. Reduced motion
   // pins it dead center. Values are normalized -1..1 off the header midpoint.
@@ -131,7 +187,7 @@ export const PlayerProfile = () => {
       }
 
       try {
-        const sRes = await fetch(`/api/athletes/${playerId}/stats`);
+        const sRes = await fetch(`/api/players/${playerId}/stats`);
         if (sRes.ok) {
           const body = await sRes.json();
           setStats(Array.isArray(body) ? body : []);
@@ -188,6 +244,39 @@ export const PlayerProfile = () => {
 
   const handleMessage = () => {
     navigate('/messages', { state: { partnerId: player?.id, partnerName: player?.name } });
+  };
+
+  const submitStats = async () => {
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      const payload: Record<string, unknown> = {
+        playerId,
+        athleteName: player?.name ?? '',
+        season: form.season || undefined,
+        position: form.position || undefined,
+        passingTds: form.passingTds ? Number(form.passingTds) : undefined,
+        rushingTds: form.rushingTds ? Number(form.rushingTds) : undefined,
+        receivingTds: form.receivingTds ? Number(form.receivingTds) : undefined,
+        defensiveTds: form.defensiveTds ? Number(form.defensiveTds) : undefined,
+        sacks: form.sacks ? Number(form.sacks) : undefined,
+        fortyYardDash: form.fortyYardDash ? Number(form.fortyYardDash) : undefined,
+        verticalJump: form.verticalJump ? Number(form.verticalJump) : undefined,
+        shuttle5105: form.shuttle5105 ? Number(form.shuttle5105) : undefined,
+        source: form.maxprepsUrl || undefined,
+        notes: form.notes || undefined,
+      };
+      await apiFetch('/api/parent/stat-submissions', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+      setSubmitted(true);
+      showNotification('success', 'Stats Submitted', 'Your submission is pending review.');
+    } catch (err) {
+      setSubmitError(errorMessage(err, 'Failed to submit stats. Please try again.'));
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   // Premium ShareCard trigger — reuses the existing off-screen export (Profile
@@ -264,7 +353,9 @@ export const PlayerProfile = () => {
   }
 
   const avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(player.name || '')}`;
+  const isVerified = player.verified ?? player.verificationStatus === 'verified';
   const hasRatingCard = player.g5Rating != null;
+  const canSubmitStats = isAuthenticated && user?.role === 'parent';
 
   return (
     <div style={{ padding: '24px', maxWidth: 800, margin: '0 auto' }}>
@@ -333,7 +424,7 @@ export const PlayerProfile = () => {
                 <h1 style={{ fontFamily: type.font.display, fontWeight: type.weight.bold, fontSize: type.size['2xl'], textTransform: 'uppercase', color: text.primary, margin: 0, letterSpacing: type.tracking.h1 }}>
                   {player.name}
                 </h1>
-                {player.verified && <CheckCircle2 size={16} color={colors.neonOn} fill={colors.neon} />}
+                {isVerified && <CheckCircle2 size={16} color={colors.neonOn} fill={colors.neon} />}
               </div>
               {player.position && (
                 <Badge tone="accent" style={{ marginBottom: 8 }}>{player.position}</Badge>
@@ -399,11 +490,18 @@ export const PlayerProfile = () => {
       )}
 
       {/* Stats from API */}
-      {stats.length > 0 && (
+      {(stats.length > 0 || canSubmitStats) && (
         <Card style={{ padding: 20 }}>
-          <h2 style={{ fontFamily: type.font.display, fontWeight: type.weight.bold, fontSize: type.size.md, textTransform: 'uppercase', color: text.tertiary, marginBottom: 16, letterSpacing: type.tracking.h2 }}>
-            Game Stats
-          </h2>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <h2 style={{ fontFamily: type.font.display, fontWeight: type.weight.bold, fontSize: type.size.md, textTransform: 'uppercase', color: text.tertiary, letterSpacing: type.tracking.h2, margin: 0 }}>
+              Game Stats
+            </h2>
+            {canSubmitStats && (
+              <Button variant="ghost" size="sm" onClick={() => setSubmitStatsOpen(true)}>
+                <Plus size={14} /> Submit Stats
+              </Button>
+            )}
+          </div>
           {stats.map((s, i) => (
             <div key={i} style={{ fontSize: type.size.base, color: text.secondary, padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
               {s.season && <span style={{ color: colors.accent, marginRight: 8 }}>{s.season}</span>}
@@ -412,8 +510,95 @@ export const PlayerProfile = () => {
               {s.completionPct !== undefined && <span>Comp%: <b style={{ color: text.primary }}>{s.completionPct}%</b></span>}
             </div>
           ))}
+          {stats.length === 0 && canSubmitStats && (
+            <p style={{ fontSize: type.size.base, color: colors.textTertiary, margin: 0 }}>No stats recorded yet. Use the button above to submit game or combine data for review.</p>
+          )}
         </Card>
       )}
+
+      {/* ── Submit Stats Modal ───────────────────────────────────── */}
+      <AnimatePresence>
+        {submitStatsOpen && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+            onClick={() => !submitting && setSubmitStatsOpen(false)}>
+            <motion.div initial={{ opacity: 0, scale: 0.96, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.96, y: 10 }}
+              transition={springs.snappy}
+              style={{ background: colors.surface1, border: `1px solid ${colors.border}`, borderRadius: radii.lg, padding: '24px 20px', width: '100%', maxWidth: 480, maxHeight: '88vh', overflowY: 'auto', position: 'relative' }}
+              onClick={e => e.stopPropagation()}>
+
+              <button onClick={() => !submitting && setSubmitStatsOpen(false)} style={{ position: 'absolute', top: 12, right: 14, background: 'none', border: 'none', cursor: 'pointer', color: colors.textTertiary, padding: 4, lineHeight: 1 }} aria-label="Close">
+                <X size={18} />
+              </button>
+
+              {submitted ? (
+                <div style={{ textAlign: 'center', padding: '24px 0' }}>
+                  <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'rgba(139,59,255,0.12)', border: `1px solid ${colors.borderStrong}`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}>
+                    <CheckCircle2 size={24} color={colors.accent} />
+                  </div>
+                  <div style={{ fontFamily: type.font.display, fontSize: type.size.xl, fontWeight: type.weight.bold, textTransform: 'uppercase', color: colors.textPrimary, marginBottom: 6 }}>Submitted for Review</div>
+                  <p style={{ fontSize: type.size.base, color: colors.textSecondary, margin: '0 0 20px', lineHeight: 1.5 }}>
+                    Thanks — a coach will verify these numbers and update the profile once confirmed.
+                  </p>
+                  <Button onClick={() => { setSubmitted(false); setSubmitStatsOpen(false); }}>Done</Button>
+                </div>
+              ) : (
+                <form onSubmit={async e => { e.preventDefault(); await submitStats(); }}>
+                  <div style={{ marginBottom: 18 }}>
+                    <div style={{ fontSize: type.size.xs, fontWeight: type.weight.bold, letterSpacing: '0.1em', textTransform: 'uppercase', color: colors.accent, marginBottom: 4 }}>Parent Stat Submission</div>
+                    <div style={{ fontSize: type.size.sm, color: colors.textSecondary }}>Submit game / combine data for <span style={{ color: colors.textPrimary, fontWeight: type.weight.bold }}>{player.name}</span>.</div>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                      <Field label="Season" value={form.season} onChange={v => setForm(f => ({ ...f, season: v }))} placeholder="e.g. Fall 2026" />
+                      <Field label="Position" value={form.position} onChange={v => setForm(f => ({ ...f, position: v }))} placeholder="e.g. QB, WR" />
+                    </div>
+
+                    <div style={{ fontSize: type.size.xs, fontWeight: type.weight.bold, letterSpacing: '0.1em', textTransform: 'uppercase', color: colors.textTertiary, marginTop: 4 }}>Game Stats</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                      <NumField label="Pass TDs" value={form.passingTds} onChange={v => setForm(f => ({ ...f, passingTds: v }))} placeholder="0" />
+                      <NumField label="Rush TDs" value={form.rushingTds} onChange={v => setForm(f => ({ ...f, rushingTds: v }))} placeholder="0" />
+                      <NumField label="Rec TDs" value={form.receivingTds} onChange={v => setForm(f => ({ ...f, receivingTds: v }))} placeholder="0" />
+                      <NumField label="Def TDs" value={form.defensiveTds} onChange={v => setForm(f => ({ ...f, defensiveTds: v }))} placeholder="0" />
+                      <NumField label="Sacks" value={form.sacks} onChange={v => setForm(f => ({ ...f, sacks: v }))} placeholder="0" />
+                    </div>
+
+                    <div style={{ fontSize: type.size.xs, fontWeight: type.weight.bold, letterSpacing: '0.1em', textTransform: 'uppercase', color: colors.textTertiary, marginTop: 4 }}>Combine</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+                      <NumField label="40 Yard" value={form.fortyYardDash} onChange={v => setForm(f => ({ ...f, fortyYardDash: v }))} placeholder="5.2" inputMode="decimal" />
+                      <NumField label="Vertical" value={form.verticalJump} onChange={v => setForm(f => ({ ...f, verticalJump: v }))} placeholder="22" inputMode="decimal" />
+                      <NumField label="Shuttle" value={form.shuttle5105} onChange={v => setForm(f => ({ ...f, shuttle5105: v }))} placeholder="4.8" inputMode="decimal" />
+                    </div>
+
+                    <Field label="MaxPreps / Source URL" value={form.maxprepsUrl} onChange={v => setForm(f => ({ ...f, maxprepsUrl: v }))} placeholder="https://www.maxpreps.com/..." />
+                    <div>
+                      <label style={{ display: 'block', fontSize: type.size.xs, fontWeight: type.weight.bold, letterSpacing: '0.08em', textTransform: 'uppercase', color: colors.textSecondary, marginBottom: 6 }}>Verification Notes</label>
+                      <textarea
+                        value={form.notes}
+                        onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
+                        placeholder="Describe the game, opponent, date, or how these stats were recorded..."
+                        rows={3}
+                        className="k-input"
+                        style={{ width: '100%', background: colors.surface0, border: `1px solid ${colors.border}`, borderRadius: radii.sm, padding: '10px 12px', color: colors.textPrimary, fontSize: type.size.base, outline: 'none', resize: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }}
+                      />
+                    </div>
+
+                    {submitError && (
+                      <div style={{ padding: '10px 12px', background: 'rgba(255,90,90,0.1)', border: `1px solid ${colors.borderStrong}`, borderRadius: radii.sm, color: colors.dangerText, fontSize: type.size.base }}>{submitError}</div>
+                    )}
+                  </div>
+
+                  <div style={{ display: 'flex', gap: 8, marginTop: 20 }}>
+                    <Button variant="ghost" type="button" onClick={() => setSubmitStatsOpen(false)} disabled={submitting}>Cancel</Button>
+                    <Button type="submit" loading={submitting} disabled={submitting} className="flex-1">{submitting ? 'Submitting...' : 'Submit for Review'}</Button>
+                  </div>
+                </form>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Off-screen export target for the rating card (never user-visible). */}
       {shareCardData && (

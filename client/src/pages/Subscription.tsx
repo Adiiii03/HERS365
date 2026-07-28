@@ -246,7 +246,7 @@ export const Subscription = () => {
                 {isNativePlatform && plan.price > 0 ? (
                   <motion.button
                     whileTap={{ scale: 0.96 }}
-                    onClick={() => window.open('https://hers365.vercel.app/subscribe', '_system')}
+                    onClick={() => window.open(`${window.location.origin}/subscribe`, '_system')}
                     style={{
                       width: '100%',
                       padding: '13px 20px',

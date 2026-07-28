@@ -21,7 +21,6 @@ import {
 } from 'lucide-react';
 import type { PlayerSearchResult } from '../../types';
 import { useNotifications } from '../../context/NotificationContext';
-import { apiFetch } from '../../lib/api';
 import { Button, Card, EmptyState, RowSkeleton } from '../../components/ui';
 import { colors, text, type as typeToken } from '../../lib/tokens';
 import { springs, staggerDelay } from '../../lib/motion';
@@ -87,6 +86,24 @@ const displayHeading = {
   fontFamily: typeToken.font.display,
   letterSpacing: typeToken.tracking.h1,
 } as const;
+
+async function coachFetch<T = any>(path: string, opts: RequestInit = {}): Promise<T> {
+  const token = localStorage.getItem('coachToken');
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...((opts.headers as Record<string, string> | undefined) ?? {}),
+  };
+  if (token) headers.Authorization = `Bearer ${token}`;
+  const res = await fetch(path, { ...opts, headers });
+  const text = await res.text();
+  const data = text ? JSON.parse(text) : null;
+  if (!res.ok) {
+    const err = new Error(data?.error || data?.message || `Request failed (${res.status})`) as any;
+    err.status = res.status;
+    throw err;
+  }
+  return data as T;
+}
 
 function StatusControl({
   status,
@@ -182,13 +199,13 @@ export function CoachRoster() {
   useEffect(() => {
     const load = async () => {
       try {
-        const boardRes = await apiFetch<{ board: Array<{ athleteId: number; tier: string; notes: string }> }>('/api/coach/board');
+        const boardRes = await coachFetch<{ board: Array<{ athleteId: number; tier: string; notes: string }> }>('/api/coach/board');
         const entries = boardRes.board ?? [];
 
         const rows = await Promise.all(
           entries.map(async (entry) => {
             try {
-              const player = await apiFetch<PlayerApiRow>(`/api/players/${entry.athleteId}`);
+              const player = await coachFetch<PlayerApiRow>(`/api/players/${entry.athleteId}`);
               return player ? { entry, player } : null;
             } catch { return null; }
           })
@@ -240,7 +257,7 @@ export function CoachRoster() {
     const athlete = roster.find((a) => a.id === id);
     setRoster((prev) => prev.map((a) => (a.id === id ? { ...a, status } : a)));
     showNotification('success', 'Status Updated', `${athlete?.name} moved to ${statusMeta(status).label}.`);
-    apiFetch(`/api/coach/players/${id}/tier`, {
+    coachFetch(`/api/coach/players/${id}/tier`, {
       method: 'PATCH',
       body: JSON.stringify({ tier: statusToTier(status) }),
     }).catch(() => {});
@@ -251,7 +268,7 @@ export function CoachRoster() {
     setRoster((prev) => prev.filter((a) => a.id !== id));
     if (editingNotes === id) setEditingNotes(null);
     showNotification('info', 'Removed from Roster', `${athlete?.name} was removed from your roster.`);
-    apiFetch(`/api/coach/players/${id}/save`, { method: 'DELETE' }).catch(() => {});
+    coachFetch(`/api/coach/players/${id}/save`, { method: 'DELETE' }).catch(() => {});
   };
 
   const startEditNotes = (id: number, current: string) => {
@@ -266,7 +283,7 @@ export function CoachRoster() {
     setEditingNotes(null);
     setNotesDraft('');
     showNotification('success', 'Notes Saved', `Notes updated for ${athlete?.name}.`);
-    apiFetch(`/api/coach/players/${id}/notes`, {
+    coachFetch(`/api/coach/players/${id}/notes`, {
       method: 'PATCH',
       body: JSON.stringify({ notes: notesToSave }),
     }).catch(() => {});
