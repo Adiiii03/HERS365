@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import type { CoachAnalytics as CoachAnalyticsType, PlayerClip } from '../../types';
 import { useNotifications } from '../../context/NotificationContext';
+import { StatsVerificationStatus } from '../../components/StatsVerificationStatus';
 import { Button, Card, EmptyState, StatCardSkeleton, CardSkeleton } from '../../components/ui';
 import { colors, radii, type as typeTokens } from '../../lib/tokens';
 
@@ -26,7 +27,10 @@ export function CoachDashboard() {
   // Set true if any coach endpoint returns 403 with code COACH_PENDING_VERIFICATION.
   // Replaces the "all zeros" cold render with an explicit status message.
   const [pendingVerification, setPendingVerification] = useState(false);
+  const [verifiedStatsOnly, setVerifiedStatsOnly] = useState(false);
   const { showNotification } = useNotifications();
+
+  const visibleClips = verifiedStatsOnly ? clips.filter((clip) => clip.verified) : clips;
 
   useEffect(() => {
     fetchAnalytics();
@@ -284,14 +288,25 @@ export function CoachDashboard() {
 
           {/* Trending Players */}
           <Card className="p-6">
-            <h3
-              className="text-lg font-semibold mb-4"
-              style={{ fontFamily: display, color: colors.textPrimary }}
-            >
-              Trending Players
-            </h3>
+            <div className="flex items-start justify-between gap-4 mb-4">
+              <h3
+                className="text-lg font-semibold"
+                style={{ fontFamily: display, color: colors.textPrimary }}
+              >
+                Trending Players
+              </h3>
+              <label className="flex items-center gap-2 text-sm cursor-pointer shrink-0" style={{ color: colors.textSecondary }}>
+                <input
+                  type="checkbox"
+                  checked={verifiedStatsOnly}
+                  onChange={(e) => setVerifiedStatsOnly(e.target.checked)}
+                  className="w-4 h-4 accent-accent-500 rounded"
+                />
+                Verified Stats Only
+              </label>
+            </div>
             <div className="space-y-4">
-              {clips.slice(0, 5).map((clip) => (
+              {visibleClips.slice(0, 5).map((clip) => (
                 <div
                   key={clip.id}
                   className="flex items-center gap-4 p-3 transition-colors"
@@ -315,6 +330,9 @@ export function CoachDashboard() {
                   <div className="flex-1">
                     <h4 className="font-medium" style={{ color: colors.textPrimary }}>{clip.name}</h4>
                     <p className="text-sm" style={{ color: colors.textSecondary }}>{clip.position} • {clip.school}</p>
+                    <div className="mt-1.5">
+                      <StatsVerificationStatus verified={clip.verified} />
+                    </div>
                     <div className="flex items-center gap-2 mt-1">
                       <div className="flex items-center gap-1">
                         {Array.from({ length: 5 }, (_, i) => (
@@ -335,6 +353,13 @@ export function CoachDashboard() {
                   </div>
                 </div>
               ))}
+              {visibleClips.length === 0 && (
+                <p className="text-sm text-center py-4" style={{ color: colors.textSecondary }}>
+                  {verifiedStatsOnly
+                    ? 'No verified-stat players in trending right now.'
+                    : 'No trending players yet.'}
+                </p>
+              )}
             </div>
           </Card>
         </div>
@@ -366,9 +391,15 @@ export function CoachDashboard() {
               <p className="mb-4" style={{ color: colors.textSecondary }}>Could not load player highlights.</p>
               <Button onClick={() => { setLoading(true); fetchClips(); }}>Retry</Button>
             </div>
+          ) : visibleClips.length === 0 ? (
+            <p className="text-sm text-center py-12" style={{ color: colors.textSecondary }}>
+              {verifiedStatsOnly
+                ? 'No verified-stat highlights to show. Turn off Verified Stats Only to see all clips.'
+                : 'No player highlights yet.'}
+            </p>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {clips.slice(0, 6).map((clip) => (
+              {visibleClips.slice(0, 6).map((clip) => (
                 <Card key={clip.id} hover className="overflow-hidden">
                   <div className="aspect-video relative" style={{ backgroundColor: colors.surface2 }}>
                     {clip.thumbnailUrl ? (
@@ -401,6 +432,9 @@ export function CoachDashboard() {
 
                   <div className="p-4">
                     <h3 className="font-medium mb-2 line-clamp-2" style={{ color: colors.textPrimary }}>{clip.title}</h3>
+                    <div className="mb-3">
+                      <StatsVerificationStatus verified={clip.verified} />
+                    </div>
 
                     <div className="flex items-center justify-between text-sm mb-3" style={{ color: colors.textSecondary }}>
                       <div className="flex items-center gap-4">
