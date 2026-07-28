@@ -64,8 +64,8 @@ router.get('/player-subscription/:playerId', async (req: Request, res: Response,
     const subPlanId = subscription[0].planId;
     const plan = subPlanId != null
       ? await db.select()
-          .from(schema.subscriptionPlans)
-          .where(eq(schema.subscriptionPlans.id, subPlanId))
+        .from(schema.subscriptionPlans)
+        .where(eq(schema.subscriptionPlans.id, subPlanId))
       : [];
     res.json({ ...subscription[0], plan: plan[0] || null });
   } catch (err: any) {
@@ -135,6 +135,108 @@ router.get('/profile/stats', requireAuth, async (req: Request, res: Response, ne
     next(err);
   }
 });
+
+// Parent Stat Submissions
+router.post(
+  '/parent/stats/submit',
+  requireAuth,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const parentId = authUser(req)!.userId;
+
+      const {
+        playerId,
+
+        // Athlete identity
+        athleteEmail,
+        athleteName,
+        athleteDob,
+        gradYear,
+        position,
+        state,
+        division,
+        school,
+
+        // Season
+        season,
+
+        // Stats
+        passingTds,
+        rushingTds,
+        receivingTds,
+        defensiveTds,
+        sacks,
+        hersRating,
+        flagPulls,
+        interceptions,
+        passingYards,
+        receivingYards,
+        rushingYards,
+
+        // Combine
+        fortyYardDash,
+        verticalJump,
+        shuttle5105,
+        broadJump,
+
+        // Verification
+        notes,
+        maxPrepsUrl,
+      } = req.body;
+
+      if (!playerId) {
+        return res.status(400).json({
+          error: 'playerId is required',
+        });
+      }
+
+      const submission = await db
+        .insert(schema.parentStatSubmissions)
+        .values({
+          parentId,
+          playerId,
+
+          athleteEmail,
+          athleteName,
+          athleteDob,
+          gradYear,
+          position,
+          state,
+          division,
+          school,
+
+          season,
+
+          passingTds,
+          rushingTds,
+          receivingTds,
+          defensiveTds,
+          sacks,
+          hersRating,
+          flagPulls,
+          interceptions,
+          passingYards,
+          rushingYards,
+          receivingYards,
+
+          fortyYardDash,
+          verticalJump,
+          shuttle5105,
+          broadJump,
+
+          maxPrepsUrl,
+          source: 'parent_portal',
+          notes,
+          status: 'pending',
+        })
+        .returning();
+
+      res.json(submission[0]);
+    } catch (err: any) {
+      next(err);
+    }
+  }
+);
 
 // PLAYERS & TEAMS
 router.get('/players', optionalAuth, async (req: Request, res: Response, next: NextFunction) => {
