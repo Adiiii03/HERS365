@@ -3,10 +3,11 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
 import { MapPin, CheckCircle2, MessageSquare, ArrowLeft, UserPlus, UserCheck, Trophy } from 'lucide-react';
 import { tokens } from '../lib/tokens';
-import { Button, Card, Stat, Badge } from '../components/ui';
+import { Button, Card, Stat, Badge, Input, Sheet } from '../components/ui';
 import { variants, springs } from '../lib/motion';
 import { useHaptics } from '../lib/haptics';
 import { useNotifications } from '../context/NotificationContext';
+import { useAuth } from '../context/AuthContext';
 import { ShareCard } from '../components/ShareCard';
 import { toShareCard, type ShareCardData } from '../lib/shareCard';
 
@@ -78,6 +79,7 @@ export const PlayerProfile = () => {
   const navigate = useNavigate();
   const haptics = useHaptics();
   const { showNotification } = useNotifications();
+  const { user, token } = useAuth();
   const reduce = useReducedMotion() ?? false;
   const playerId = parseInt(id ?? '', 10);
 
@@ -92,6 +94,92 @@ export const PlayerProfile = () => {
   const shareCardRef = useRef<HTMLDivElement>(null);
   const [shareCardData, setShareCardData] = useState<ShareCardData | null>(null);
   const [exportingCard, setExportingCard] = useState(false);
+
+  // Parent Stat Submission Modal State
+  const [isParentModalOpen, setIsParentModalOpen] = useState(false);
+  const [parentSubmitting, setParentSubmitting] = useState(false);
+  const [parentFormData, setParentFormData] = useState({
+    season: '2026',
+    maxPrepsUrl: '',
+    passingTds: '',
+    rushingTds: '',
+    receivingTds: '',
+    passingYards: '',
+    rushingYards: '',
+    receivingYards: '',
+    flagPulls: '',
+    interceptions: '',
+    sacks: '',
+    fortyYardDash: '',
+    verticalJump: '',
+    shuttle5105: '',
+    broadJump: '',
+    notes: '',
+  });
+
+  const handleParentStatSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setParentSubmitting(true);
+    try {
+      const payload: Record<string, unknown> = {
+        playerId,
+        season: parentFormData.season || '2026',
+      };
+      if (parentFormData.maxPrepsUrl) payload.maxPrepsUrl = parentFormData.maxPrepsUrl;
+      if (parentFormData.notes) payload.notes = parentFormData.notes;
+
+      const numFields = [
+        'passingTds', 'rushingTds', 'receivingTds', 'sacks',
+        'passingYards', 'rushingYards', 'receivingYards', 'flagPulls', 'interceptions',
+        'fortyYardDash', 'verticalJump', 'shuttle5105', 'broadJump'
+      ];
+      for (const field of numFields) {
+        const val = (parentFormData as any)[field];
+        if (val !== '' && val != null) {
+          const n = Number(val);
+          if (!isNaN(n)) payload[field] = n;
+        }
+      }
+
+      const res = await fetch('/api/parent/stats/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token || ''}`,
+        },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (res.ok && data.success !== false) {
+        showNotification('Submission Received', 'Your stats & MaxPreps URL have been sent to our moderation queue for verification.', 'success');
+        setIsParentModalOpen(false);
+        setParentFormData({
+          season: '2026',
+          maxPrepsUrl: '',
+          passingTds: '',
+          rushingTds: '',
+          receivingTds: '',
+          passingYards: '',
+          rushingYards: '',
+          receivingYards: '',
+          flagPulls: '',
+          interceptions: '',
+          sacks: '',
+          fortyYardDash: '',
+          verticalJump: '',
+          shuttle5105: '',
+          broadJump: '',
+          notes: '',
+        });
+      } else {
+        showNotification('Submission Failed', data?.error || 'Could not submit stats. Please check fields and try again.', 'error');
+      }
+    } catch {
+      showNotification('Error', 'Network error while submitting stats.', 'error');
+    } finally {
+      setParentSubmitting(false);
+    }
+  };
 
   // Signature #2: subtle pointer parallax on the hero bloom. Reduced motion
   // pins it dead center. Values are normalized -1..1 off the header midpoint.
@@ -333,7 +421,12 @@ export const PlayerProfile = () => {
                 <h1 style={{ fontFamily: type.font.display, fontWeight: type.weight.bold, fontSize: type.size['2xl'], textTransform: 'uppercase', color: text.primary, margin: 0, letterSpacing: type.tracking.h1 }}>
                   {player.name}
                 </h1>
-                {player.verified && <CheckCircle2 size={16} color={colors.neonOn} fill={colors.neon} />}
+                {(player.verified || player.verificationStatus === 'verified') && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <CheckCircle2 size={18} color={colors.neonOn} fill={colors.neon} title="Verified Athlete" />
+                    <Badge tone="neon" style={{ fontSize: '0.68rem', padding: '2px 8px' }}>Verified MaxPreps</Badge>
+                  </div>
+                )}
               </div>
               {player.position && (
                 <Badge tone="accent" style={{ marginBottom: 8 }}>{player.position}</Badge>
@@ -398,22 +491,195 @@ export const PlayerProfile = () => {
         </Card>
       )}
 
-      {/* Stats from API */}
-      {stats.length > 0 && (
+      {/* Stats from API & Parent Submission Action */}
+      {(stats.length > 0 || user?.role === 'parent' || user?.role === 'admin') && (
         <Card style={{ padding: 20 }}>
-          <h2 style={{ fontFamily: type.font.display, fontWeight: type.weight.bold, fontSize: type.size.md, textTransform: 'uppercase', color: text.tertiary, marginBottom: 16, letterSpacing: type.tracking.h2 }}>
-            Game Stats
-          </h2>
-          {stats.map((s, i) => (
-            <div key={i} style={{ fontSize: type.size.base, color: text.secondary, padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-              {s.season && <span style={{ color: colors.accent, marginRight: 8 }}>{s.season}</span>}
-              {s.touchdowns !== undefined && <span style={{ marginRight: 12 }}>TDs: <b style={{ color: text.primary }}>{s.touchdowns}</b></span>}
-              {s.yards !== undefined && <span style={{ marginRight: 12 }}>Yds: <b style={{ color: text.primary }}>{s.yards}</b></span>}
-              {s.completionPct !== undefined && <span>Comp%: <b style={{ color: text.primary }}>{s.completionPct}%</b></span>}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <h2 style={{ fontFamily: type.font.display, fontWeight: type.weight.bold, fontSize: type.size.md, textTransform: 'uppercase', color: text.tertiary, margin: 0, letterSpacing: type.tracking.h2 }}>
+                Game Stats & Combine
+              </h2>
+              {(player.verified || player.verificationStatus === 'verified') && (
+                <Badge tone="neon">Admin Verified</Badge>
+              )}
             </div>
-          ))}
+            {(user?.role === 'parent' || user?.role === 'admin') && (
+              <Button variant="outline" size="sm" onClick={() => setIsParentModalOpen(true)}>
+                + Submit Stats & MaxPreps URL
+              </Button>
+            )}
+          </div>
+
+          {stats.length > 0 ? (
+            stats.map((s, i) => (
+              <div key={i} style={{ fontSize: type.size.base, color: text.secondary, padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.04)', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(135px, 1fr))', gap: 8 }}>
+                {s.season && <span style={{ color: colors.accent }}>Season: <b style={{ color: text.primary }}>{s.season}</b></span>}
+                {(s.passingTds !== undefined || s.touchdowns !== undefined) && <span>Pass TDs: <b style={{ color: text.primary }}>{s.passingTds ?? s.touchdowns}</b></span>}
+                {s.rushingTds !== undefined && <span>Rush TDs: <b style={{ color: text.primary }}>{s.rushingTds}</b></span>}
+                {s.receivingTds !== undefined && <span>Rec TDs: <b style={{ color: text.primary }}>{s.receivingTds}</b></span>}
+                {(s.passingYards !== undefined || s.yards !== undefined) && <span>Pass Yds: <b style={{ color: text.primary }}>{s.passingYards ?? s.yards}</b></span>}
+                {s.rushingYards !== undefined && <span>Rush Yds: <b style={{ color: text.primary }}>{s.rushingYards}</b></span>}
+                {s.receivingYards !== undefined && <span>Rec Yds: <b style={{ color: text.primary }}>{s.receivingYards}</b></span>}
+                {s.flagPulls !== undefined && <span>Flag Pulls: <b style={{ color: text.primary }}>{s.flagPulls}</b></span>}
+                {s.interceptionsCaught !== undefined && <span>INTs: <b style={{ color: text.primary }}>{s.interceptionsCaught}</b></span>}
+                {s.completionPct !== undefined && <span>Comp%: <b style={{ color: text.primary }}>{s.completionPct}%</b></span>}
+              </div>
+            ))
+          ) : (
+            <p style={{ color: text.tertiary, fontSize: type.size.sm, margin: 0, padding: '8px 0' }}>
+              No verified game stats recorded for this athlete yet. Click "+ Submit Stats & MaxPreps URL" above to submit official stats and your MaxPreps profile for moderation review.
+            </p>
+          )}
         </Card>
       )}
+
+      {/* Parent Stat Submission Modal Sheet */}
+      <Sheet open={isParentModalOpen} onClose={() => setIsParentModalOpen(false)} label="Parent Stat Submission">
+        <form onSubmit={handleParentStatSubmit} className="flex flex-col gap-4 max-h-[72vh] overflow-y-auto pr-1">
+          <div>
+            <h3 style={{ fontFamily: type.font.display, fontWeight: type.weight.bold, fontSize: type.size.lg, textTransform: 'uppercase', color: text.primary, margin: 0 }}>
+              Submit Verified Athlete Stats
+            </h3>
+            <p style={{ color: text.tertiary, fontSize: type.size.xs, marginTop: 4 }}>
+              Input verified season performance and attach your MaxPreps profile link. Verified submissions unlock official ranking verification and badges.
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-3 p-3.5 rounded-xl border border-white/10 bg-white/[0.02]">
+            <span className="text-xs font-semibold uppercase tracking-wider text-[#FF2E93]">1. Source & Profile</span>
+            <div className="grid grid-cols-2 gap-3">
+              <Input
+                label="Season"
+                value={parentFormData.season}
+                onChange={(e) => setParentFormData({ ...parentFormData, season: e.target.value })}
+                placeholder="2026"
+              />
+              <Input
+                label="MaxPreps Athlete URL"
+                value={parentFormData.maxPrepsUrl}
+                onChange={(e) => setParentFormData({ ...parentFormData, maxPrepsUrl: e.target.value })}
+                placeholder="https://maxpreps.com/athlete/..."
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-3 p-3.5 rounded-xl border border-white/10 bg-white/[0.02]">
+            <span className="text-xs font-semibold uppercase tracking-wider text-[#8B3BFF]">2. Touchdowns & Yards</span>
+            <div className="grid grid-cols-2 gap-3">
+              <Input
+                label="Passing TDs"
+                type="number"
+                value={parentFormData.passingTds}
+                onChange={(e) => setParentFormData({ ...parentFormData, passingTds: e.target.value })}
+                placeholder="0"
+              />
+              <Input
+                label="Passing Yards"
+                type="number"
+                value={parentFormData.passingYards}
+                onChange={(e) => setParentFormData({ ...parentFormData, passingYards: e.target.value })}
+                placeholder="0"
+              />
+              <Input
+                label="Rushing TDs"
+                type="number"
+                value={parentFormData.rushingTds}
+                onChange={(e) => setParentFormData({ ...parentFormData, rushingTds: e.target.value })}
+                placeholder="0"
+              />
+              <Input
+                label="Rushing Yards"
+                type="number"
+                value={parentFormData.rushingYards}
+                onChange={(e) => setParentFormData({ ...parentFormData, rushingYards: e.target.value })}
+                placeholder="0"
+              />
+              <Input
+                label="Receiving TDs"
+                type="number"
+                value={parentFormData.receivingTds}
+                onChange={(e) => setParentFormData({ ...parentFormData, receivingTds: e.target.value })}
+                placeholder="0"
+              />
+              <Input
+                label="Receiving Yards"
+                type="number"
+                value={parentFormData.receivingYards}
+                onChange={(e) => setParentFormData({ ...parentFormData, receivingYards: e.target.value })}
+                placeholder="0"
+              />
+              <Input
+                label="Flag Pulls / Tackles"
+                type="number"
+                value={parentFormData.flagPulls}
+                onChange={(e) => setParentFormData({ ...parentFormData, flagPulls: e.target.value })}
+                placeholder="0"
+              />
+              <Input
+                label="Interceptions Caught"
+                type="number"
+                value={parentFormData.interceptions}
+                onChange={(e) => setParentFormData({ ...parentFormData, interceptions: e.target.value })}
+                placeholder="0"
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-3 p-3.5 rounded-xl border border-white/10 bg-white/[0.02]">
+            <span className="text-xs font-semibold uppercase tracking-wider text-[#00E5FF]">3. Combine Measurables</span>
+            <div className="grid grid-cols-2 gap-3">
+              <Input
+                label="40-Yard Dash (s)"
+                type="number"
+                step="0.01"
+                value={parentFormData.fortyYardDash}
+                onChange={(e) => setParentFormData({ ...parentFormData, fortyYardDash: e.target.value })}
+                placeholder="4.81"
+              />
+              <Input
+                label="Vertical Jump (in)"
+                type="number"
+                step="0.1"
+                value={parentFormData.verticalJump}
+                onChange={(e) => setParentFormData({ ...parentFormData, verticalJump: e.target.value })}
+                placeholder="28.5"
+              />
+              <Input
+                label="5-10-5 Shuttle (s)"
+                type="number"
+                step="0.01"
+                value={parentFormData.shuttle5105}
+                onChange={(e) => setParentFormData({ ...parentFormData, shuttle5105: e.target.value })}
+                placeholder="4.32"
+              />
+              <Input
+                label="Broad Jump (in)"
+                type="number"
+                step="0.1"
+                value={parentFormData.broadJump}
+                onChange={(e) => setParentFormData({ ...parentFormData, broadJump: e.target.value })}
+                placeholder="84"
+              />
+            </div>
+          </div>
+
+          <Input
+            label="Verification Notes"
+            value={parentFormData.notes}
+            onChange={(e) => setParentFormData({ ...parentFormData, notes: e.target.value })}
+            placeholder="Optional context or link to video highlights"
+          />
+
+          <div className="flex items-center justify-end gap-3 mt-2 pt-2 border-t border-white/10">
+            <Button type="button" variant="ghost" onClick={() => setIsParentModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" variant="primary" loading={parentSubmitting}>
+              Submit for Verification
+            </Button>
+          </div>
+        </form>
+      </Sheet>
 
       {/* Off-screen export target for the rating card (never user-visible). */}
       {shareCardData && (

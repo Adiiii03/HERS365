@@ -57,7 +57,7 @@ type RankMeResponse =
 
 const positions = POSITION_FILTERS;
 
-const PER_PAGE = 25;
+const PER_PAGE = 50;
 
 // One-time-per-mount count-up. Fast in, slow at the line (easeOutExpo).
 // Reduced-motion lands on the target instantly with no animation frames.
@@ -713,14 +713,25 @@ export const Rankings = () => {
           <span className="tnum" style={{ fontSize: T.size.xs, color: colors.textTertiary }}>
             Page {page} of {totalPages} · {total} athletes
           </span>
-          <Button
-            variant="ghost"
-            size="sm"
-            disabled={page >= totalPages}
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-          >
-            Next
-          </Button>
+          {user?.role === 'athlete' && (!user.subscriptionTier || user.subscriptionTier === 'free' || user.subscriptionTier === 'rookie') && page === 1 ? (
+            <Button
+              variant="default"
+              size="sm"
+              onClick={() => navigate('/subscribe')}
+              style={{ background: colors.accent, color: colors.accentOn }}
+            >
+              Upgrade to Pro for more
+            </Button>
+          ) : (
+            <Button
+              variant="ghost"
+              size="sm"
+              disabled={page >= totalPages}
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            >
+              Next
+            </Button>
+          )}
         </div>
       )}
 

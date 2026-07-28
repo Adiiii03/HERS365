@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutGrid, Trophy, User, Dumbbell, Search,
-  Settings, MessageSquare, Plus, LogOut
+  Settings, MessageSquare, Plus, LogOut, Compass
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
@@ -25,6 +25,7 @@ const nav: NavItem[] = [
   { icon: LayoutGrid,    label: 'THE GRID',   path: '/feed' },
   { icon: Trophy,        label: 'RANKINGS',   path: '/rankings' },
   { icon: User,          label: 'MY PROFILE', path: '/profile' },
+  { icon: Compass,       label: 'THE HUB',    path: '/hub' },
   { icon: Dumbbell,      label: 'TRAINING',   path: '/training' },
   { icon: Search,        label: 'RECRUITING', path: '/recruiting' },
   { icon: MessageSquare, label: 'MESSAGES',   path: '/messages' },

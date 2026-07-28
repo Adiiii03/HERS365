@@ -1,5 +1,6 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { LogOut } from 'lucide-react';
+import { LogOut, LayoutGrid, Compass, MessageSquare, User } from 'lucide-react';
+import { BottomTabBar, NavTab } from './BottomTabBar';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { apiFetch } from '../lib/api';
@@ -10,6 +11,13 @@ export const ParentLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { logout } = useAuth();
+
+  const parentTabs: NavTab[] = [
+    { icon: LayoutGrid,    label: 'Dashboard', path: '/parent' },
+    { icon: Compass,       label: 'Hub',       path: '/hub' },
+    { icon: MessageSquare, label: 'Messages',  path: '/messages' },
+    { icon: User,          label: 'Profile',   path: '/profile' },
+  ];
 
   const handleSignOut = () => {
     apiFetch('/api/auth/logout', { method: 'POST' }).catch(() => {});
@@ -67,6 +75,7 @@ export const ParentLayout = () => {
           </motion.div>
         </AnimatePresence>
       </main>
+      <BottomTabBar tabs={parentTabs} />
     </div>
   );
 };

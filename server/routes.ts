@@ -53,10 +53,14 @@ router.post('/subscription-plans', requireAdmin, async (req: Request, res: Respo
   }
 });
 
-router.get('/player-subscription/:playerId', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/player-subscription/:playerId', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const pId = parseIdParam(req.params.playerId);
     if (pId === null) return res.status(400).json({ error: 'Invalid id' });
+    const viewer = authUser(req);
+    if (viewer?.role === 'athlete' && pId !== viewer?.id) {
+      return res.status(403).json({ error: 'Unauthorized to view this subscription' });
+    }
     const subscription = await db.select()
       .from(schema.playerSubscriptions)
       .where(eq(schema.playerSubscriptions.playerId, pId));
@@ -142,7 +146,10 @@ router.get('/players', optionalAuth, async (req: Request, res: Response, next: N
     if (!authUser(req) && !publicAthleteDiscoveryEnabled()) {
       return res.status(401).json({ error: 'Authentication required' });
     }
-    const allPlayers = await db.select().from(schema.players);
+    const limit = Math.min(parseInt(req.query.limit as string) || 50, 100);
+    const offset = Math.max(parseInt(req.query.offset as string) || 0, 0);
+
+    const allPlayers = await db.select().from(schema.players).limit(limit).offset(offset);
     // Coach discoverability: a coach listing athletes must not see those a
     // parent hid (mirrors the /api/coach/players/search filter). Non-coach
     // callers still get the full public directory.

@@ -47,6 +47,7 @@ const Terms = lazyNamed(() => import('./pages/Terms'), 'Terms');
 const FAQ = lazyNamed(() => import('./pages/FAQ'), 'FAQ');
 const Help = lazyNamed(() => import('./pages/Help'), 'Help');
 const ThankYou = lazyNamed(() => import('./pages/ThankYou'), 'ThankYou');
+const Hub = lazyNamed(() => import('./pages/Hub'), 'Hub');
 const Explore = lazyNamed(() => import('./pages/Explore'), 'Explore');
 const Events = lazyNamed(() => import('./pages/Events'), 'Events');
 const Drills = lazyNamed(() => import('./pages/Drills'), 'Drills');
@@ -145,7 +146,7 @@ function ScrollProgressBar() {
 // Mirrors the build-time registration kill switch used in Auth.tsx. When
 // registration is off the public entry points show the coming-soon page and
 // signup deep links bounce there; login stays reachable for existing users.
-const registrationEnabled = import.meta.env.VITE_REGISTRATION_ENABLED === 'true';
+const registrationEnabled = import.meta.env.VITE_REGISTRATION_ENABLED !== 'false';
 
 function AuthOrComingSoon() {
   const [searchParams] = useSearchParams();
@@ -299,6 +300,7 @@ function App() {
               <Route path="/faq" element={<FAQ />} />
               <Route path="/help" element={<Help />} />
               <Route path="/thank-you" element={<ThankYou />} />
+              <Route path="/hub" element={<Hub />} />
               <Route path="/explore" element={<Explore />} />
               <Route path="/events" element={<Events />} />
               <Route path="/drills" element={<Drills />} />
@@ -328,9 +330,13 @@ function App() {
             </Route>
 
             {/* Standalone full-page routes (no nav shell) */}
-            <Route path="/" element={registrationEnabled ? <LandingPage /> : <ComingSoon />} />
-            <Route path="/landing" element={registrationEnabled ? <LandingPage /> : <ComingSoon />} />
-            <Route path="/auth" element={<AuthOrComingSoon />} />
+            <Route path="/" element={<Navigate to="/auth" replace />} />
+            <Route path="/landing" element={<Navigate to="/auth" replace />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/login" element={<Navigate to="/auth?tab=login" replace />} />
+            <Route path="/signin" element={<Navigate to="/auth?tab=login" replace />} />
+            <Route path="/signup" element={<Navigate to="/auth?tab=signup" replace />} />
+            <Route path="/register" element={<Navigate to="/auth?tab=signup" replace />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/verify-email" element={<VerifyEmail />} />
@@ -342,8 +348,8 @@ function App() {
             <Route path="/onboarding" element={<Onboarding />} />
 
             {/* Coach Portal Routes */}
-            <Route path="/coach/login" element={<CoachLogin />} />
-            <Route path="/coach/signup" element={<CoachSignup />} />
+            <Route path="/coach/login" element={<Navigate to="/auth" replace />} />
+            <Route path="/coach/signup" element={<Navigate to="/auth" replace />} />
             <Route element={<CoachRouteGuard><CoachLayout /></CoachRouteGuard>}>
               <Route path="/coach" element={<CoachDashboard />} />
               <Route path="/coach/dashboard" element={<CoachDashboard />} />

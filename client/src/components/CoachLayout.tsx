@@ -16,6 +16,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { variants } from '../lib/motion';
 import { MobileNav } from './MobileNav';
+import { BottomTabBar, NavTab } from './BottomTabBar';
 import { EmptyState } from './ui';
 import { colors } from '../lib/tokens';
 
@@ -50,6 +51,14 @@ export const CoachLayout = () => {
   const coachNotifications: { id: number; title: string; message: string; time: string; unread: boolean; action: string }[] = [];
 
   const unreadCount = coachNotifications.filter(n => n.unread).length;
+
+  const coachTabs: NavTab[] = [
+    { icon: CircleGauge, label: 'Dash', path: '/coach/dashboard' },
+    { icon: Search, label: 'Search', path: '/coach/search' },
+    { icon: Users, label: 'Roster', path: '/coach/roster' },
+    { icon: ClipboardList, label: 'Board', path: '/coach/board' },
+    { icon: MessageSquare, label: 'Messages', path: '/coach/messages' },
+  ];
 
   const menuItems = [
     { icon: CircleGauge, label: 'Dashboard', path: '/coach/dashboard' },
@@ -227,6 +236,7 @@ export const CoachLayout = () => {
         accent={{ color: colors.accent, bg: 'rgba(139,59,255,0.1)', border: 'rgba(139,59,255,0.3)' }}
         title="Coach Portal"
       />
+      <BottomTabBar tabs={coachTabs} unreadMessages={unreadCount} />
     </div>
   );
 };
