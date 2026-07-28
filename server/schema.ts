@@ -658,6 +658,7 @@ export const athleteRankings = pgTable('athlete_rankings', {
   maxPrepsScore: doublePrecision('max_preps_score'),
   zybekScore: doublePrecision('zybek_score'),
   usaTalentIdScore: doublePrecision('usa_talent_id_score'),
+  tournamentPerformanceScore: doublePrecision('tournament_performance_score'),
   // Data source tracking
   dataSources: text('data_sources'),
   // Last update from each source
