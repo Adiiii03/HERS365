@@ -1,12 +1,8 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
+import { tokens } from '../lib/tokens';
 
-const INK = '#0a0a0a';
-const INK_2 = '#111111';
-const FLAME = '#ff5a2d';
-const LINE = 'rgba(255,255,255,0.07)';
-const MUTED = '#8a8a86';
-const WHITE = '#ffffff';
+const { colors, text, type, radii } = tokens;
 
 interface FAQItem {
   q: string;
@@ -101,7 +97,7 @@ const AccordionItem = ({
 }) => (
   <div
     style={{
-      borderBottom: `1px solid ${LINE}`,
+      borderBottom: `1px solid ${colors.border}`,
       overflow: 'hidden',
     }}
   >
@@ -122,12 +118,12 @@ const AccordionItem = ({
     >
       <span
         style={{
-          fontFamily: "'Barlow Condensed', sans-serif",
-          fontWeight: 700,
+          fontFamily: type.font.display,
+          fontWeight: type.weight.bold,
           fontSize: 17,
           letterSpacing: '0.03em',
           textTransform: 'uppercase',
-          color: isOpen ? FLAME : WHITE,
+          color: isOpen ? colors.accent : text.primary,
           lineHeight: 1.2,
           transition: 'color 0.2s ease',
         }}
@@ -136,7 +132,7 @@ const AccordionItem = ({
       </span>
       <ChevronDown
         size={18}
-        color={isOpen ? FLAME : MUTED}
+        color={isOpen ? colors.accent : text.secondary}
         style={{
           flexShrink: 0,
           transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
@@ -153,9 +149,9 @@ const AccordionItem = ({
     >
       <p
         style={{
-          fontFamily: "'DM Sans', sans-serif",
+          fontFamily: type.font.body,
           fontSize: 15,
-          color: MUTED,
+          color: text.secondary,
           lineHeight: 1.7,
           margin: 0,
           padding: '0 24px 20px',
@@ -178,21 +174,21 @@ export const FAQ = () => {
     <div
       style={{
         minHeight: '100vh',
-        background: INK,
+        background: colors.surface0,
         padding: '48px 24px 80px',
-        fontFamily: "'DM Sans', sans-serif",
+        fontFamily: type.font.body,
       }}
     >
       <div style={{ maxWidth: 720, margin: '0 auto' }}>
         <div style={{ marginBottom: 48 }}>
           <p
             style={{
-              fontFamily: "'Barlow Condensed', sans-serif",
-              fontWeight: 700,
+              fontFamily: type.font.display,
+              fontWeight: type.weight.bold,
               fontSize: 13,
               letterSpacing: '0.12em',
               textTransform: 'uppercase',
-              color: FLAME,
+              color: colors.accent,
               margin: '0 0 10px',
             }}
           >
@@ -200,12 +196,12 @@ export const FAQ = () => {
           </p>
           <h1
             style={{
-              fontFamily: "'Barlow Condensed', sans-serif",
-              fontWeight: 800,
+              fontFamily: type.font.display,
+              fontWeight: type.weight.bold,
               fontSize: 48,
               letterSpacing: '-0.01em',
               textTransform: 'uppercase',
-              color: WHITE,
+              color: text.primary,
               margin: '0 0 14px',
               lineHeight: 1,
             }}
@@ -214,9 +210,9 @@ export const FAQ = () => {
           </h1>
           <p
             style={{
-              fontFamily: "'DM Sans', sans-serif",
+              fontFamily: type.font.body,
               fontSize: 16,
-              color: MUTED,
+              color: text.secondary,
               margin: 0,
               lineHeight: 1.6,
             }}
@@ -231,12 +227,12 @@ export const FAQ = () => {
             <div key={category.label}>
               <p
                 style={{
-                  fontFamily: "'Barlow Condensed', sans-serif",
-                  fontWeight: 700,
+                  fontFamily: type.font.display,
+                  fontWeight: type.weight.bold,
                   fontSize: 11,
                   letterSpacing: '0.14em',
                   textTransform: 'uppercase',
-                  color: MUTED,
+                  color: text.secondary,
                   margin: '0 0 12px',
                 }}
               >
@@ -244,9 +240,9 @@ export const FAQ = () => {
               </p>
               <div
                 style={{
-                  background: INK_2,
-                  border: `1px solid ${LINE}`,
-                  borderRadius: 12,
+                  background: colors.surface1,
+                  border: `1px solid ${colors.border}`,
+                  borderRadius: radii.md,
                   overflow: 'hidden',
                 }}
               >
@@ -270,9 +266,9 @@ export const FAQ = () => {
           style={{
             marginTop: 56,
             padding: '28px 28px',
-            background: INK_2,
-            border: `1px solid ${LINE}`,
-            borderRadius: 12,
+            background: colors.surface1,
+            border: `1px solid ${colors.border}`,
+            borderRadius: radii.md,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -283,12 +279,12 @@ export const FAQ = () => {
           <div>
             <p
               style={{
-                fontFamily: "'Barlow Condensed', sans-serif",
-                fontWeight: 700,
+                fontFamily: type.font.display,
+                fontWeight: type.weight.bold,
                 fontSize: 18,
                 textTransform: 'uppercase',
                 letterSpacing: '0.04em',
-                color: WHITE,
+                color: text.primary,
                 margin: '0 0 4px',
               }}
             >
@@ -296,9 +292,9 @@ export const FAQ = () => {
             </p>
             <p
               style={{
-                fontFamily: "'DM Sans', sans-serif",
+                fontFamily: type.font.body,
                 fontSize: 14,
-                color: MUTED,
+                color: text.secondary,
                 margin: 0,
               }}
             >
@@ -308,15 +304,15 @@ export const FAQ = () => {
           <a
             href="/contact"
             style={{
-              fontFamily: "'Barlow Condensed', sans-serif",
-              fontWeight: 700,
+              fontFamily: type.font.display,
+              fontWeight: type.weight.bold,
               fontSize: 14,
               letterSpacing: '0.08em',
               textTransform: 'uppercase',
-              color: WHITE,
-              background: FLAME,
+              color: colors.accentOn,
+              background: colors.accent,
               border: 'none',
-              borderRadius: 8,
+              borderRadius: radii.sm,
               padding: '12px 24px',
               cursor: 'pointer',
               textDecoration: 'none',

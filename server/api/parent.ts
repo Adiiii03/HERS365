@@ -8,6 +8,7 @@ import {
   parentRespondBody,
   parentSettingsBody,
   parentInviteBody,
+  parentStatSubmissionBody,
   idParam,
 } from '../middleware/safetySchemas';
 import { parseIdParam } from '../lib/parseIdParam';
@@ -224,6 +225,89 @@ router.get('/activity', async (req, res) => {
   } catch (err) {
     console.error('[parent/activity]', err);
     res.status(500).json({ success: false, error: 'Failed to fetch activity' });
+  }
+});
+
+// POST /api/parent/stat-submissions — parent-entered intake queue for the
+// ingestion workflow. This intentionally does not write official combine/game
+// stats directly; submitted rows stay pending for review/import.
+router.post('/stat-submissions', validateBody(parentStatSubmissionBody), async (req, res) => {
+  try {
+    const parentId = requireParent(req, res);
+    if (parentId == null) return;
+
+    const body = req.body ?? {};
+    let playerId: number | null = body.playerId ? Number(body.playerId) : null;
+
+    if (playerId != null) {
+      const childIds = await getChildIds(parentId);
+      if (!childIds.includes(playerId)) {
+        return res.status(403).json({ success: false, error: 'Not your child' });
+      }
+    } else if (body.athleteEmail) {
+      const [child] = await db
+        .select({ id: schema.players.id })
+        .from(schema.players)
+        .where(eq(schema.players.email, String(body.athleteEmail).toLowerCase().trim()))
+        .limit(1);
+      if (child) {
+        const childIds = await getChildIds(parentId);
+        if (!childIds.includes(child.id)) {
+          return res.status(403).json({ success: false, error: 'Not your child' });
+        }
+        playerId = child.id;
+      }
+    }
+
+    const [row] = await db.insert(schema.parentStatSubmissions).values({
+      parentId,
+      playerId,
+      athleteEmail: body.athleteEmail ?? null,
+      athleteName: body.athleteName,
+      athleteDob: body.athleteDob ? new Date(body.athleteDob) : null,
+      gradYear: body.gradYear ?? null,
+      position: body.position ?? null,
+      state: body.state ?? null,
+      division: body.division ?? null,
+      season: body.season ?? null,
+      passingTds: body.passingTds ?? null,
+      rushingTds: body.rushingTds ?? null,
+      receivingTds: body.receivingTds ?? null,
+      defensiveTds: body.defensiveTds ?? null,
+      sacks: body.sacks ?? null,
+      hersRating: body.hersRating ?? null,
+      fortyYardDash: body.fortyYardDash ?? null,
+      verticalJump: body.verticalJump ?? null,
+      shuttle5105: body.shuttle5105 ?? null,
+      source: body.source ?? 'parent_portal',
+      notes: body.notes ?? null,
+      status: 'pending',
+    }).returning();
+
+    res.status(201).json({ success: true, data: row });
+  } catch (err) {
+    console.error('[parent/stat-submissions POST]', err);
+    res.status(500).json({ success: false, error: 'Failed to submit stats' });
+  }
+});
+
+// GET /api/parent/stat-submissions — parent can review their own submitted
+// ingestion rows and current review status.
+router.get('/stat-submissions', async (req, res) => {
+  try {
+    const parentId = requireParent(req, res);
+    if (parentId == null) return;
+
+    const rows = await db
+      .select()
+      .from(schema.parentStatSubmissions)
+      .where(eq(schema.parentStatSubmissions.parentId, parentId))
+      .orderBy(desc(schema.parentStatSubmissions.submittedAt));
+
+    res.json({ success: true, data: rows });
+  } catch (err) {
+    console.error('[parent/stat-submissions GET]', err);
+    res.status(500).json({ success: false, error: 'Failed to fetch stat submissions' });
   }
 });
 

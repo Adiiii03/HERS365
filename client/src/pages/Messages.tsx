@@ -4,16 +4,24 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Send, Inbox, Clock, X, Shield, Check, CheckCheck, MessagesSquare, ShieldCheck, ArrowLeft, Search, AlertCircle, Zap, MoreVertical, Flag, Ban, ChevronDown, Filter } from 'lucide-react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { apiFetch } from '../lib/api';
+import { colors, type as t } from '../lib/tokens';
+import { Button } from '../components/ui';
 
-const FLAME = '#ff5a2d';
-const FLAME_SOFT = '#ff8c66';
-const INK = '#0a0a0a';
-const INK_2 = '#111111';
-const INK_3 = '#161616';
-const LINE = 'rgba(255,255,255,0.07)';
-const MUTED = '#8a8a86';
-const MUTED_2 = '#5a5a56';
-const DISP = "'Barlow Condensed', sans-serif";
+const {
+  accent: FLAME,
+  accentText: FLAME_SOFT,
+  surface0: INK,
+  surface1: INK_2,
+  surface2: INK_3,
+  border: LINE,
+  textSecondary: MUTED,
+  textTertiary: MUTED_2,
+  textPrimary: WHITE,
+  pinkText: DANGER_TEXT,
+  success: SAFE,
+} = colors;
+const NEUTRAL_BTN = colors.surface2;
+const DISP = t.font.display;
 
 interface Conversation {
   partnerId: number;
@@ -52,9 +60,9 @@ function Avatar({ name, size = 38 }: { name: string; size?: number }) {
     <span style={{
       width: size, height: size, borderRadius: '50%', flexShrink: 0,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontFamily: DISP, fontWeight: 800, fontSize: size * 0.36, color: '#fff', letterSpacing: '.02em',
+      fontFamily: DISP, fontWeight: 800, fontSize: size * 0.36, color: WHITE, letterSpacing: '.02em',
       background: `linear-gradient(135deg, hsl(${hue} 55% 32%), hsl(${(hue + 40) % 360} 60% 22%))`,
-      border: '1px solid rgba(255,255,255,0.08)',
+      border: `1px solid ${LINE}`,
     }}>{initials(name)}</span>
   );
 }
@@ -90,10 +98,10 @@ function RoleBadge({ role }: { role?: string }) {
   const isParent = r.includes('parent');
   if (!isCoach && !isParent && !r.includes('athlete')) return null;
   const label = isCoach ? 'COACH' : isParent ? 'PARENT' : 'ATHLETE';
-  const color = isCoach ? FLAME : isParent ? '#a78bfa' : '#4ade80';
+  const color = isCoach ? FLAME : isParent ? FLAME_SOFT : SAFE;
   return (
     <span style={{
-      fontSize: '0.55rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase',
+      fontSize: '0.55rem', fontWeight: t.weight.bold, letterSpacing: '0.08em', textTransform: 'uppercase',
       color, background: `${color}1a`, border: `1px solid ${color}33`,
       borderRadius: 5, padding: '1px 6px', flexShrink: 0, lineHeight: 1.5,
     }}>{label}</span>
@@ -263,14 +271,14 @@ export const Messages = () => {
   const activeConv = conversations.find((c) => c.partnerId === activePartner);
 
   return (
-    <div className="msg-root" style={{ display: 'flex', height: '100%', color: '#fff', background: INK }}>
+    <div className="msg-root" style={{ display: 'flex', height: '100%', color: WHITE, background: INK }}>
       <style>{`
         .msg-scroll::-webkit-scrollbar { width: 7px; height: 7px; }
         .msg-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
-        .msg-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255,90,45,0.4); }
+        .msg-scroll::-webkit-scrollbar-thumb:hover { background: rgba(139,59,255,0.4); }
         .msg-scroll::-webkit-scrollbar-track { background: transparent; }
         .msg-scroll { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.12) transparent; }
-        .msg-root button:focus-visible, .msg-root input:focus-visible, .msg-root textarea:focus-visible { outline: 2px solid rgba(255,90,45,0.55); outline-offset: 2px; border-radius: 6px; }
+        .msg-root button:focus-visible, .msg-root input:focus-visible, .msg-root textarea:focus-visible { outline: 2px solid rgba(139,59,255,0.55); outline-offset: 2px; border-radius: 6px; }
       `}</style>
       {/* ── Left: list ── */}
       <div style={{ width: isMobile ? '100%' : 332, borderRight: isMobile ? 'none' : `1px solid ${LINE}`, display: (isMobile && activePartner != null) ? 'none' : 'flex', flexDirection: 'column', flexShrink: 0 }}>
@@ -280,8 +288,8 @@ export const Messages = () => {
             MESSAGES
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 6, color: MUTED }}>
-            <ShieldCheck size={12} color="#4ade80" />
-            <span style={{ fontSize: '0.66rem', fontWeight: 600 }}>Parent-supervised · coach contact is parent-approved</span>
+            <ShieldCheck size={12} color={SAFE} />
+            <span style={{ fontSize: '0.66rem', fontWeight: t.weight.semibold }}>Parent-supervised · coach contact is parent-approved</span>
           </div>
         </div>
 
@@ -304,12 +312,12 @@ export const Messages = () => {
                   value={convSearch}
                   onChange={(e) => setConvSearch(e.target.value)}
                   placeholder="Search conversations"
-                  style={{ width: '100%', boxSizing: 'border-box', background: INK_3, border: `1px solid ${LINE}`, borderRadius: 9999, padding: '7px 12px 7px 32px', color: '#fff', fontSize: '0.76rem', outline: 'none' }}
+                  style={{ width: '100%', boxSizing: 'border-box', background: INK_3, border: `1px solid ${LINE}`, borderRadius: 9999, padding: '7px 12px 7px 32px', color: WHITE, fontSize: t.size.sm, outline: 'none' }}
                 />
               </div>
               <button
                 onClick={() => setUnreadOnly(v => !v)}
-                style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 5, background: unreadOnly ? FLAME : 'transparent', border: `1px solid ${unreadOnly ? FLAME : LINE}`, borderRadius: 9999, padding: '4px 10px', color: unreadOnly ? '#fff' : MUTED_2, fontSize: '0.65rem', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em' }}
+                style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 5, background: unreadOnly ? FLAME : 'transparent', border: `1px solid ${unreadOnly ? FLAME : LINE}`, borderRadius: 9999, padding: '4px 10px', color: unreadOnly ? WHITE : MUTED_2, fontSize: '0.65rem', fontWeight: t.weight.bold, cursor: 'pointer', letterSpacing: '0.06em' }}
               >
                 <Filter size={10} /> UNREAD ONLY
               </button>
@@ -334,9 +342,9 @@ export const Messages = () => {
                 onClick={() => setActivePartner(c.partnerId)}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 11, width: '100%', textAlign: 'left',
-                  padding: '12px 16px', background: active ? 'rgba(255,90,45,0.08)' : 'transparent',
+                  padding: '12px 16px', background: active ? 'rgba(139,59,255,0.08)' : 'transparent',
                   borderLeft: active ? `2px solid ${FLAME}` : '2px solid transparent',
-                  border: 'none', borderBottom: `1px solid ${LINE}`, cursor: 'pointer', color: '#fff',
+                  border: 'none', borderBottom: `1px solid ${LINE}`, cursor: 'pointer', color: WHITE,
                   transition: 'background 0.12s',
                 }}
                 onMouseEnter={(e) => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.03)'; }}
@@ -350,9 +358,9 @@ export const Messages = () => {
                     <span style={{ marginLeft: 'auto', fontSize: '0.66rem', color: MUTED_2, flexShrink: 0 }}>{timeAgo(c.lastMessageAt)}</span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 2 }}>
-                    <span style={{ flex: 1, fontSize: '0.74rem', color: c.unreadCount > 0 ? '#cfcfcc' : '#777', fontWeight: c.unreadCount > 0 ? 600 : 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.lastMessage}</span>
+                    <span style={{ flex: 1, fontSize: '0.74rem', color: c.unreadCount > 0 ? WHITE : MUTED_2, fontWeight: c.unreadCount > 0 ? t.weight.semibold : t.weight.regular, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.lastMessage}</span>
                     {c.unreadCount > 0 && (
-                      <span style={{ minWidth: 18, height: 18, borderRadius: 9999, background: FLAME, color: '#fff', fontSize: '0.62rem', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 5px', flexShrink: 0 }}>{c.unreadCount}</span>
+                      <span style={{ minWidth: 18, height: 18, borderRadius: 9999, background: FLAME, color: WHITE, fontSize: '0.62rem', fontWeight: t.weight.bold, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 5px', flexShrink: 0 }}>{c.unreadCount}</span>
                     )}
                   </div>
                 </div>
@@ -361,9 +369,9 @@ export const Messages = () => {
           })}
 
           {tab === 'requests' && (
-            <div style={{ padding: '12px 16px', display: 'flex', gap: 8, alignItems: 'flex-start', background: 'rgba(167,139,250,0.06)', borderBottom: `1px solid ${LINE}` }}>
-              <Shield size={14} color="#a78bfa" style={{ flexShrink: 0, marginTop: 1 }} />
-              <span style={{ fontSize: '0.7rem', color: '#cbb9f5', lineHeight: 1.4 }}>
+            <div style={{ padding: '12px 16px', display: 'flex', gap: 8, alignItems: 'flex-start', background: 'rgba(139,59,255,0.06)', borderBottom: `1px solid ${LINE}` }}>
+              <Shield size={14} color={FLAME_SOFT} style={{ flexShrink: 0, marginTop: 1 }} />
+              <span style={{ fontSize: '0.7rem', color: FLAME_SOFT, lineHeight: 1.4 }}>
                 Contact requests are parent-supervised. A parent reviews and approves before any conversation begins.
               </span>
             </div>
@@ -378,16 +386,16 @@ export const Messages = () => {
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
                 <Avatar name={r.senderName} size={34} />
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: '0.85rem', fontWeight: 700 }}>{r.senderName}</div>
+                  <div style={{ fontSize: t.size.base, fontWeight: t.weight.bold }}>{r.senderName}</div>
                   <div style={{ fontSize: '0.64rem', color: MUTED_2 }}>{timeAgo(r.createdAt)} ago</div>
                 </div>
               </div>
-              <div style={{ fontSize: '0.78rem', color: '#bdbdba', margin: '0 0 12px', lineHeight: 1.45, background: INK_2, border: `1px solid ${LINE}`, borderRadius: 10, padding: '10px 12px' }}>{r.content}</div>
+              <div style={{ fontSize: t.size.sm, color: MUTED, margin: '0 0 12px', lineHeight: 1.45, background: INK_2, border: `1px solid ${LINE}`, borderRadius: 10, padding: '10px 12px' }}>{r.content}</div>
               <div style={{ display: 'flex', gap: 8 }}>
                 <button onClick={() => respond.mutate({ id: r.id, action: 'approve' })} style={pillBtn(FLAME)}>
                   <Check size={13} /> Approve
                 </button>
-                <button onClick={() => respond.mutate({ id: r.id, action: 'reject' })} style={pillBtn('#262626')}>
+                <button onClick={() => respond.mutate({ id: r.id, action: 'reject' })} style={pillBtn(NEUTRAL_BTN)}>
                   <X size={13} /> Decline
                 </button>
               </div>
@@ -400,13 +408,13 @@ export const Messages = () => {
       <div style={{ flex: 1, display: (isMobile && activePartner == null) ? 'none' : 'flex', flexDirection: 'column', minWidth: 0 }}>
         {activePartner == null ? (
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14, color: MUTED_2, textAlign: 'center', padding: 24, position: 'relative', overflow: 'hidden' }}>
-            <div style={{ position: 'absolute', width: 440, height: 440, borderRadius: '50%', filter: 'blur(130px)', background: 'radial-gradient(circle, rgba(255,90,45,0.12), transparent 70%)', pointerEvents: 'none' }} />
+            <div style={{ position: 'absolute', width: 440, height: 440, borderRadius: '50%', filter: 'blur(130px)', background: 'radial-gradient(circle, rgba(139,59,255,0.12), transparent 70%)', pointerEvents: 'none' }} />
             <div style={{ width: 64, height: 64, borderRadius: 18, background: INK_2, border: `1px solid ${LINE}`, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
               <MessagesSquare size={28} color={MUTED_2} />
             </div>
             <div>
-              <div style={{ fontFamily: DISP, fontSize: '1.3rem', fontWeight: 800, textTransform: 'uppercase', color: '#e8e8e6', letterSpacing: '.02em' }}>Your conversations</div>
-              <div style={{ fontSize: '0.82rem', color: MUTED, marginTop: 4, maxWidth: 300 }}>Pick a conversation on the left, or start a new one. Everything here is parent-supervised.</div>
+              <div style={{ fontFamily: DISP, fontSize: t.size.xl, fontWeight: t.weight.bold, textTransform: 'uppercase', color: WHITE, letterSpacing: '.02em' }}>Your conversations</div>
+              <div style={{ fontSize: t.size.base, color: MUTED, marginTop: 4, maxWidth: 300 }}>Pick a conversation on the left, or start a new one. Everything here is parent-supervised.</div>
             </div>
           </div>
         ) : (
@@ -414,17 +422,17 @@ export const Messages = () => {
             {/* Thread header */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 20px', borderBottom: `1px solid ${LINE}`, background: INK, position: 'relative', zIndex: 1 }}>
               {isMobile && (
-                <button onClick={() => setActivePartner(null)} aria-label="Back" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#fff', padding: 0, display: 'flex', flexShrink: 0 }}>
+                <button onClick={() => setActivePartner(null)} aria-label="Back" style={{ background: 'none', border: 'none', cursor: 'pointer', color: WHITE, padding: 0, display: 'flex', flexShrink: 0 }}>
                   <ArrowLeft size={20} />
                 </button>
               )}
               <Avatar name={(activeConv?.partnerName ?? activePartnerName) || 'Conversation'} size={40} />
               <div style={{ minWidth: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                  <span style={{ fontWeight: 700, fontSize: '0.95rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{(activeConv?.partnerName ?? activePartnerName) || 'Conversation'}</span>
+                  <span style={{ fontWeight: t.weight.bold, fontSize: t.size.md, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{(activeConv?.partnerName ?? activePartnerName) || 'Conversation'}</span>
                   <RoleBadge role={activeConv?.partnerRole} />
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.66rem', color: '#4ade80', marginTop: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.66rem', color: SAFE, marginTop: 1 }}>
                   <ShieldCheck size={11} /> <span style={{ color: MUTED }}>Parent-supervised conversation</span>
                 </div>
               </div>
@@ -439,15 +447,15 @@ export const Messages = () => {
                     transition={{ duration: 0.14 }}
                     style={{ position: 'absolute', top: '100%', right: 0, marginTop: 6, width: 210, background: INK_2, border: `1px solid ${LINE}`, borderRadius: 12, boxShadow: '0 16px 40px rgba(0,0,0,0.6)', overflow: 'hidden', zIndex: 50 }}
                   >
-                    <button onClick={openReport} style={menuItemStyle('#f59e0b')}>
+                    <button onClick={openReport} style={menuItemStyle(DANGER_TEXT)}>
                       <Flag size={15} /> Report this person
                     </button>
                     {isBlocked ? (
-                      <button onClick={() => { if (activePartner != null) unblockM.mutate(activePartner); setMenuOpen(false); }} style={menuItemStyle('#4ade80')}>
+                      <button onClick={() => { if (activePartner != null) unblockM.mutate(activePartner); setMenuOpen(false); }} style={menuItemStyle(SAFE)}>
                         <Check size={15} /> Unblock
                       </button>
                     ) : (
-                      <button onClick={() => { if (activePartner != null) blockM.mutate(activePartner); }} style={menuItemStyle('#f87171')}>
+                      <button onClick={() => { if (activePartner != null) blockM.mutate(activePartner); }} style={menuItemStyle(DANGER_TEXT)}>
                         <Ban size={15} /> Block
                       </button>
                     )}
@@ -461,7 +469,7 @@ export const Messages = () => {
             <div ref={threadScrollRef} onScroll={handleThreadScroll} className="msg-scroll" style={{ height: '100%', overflowY: 'auto', padding: '20px 22px', display: 'flex', flexDirection: 'column', gap: 3 }}>
               {threadLoading && thread.length === 0 && <ThreadSkeleton />}
               {!threadLoading && thread.length === 0 && (
-                <div style={{ margin: 'auto', textAlign: 'center', color: MUTED_2, fontSize: '0.82rem' }}>
+                <div style={{ margin: 'auto', textAlign: 'center', color: MUTED_2, fontSize: t.size.base }}>
                   No messages yet — say hello 👋
                 </div>
               )}
@@ -487,9 +495,9 @@ export const Messages = () => {
                     )}
                     {i === firstUnreadIdx && firstUnreadIdx > 0 && (
                       <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '8px 0', color: FLAME }}>
-                        <span style={{ flex: 1, height: 1, background: 'rgba(255,90,45,0.3)' }} />
+                        <span style={{ flex: 1, height: 1, background: 'rgba(139,59,255,0.3)' }} />
                         <span style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase' }}>New</span>
-                        <span style={{ flex: 1, height: 1, background: 'rgba(255,90,45,0.3)' }} />
+                        <span style={{ flex: 1, height: 1, background: 'rgba(139,59,255,0.3)' }} />
                       </div>
                     )}
                     <motion.div
@@ -499,9 +507,9 @@ export const Messages = () => {
                       style={{ alignSelf: mine ? 'flex-end' : 'flex-start', maxWidth: '72%', display: 'flex', flexDirection: 'column', alignItems: mine ? 'flex-end' : 'flex-start', marginTop: grpPrev ? 2 : 9 }}>
                       <div style={{
                         background: mine ? `linear-gradient(135deg, ${FLAME}, ${FLAME_SOFT})` : INK_3,
-                        color: '#fff', padding: '9px 14px',
+                        color: WHITE, padding: '9px 14px',
                         borderRadius: radius,
-                        fontSize: '0.86rem', lineHeight: 1.4, border: mine ? 'none' : `1px solid ${LINE}`,
+                        fontSize: t.size.base, lineHeight: 1.4, border: mine ? 'none' : `1px solid ${LINE}`,
                         wordBreak: 'break-word',
                       }}>
                         {m.content}
@@ -523,7 +531,7 @@ export const Messages = () => {
             {showScrollBtn && (
               <button
                 onClick={() => threadEndRef.current?.scrollIntoView({ behavior: 'smooth' })}
-                style={{ position: 'absolute', bottom: 12, right: 16, zIndex: 10, background: INK_2, border: `1px solid ${LINE}`, borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 4px 16px rgba(0,0,0,0.5)' }}
+                style={{ position: 'absolute', bottom: 12, right: 16, zIndex: 10, background: INK_2, border: `1px solid ${LINE}`, borderRadius: '50%', width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 4px 16px rgba(0,0,0,0.5)' }}
                 aria-label="Scroll to bottom"
               >
                 <ChevronDown size={18} color={MUTED} />
@@ -534,18 +542,18 @@ export const Messages = () => {
             {/* Composer (or blocked notice) */}
             {isBlocked ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px 18px', borderTop: `1px solid ${LINE}`, background: INK }}>
-                <Ban size={16} color="#f87171" style={{ flexShrink: 0 }} />
-                <div style={{ flex: 1, fontSize: '0.8rem', color: MUTED }}>
+                <Ban size={16} color={DANGER_TEXT} style={{ flexShrink: 0 }} />
+                <div style={{ flex: 1, fontSize: t.size.sm, color: MUTED }}>
                   You blocked this person. They can't message you, and you can't message them.
                 </div>
-                <button onClick={() => activePartner != null && unblockM.mutate(activePartner)} disabled={unblockM.isPending} style={{ flexShrink: 0, background: 'transparent', border: `1px solid ${LINE}`, color: '#4ade80', borderRadius: 9999, padding: '7px 16px', fontSize: '0.74rem', fontWeight: 700, cursor: 'pointer' }}>
+                <button onClick={() => activePartner != null && unblockM.mutate(activePartner)} disabled={unblockM.isPending} style={{ flexShrink: 0, background: 'transparent', border: `1px solid ${LINE}`, color: SAFE, borderRadius: 9999, padding: '7px 16px', fontSize: t.size.sm, fontWeight: t.weight.bold, cursor: 'pointer' }}>
                   Unblock
                 </button>
               </div>
             ) : (
               <>
                 {send.isError && (
-                  <div role="alert" style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '8px 18px', background: 'rgba(248,113,113,0.1)', borderTop: '1px solid rgba(248,113,113,0.2)', color: '#f87171', fontSize: '0.74rem' }}>
+                  <div role="alert" style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '8px 18px', background: 'rgba(255,46,147,0.1)', borderTop: `1px solid rgba(255,46,147,0.2)`, color: DANGER_TEXT, fontSize: t.size.sm }}>
                     <AlertCircle size={13} /> Message didn't send — your text is back in the box. Try again.
                   </div>
                 )}
@@ -560,16 +568,16 @@ export const Messages = () => {
                     onChange={(e) => { setDraft(e.target.value); e.target.style.height = 'auto'; e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`; }}
                     onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitDraft(); e.currentTarget.style.height = 'auto'; } }}
                     placeholder="Type a message…  (Enter to send, Shift+Enter for a new line)"
-                    style={{ flex: 1, background: INK_3, border: `1px solid ${LINE}`, borderRadius: 20, padding: '11px 18px', color: '#fff', outline: 'none', fontSize: '0.88rem', resize: 'none', fontFamily: 'inherit', lineHeight: 1.4, maxHeight: 120, transition: 'border-color 0.15s' }}
-                    onFocus={(e) => (e.currentTarget.style.borderColor = 'rgba(255,90,45,0.4)')}
+                    style={{ flex: 1, background: INK_3, border: `1px solid ${LINE}`, borderRadius: 20, padding: '11px 18px', color: WHITE, outline: 'none', fontSize: t.size.md, resize: 'none', fontFamily: 'inherit', lineHeight: 1.4, maxHeight: 120, transition: 'border-color 0.15s' }}
+                    onFocus={(e) => (e.currentTarget.style.borderColor = 'rgba(139,59,255,0.4)')}
                     onBlur={(e) => (e.currentTarget.style.borderColor = LINE)}
                   />
                   <button type="submit" aria-label="Send message" disabled={!draft.trim() || send.isPending} style={{
-                    background: draft.trim() ? FLAME : '#262626', border: 'none', borderRadius: '50%', width: 44, height: 44,
+                    background: draft.trim() ? FLAME : NEUTRAL_BTN, border: 'none', borderRadius: '50%', width: 44, height: 44,
                     display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: draft.trim() ? 'pointer' : 'default',
                     flexShrink: 0, transition: 'background 0.15s', opacity: send.isPending ? 0.6 : 1,
                   }}>
-                    <Send size={17} color={draft.trim() ? '#fff' : MUTED_2} />
+                    <Send size={17} color={draft.trim() ? WHITE : MUTED_2} />
                   </button>
                 </form>
               </>
@@ -593,22 +601,22 @@ export const Messages = () => {
             <button onClick={() => setShowUpgrade(false)} aria-label="Close" style={{ position: 'absolute', top: 14, right: 14, background: 'none', border: 'none', color: MUTED_2, cursor: 'pointer', display: 'flex' }}>
               <X size={18} />
             </button>
-            <div style={{ width: 46, height: 46, borderRadius: 13, background: 'rgba(255,90,45,0.14)', border: '1px solid rgba(255,90,45,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+            <div style={{ width: 46, height: 46, borderRadius: 13, background: 'rgba(139,59,255,0.14)', border: '1px solid rgba(139,59,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
               <Zap size={22} color={FLAME} />
             </div>
-            <div style={{ fontFamily: DISP, fontSize: '1.5rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.02em', lineHeight: 1.05 }}>
+            <div style={{ fontFamily: DISP, fontSize: t.size['2xl'], fontWeight: t.weight.bold, textTransform: 'uppercase', letterSpacing: '0.02em', lineHeight: 1.05 }}>
               Messaging is a <span style={{ color: FLAME }}>Pro</span> feature
             </div>
-            <div style={{ fontSize: '0.84rem', color: MUTED, marginTop: 10, lineHeight: 1.5 }}>
+            <div style={{ fontSize: t.size.base, color: MUTED, marginTop: 10, lineHeight: 1.5 }}>
               Start conversations, reply to coaches, and keep every recruiting thread in one place. All contact stays parent-supervised.
             </div>
-            <button
+            <Button
               onClick={() => navigate('/subscribe?reason=messaging')}
-              style={{ width: '100%', marginTop: 20, padding: '12px 0', borderRadius: 9999, border: 'none', background: FLAME, color: '#fff', fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer', boxShadow: '0 6px 18px rgba(255,90,45,0.32)' }}
+              className="w-full mt-5 rounded-full uppercase tracking-[0.06em] shadow-[0_6px_18px_rgba(139,59,255,0.32)]"
             >
               Upgrade to Pro
-            </button>
-            <button onClick={() => setShowUpgrade(false)} style={{ width: '100%', marginTop: 10, padding: '8px 0', background: 'none', border: 'none', color: MUTED_2, fontSize: '0.76rem', cursor: 'pointer' }}>
+            </Button>
+            <button onClick={() => setShowUpgrade(false)} style={{ width: '100%', marginTop: 10, padding: '8px 0', background: 'none', border: 'none', color: MUTED_2, fontSize: t.size.sm, cursor: 'pointer' }}>
               Maybe later
             </button>
           </motion.div>
@@ -632,22 +640,22 @@ export const Messages = () => {
             </button>
             {reportSent ? (
               <div style={{ textAlign: 'center', padding: '12px 0 4px' }}>
-                <div style={{ width: 52, height: 52, borderRadius: 14, background: 'rgba(74,222,128,0.12)', border: '1px solid rgba(74,222,128,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-                  <ShieldCheck size={26} color="#4ade80" />
+                <div style={{ width: 52, height: 52, borderRadius: 14, background: 'rgba(74,222,128,0.12)', border: `1px solid rgba(74,222,128,0.3)`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+                  <ShieldCheck size={26} color={SAFE} />
                 </div>
-                <div style={{ fontFamily: DISP, fontSize: '1.4rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.02em' }}>Report received</div>
-                <div style={{ fontSize: '0.84rem', color: MUTED, marginTop: 10, lineHeight: 1.5 }}>
+                <div style={{ fontFamily: DISP, fontSize: t.size.xl, fontWeight: t.weight.bold, textTransform: 'uppercase', letterSpacing: '0.02em' }}>Report received</div>
+                <div style={{ fontSize: t.size.base, color: MUTED, marginTop: 10, lineHeight: 1.5 }}>
                   Our safety team will review this conversation. If you feel unsafe, you can block this person too.
                 </div>
-                <button onClick={() => setShowReport(false)} style={{ width: '100%', marginTop: 20, padding: '11px 0', borderRadius: 9999, border: 'none', background: FLAME, color: '#fff', fontSize: '0.8rem', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase', cursor: 'pointer' }}>Done</button>
+                <Button onClick={() => setShowReport(false)} className="w-full mt-5 rounded-full uppercase tracking-[0.05em]">Done</Button>
               </div>
             ) : (
               <>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-                  <Flag size={18} color="#f59e0b" />
-                  <span style={{ fontFamily: DISP, fontSize: '1.4rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.02em' }}>Report this person</span>
+                  <Flag size={18} color={DANGER_TEXT} />
+                  <span style={{ fontFamily: DISP, fontSize: t.size.xl, fontWeight: t.weight.bold, textTransform: 'uppercase', letterSpacing: '0.02em' }}>Report this person</span>
                 </div>
-                <div style={{ fontSize: '0.8rem', color: MUTED, marginBottom: 16, lineHeight: 1.45 }}>
+                <div style={{ fontSize: t.size.sm, color: MUTED, marginBottom: 16, lineHeight: 1.45 }}>
                   Reports go to our safety team and are kept confidential. What's the concern?
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
@@ -657,9 +665,9 @@ export const Messages = () => {
                       <button key={o.value} onClick={() => setReportReason(o.value)} style={{
                         display: 'flex', alignItems: 'center', gap: 10, width: '100%', textAlign: 'left',
                         padding: '11px 14px', borderRadius: 10, cursor: 'pointer',
-                        background: sel ? 'rgba(255,90,45,0.1)' : INK_3,
-                        border: `1px solid ${sel ? 'rgba(255,90,45,0.4)' : LINE}`,
-                        color: '#fff', fontSize: '0.82rem', fontWeight: 600,
+                        background: sel ? 'rgba(139,59,255,0.1)' : INK_3,
+                        border: `1px solid ${sel ? 'rgba(139,59,255,0.4)' : LINE}`,
+                        color: WHITE, fontSize: t.size.base, fontWeight: t.weight.semibold,
                       }}>
                         <span style={{ width: 15, height: 15, borderRadius: '50%', border: `2px solid ${sel ? FLAME : MUTED_2}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                           {sel && <span style={{ width: 7, height: 7, borderRadius: '50%', background: FLAME }} />}
@@ -674,17 +682,17 @@ export const Messages = () => {
                   onChange={(e) => setReportDetails(e.target.value)}
                   placeholder="Add any details (optional)…"
                   rows={3}
-                  style={{ width: '100%', boxSizing: 'border-box', marginTop: 12, background: INK_3, border: `1px solid ${LINE}`, borderRadius: 10, padding: '10px 12px', color: '#fff', fontSize: '0.82rem', outline: 'none', resize: 'none', fontFamily: 'inherit' }}
+                  style={{ width: '100%', boxSizing: 'border-box', marginTop: 12, background: INK_3, border: `1px solid ${LINE}`, borderRadius: 10, padding: '10px 12px', color: WHITE, fontSize: t.size.base, outline: 'none', resize: 'none', fontFamily: 'inherit' }}
                 />
-                <button
+                <Button
                   onClick={() => { if (activePartner != null && reportReason) reportM.mutate({ partnerId: activePartner, reason: reportReason, details: reportDetails }); }}
                   disabled={!reportReason || reportM.isPending}
-                  style={{ width: '100%', marginTop: 16, padding: '12px 0', borderRadius: 9999, border: 'none', background: reportReason ? FLAME : '#262626', color: reportReason ? '#fff' : MUTED_2, fontSize: '0.8rem', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase', cursor: reportReason ? 'pointer' : 'default' }}
+                  className="w-full mt-4 rounded-full uppercase tracking-[0.05em]"
                 >
                   {reportM.isPending ? 'Submitting…' : 'Submit report'}
-                </button>
+                </Button>
                 {reportM.isError && (
-                  <div style={{ marginTop: 10, fontSize: '0.74rem', color: '#f87171', textAlign: 'center' }}>Couldn't submit — please try again.</div>
+                  <div style={{ marginTop: 10, fontSize: t.size.sm, color: DANGER_TEXT, textAlign: 'center' }}>Couldn't submit — please try again.</div>
                 )}
               </>
             )}
@@ -729,7 +737,7 @@ function EmptyState({ icon, title, sub }: { icon: React.ReactNode; title: string
     <div style={{ padding: '48px 24px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
       <div style={{ width: 52, height: 52, borderRadius: 14, background: INK_2, border: `1px solid ${LINE}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{icon}</div>
       <div>
-        <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#e0e0de' }}>{title}</div>
+        <div style={{ fontSize: t.size.md, fontWeight: t.weight.bold, color: WHITE }}>{title}</div>
         <div style={{ fontSize: '0.74rem', color: MUTED_2, marginTop: 4, maxWidth: 220 }}>{sub}</div>
       </div>
     </div>
@@ -746,17 +754,17 @@ const REPORT_OPTIONS: Array<{ value: string; label: string }> = [
 ];
 
 function menuItemStyle(color: string): React.CSSProperties {
-  return { display: 'flex', alignItems: 'center', gap: 10, width: '100%', textAlign: 'left', padding: '11px 14px', background: 'transparent', border: 'none', borderBottom: `1px solid ${LINE}`, color, fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' };
+  return { display: 'flex', alignItems: 'center', gap: 10, width: '100%', textAlign: 'left', padding: '11px 14px', background: 'transparent', border: 'none', borderBottom: `1px solid ${LINE}`, color, fontSize: t.size.base, fontWeight: t.weight.semibold, cursor: 'pointer' };
 }
 
 function tabStyle(active: boolean): React.CSSProperties {
   return {
     flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
     padding: '8px 0', borderRadius: 9999, border: 'none', cursor: 'pointer',
-    background: active ? FLAME : INK_3, color: active ? '#fff' : MUTED,
-    fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.06em', transition: 'background 0.12s',
+    background: active ? FLAME : INK_3, color: active ? WHITE : MUTED,
+    fontSize: '0.68rem', fontWeight: t.weight.bold, letterSpacing: '0.06em', transition: 'background 0.12s',
   };
 }
 function pillBtn(bg: string): React.CSSProperties {
-  return { display: 'flex', alignItems: 'center', gap: 5, background: bg, color: '#fff', border: bg === '#262626' ? `1px solid ${LINE}` : 'none', borderRadius: 9999, padding: '7px 16px', fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer' };
+  return { display: 'flex', alignItems: 'center', gap: 5, background: bg, color: WHITE, border: bg === NEUTRAL_BTN ? `1px solid ${LINE}` : 'none', borderRadius: 9999, padding: '7px 16px', fontSize: '0.72rem', fontWeight: t.weight.bold, cursor: 'pointer' };
 }

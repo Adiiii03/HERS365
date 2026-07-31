@@ -4,8 +4,10 @@ import { Suspense, lazy, useEffect, useRef, useState } from 'react';
 // opposite of the win this PR is going for.
 import { Layout } from './components/Layout';
 import { CoachLayout } from './components/CoachLayout';
+import { ParentLayout } from './components/ParentLayout';
 import { LandingPage } from './pages/LandingPage';
 import { Auth } from './pages/Auth';
+import { ComingSoon } from './pages/ComingSoon';
 
 // Every other route is split into its own chunk so a first-time visitor on
 // /, /auth, or /coach/login does not download Feed + Profile + VideoStudio +
@@ -30,10 +32,10 @@ const PlayerProfile = lazyNamed(() => import('./pages/PlayerProfile'), 'PlayerPr
 const Training = lazyNamed(() => import('./pages/Training'), 'Training');
 const Recruiting = lazyNamed(() => import('./pages/Recruiting'), 'Recruiting');
 const Teams = lazyNamed(() => import('./pages/Teams'), 'Teams');
-const AuthCallback = lazyNamed(() => import('./pages/AuthCallback'), 'AuthCallback');
 const ForgotPassword = lazyNamed(() => import('./pages/ForgotPassword'), 'ForgotPassword');
 const ResetPassword = lazyNamed(() => import('./pages/ResetPassword'), 'ResetPassword');
 const VerifyEmail = lazyNamed(() => import('./pages/VerifyEmail'), 'VerifyEmail');
+const GuardianVerify = lazyNamed(() => import('./pages/GuardianVerify'), 'GuardianVerify');
 const Subscription = lazyNamed(() => import('./pages/Subscription'), 'Subscription');
 const Audit = lazyNamed(() => import('./pages/Audit'), 'Audit');
 const Privacy = lazyNamed(() => import('./pages/Privacy'), 'Privacy');
@@ -77,9 +79,11 @@ const CoachRoster = lazyNamed(() => import('./pages/coach/CoachRoster'), 'CoachR
 const CoachPlayerProfile = lazyNamed(() => import('./pages/coach/CoachPlayerProfile'), 'CoachPlayerProfile');
 const CoachAnalytics = lazyNamed(() => import('./pages/coach/CoachAnalytics'), 'CoachAnalytics');
 const CoachSignup = lazyNamed(() => import('./pages/coach/CoachSignup'), 'CoachSignup');
+const CoachSettings = lazyNamed(() => import('./pages/coach/CoachSettings'), 'CoachSettings');
+const CoachProfile = lazyNamed(() => import('./pages/coach/CoachProfile'), 'CoachProfile');
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { NotificationProvider } from './context/NotificationContext';
 import { AuthProvider } from './context/AuthContext';
 import { Capacitor } from '@capacitor/core';
@@ -140,6 +144,19 @@ function ScrollProgressBar() {
   );
 }
 
+// Mirrors the build-time registration kill switch used in Auth.tsx. When
+// registration is off the public entry points show the coming-soon page and
+// signup deep links bounce there; login stays reachable for existing users.
+const registrationEnabled = import.meta.env.VITE_REGISTRATION_ENABLED === 'true';
+
+function AuthOrComingSoon() {
+  const [searchParams] = useSearchParams();
+  if (!registrationEnabled && searchParams.get('tab') === 'signup') {
+    return <Navigate to="/" replace />;
+  }
+  return <Auth />;
+}
+
 function AthleteRouteGuard({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const token = localStorage.getItem('token');
@@ -149,6 +166,34 @@ function AthleteRouteGuard({ children }: { children: React.ReactNode }) {
   }, [navigate, token]);
 
   if (!token) return null;
+  return <>{children}</>;
+}
+
+// Role guard for parent / admin / staff routes. Auth resolves synchronously
+// from localStorage before children render so protected content never
+// flashes for unauthenticated or wrong-role users.
+function RoleRouteGuard({ roles, loginPath, children }: {
+  roles: string[]; loginPath: string; children: React.ReactNode;
+}) {
+  const navigate = useNavigate();
+  const token = localStorage.getItem('token');
+  const userStr = localStorage.getItem('user');
+
+  let isAuthorized = false;
+  if (token && userStr) {
+    try {
+      const user = JSON.parse(userStr);
+      isAuthorized = roles.includes(user.role);
+    } catch {
+      isAuthorized = false;
+    }
+  }
+
+  useEffect(() => {
+    if (!isAuthorized) navigate(loginPath);
+  }, [navigate, isAuthorized, loginPath]);
+
+  if (!isAuthorized) return null;
   return <>{children}</>;
 }
 
@@ -200,6 +245,7 @@ function App() {
     (async () => {
       const { StatusBar, Style } = await import('@capacitor/status-bar');
       const { Keyboard, KeyboardResize } = await import('@capacitor/keyboard');
+      const { SplashScreen } = await import('@capacitor/splash-screen');
 
       await StatusBar.setStyle({ style: Style.Dark });
       if (Capacitor.getPlatform() === 'ios') {
@@ -212,6 +258,8 @@ function App() {
         if (!canGoBack) CapApp.minimizeApp();
         else window.history.back();
       });
+
+      await SplashScreen.hide().catch(() => {});
 
       cleanup = () => { backListener.remove(); };
     })();
@@ -268,23 +316,29 @@ function App() {
               <Route path="/squads" element={<SquadFinder />} />
               <Route path="/teams/find" element={<TeamFinder />} />
               <Route path="/scholarships" element={<ScholarshipTracker />} />
-              <Route path="/parent" element={<ParentDashboard />} />
-              <Route path="/parent/dashboard" element={<ParentDashboard />} />
-              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin" element={<RoleRouteGuard roles={['admin']} loginPath="/admin/login"><AdminDashboard /></RoleRouteGuard>} />
               <Route path="/admin/login" element={<AdminLogin />} />
-              <Route path="/staff" element={<StaffDashboard />} />
+              <Route path="/staff" element={<RoleRouteGuard roles={['admin', 'staff']} loginPath="/admin/login"><StaffDashboard /></RoleRouteGuard>} />
               <Route path="/static/:slug" element={<StaticPageLayout />} />
               <Route path="*" element={<NotFound />} />
             </Route>
 
+            {/* Parent shell — its own top bar, no athlete sidebar or tabs */}
+            <Route element={<RoleRouteGuard roles={['parent']} loginPath="/auth?role=parent"><ParentLayout /></RoleRouteGuard>}>
+              <Route path="/parent" element={<ParentDashboard />} />
+              <Route path="/parent/dashboard" element={<ParentDashboard />} />
+            </Route>
+
             {/* Standalone full-page routes (no nav shell) */}
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/landing" element={<LandingPage />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="/" element={registrationEnabled ? <LandingPage /> : <ComingSoon />} />
+            <Route path="/landing" element={registrationEnabled ? <LandingPage /> : <ComingSoon />} />
+            <Route path="/auth" element={<AuthOrComingSoon />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/verify-email" element={<VerifyEmail />} />
+            {/* Guardian approval — public and unconditional: a guardian must be
+                able to activate a pending athlete even while signup is gated. */}
+            <Route path="/guardian-verify" element={<GuardianVerify />} />
 
             {/* Athlete onboarding (full-screen, no nav chrome) */}
             <Route path="/onboarding" element={<Onboarding />} />
@@ -300,6 +354,8 @@ function App() {
               <Route path="/coach/analytics" element={<CoachAnalytics />} />
               <Route path="/coach/messages" element={<CoachMessages />} />
               <Route path="/coach/roster" element={<CoachRoster />} />
+              <Route path="/coach/settings" element={<CoachSettings />} />
+              <Route path="/coach/profile" element={<CoachProfile />} />
               <Route path="/coach/player/:id" element={<CoachPlayerProfile />} />
             </Route>
           </Routes>
@@ -339,7 +395,7 @@ function RouteFallback() {
           height: 22,
           borderRadius: '50%',
           border: '2px solid rgba(255,255,255,0.18)',
-          borderTopColor: '#ff5a2d',
+          borderTopColor: '#8B3BFF',
           animation: 'auth-spin 0.65s linear infinite',
         }}
       />

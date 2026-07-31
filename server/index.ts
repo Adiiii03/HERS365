@@ -59,7 +59,7 @@ app.use(cors({
   credentials: true,
 }));
 
-// Session configuration for Passport
+// Session configuration
 app.use(session({
   secret: process.env.SESSION_SECRET || 'your-secret-key',
   resave: false,
@@ -69,9 +69,6 @@ app.use(session({
     maxAge: 24 * 60 * 60 * 1000 // 24 hours
   }
 }));
-
-import passport from 'passport';
-app.use(passport.initialize());
 
 // Initialize services
 const cosmosAPIService = new CosmosAPIService();

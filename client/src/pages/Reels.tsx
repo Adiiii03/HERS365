@@ -6,12 +6,9 @@ import {
 } from 'lucide-react';
 import { athleteAvatar } from '../lib/avatar';
 import { useAuth } from '../context/AuthContext';
+import { colors, type as t, radii } from '../lib/tokens';
 
-const FLAME_C = '#ff5a2d';
-const INK = '#0a0a0a';
-const LINE = 'rgba(255,255,255,0.07)';
-const MUTED = '#8a8a86';
-const DISP = "'Barlow Condensed', sans-serif";
+const DISP = t.font.display;
 
 type Reel = {
   id: number;
@@ -68,13 +65,13 @@ function ActionBtn({
       style={{
         display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
         background: 'none', border: 'none', cursor: 'pointer',
-        color: active ? (color || FLAME_C) : 'rgba(255,255,255,0.75)',
+        color: active ? (color || colors.accent) : 'rgba(255,255,255,0.75)',
         WebkitTapHighlightColor: 'transparent',
       }}
     >
       <div style={{
         width: 44, height: 44, borderRadius: '50%',
-        background: active ? `${color || FLAME_C}22` : 'rgba(0,0,0,0.35)',
+        background: active ? `${color || colors.accent}22` : 'rgba(0,0,0,0.35)',
         backdropFilter: 'blur(8px)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         transition: 'background 0.18s',
@@ -82,7 +79,7 @@ function ActionBtn({
         {icon}
       </div>
       {count !== undefined && (
-        <span className="tnum" style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.02em' }}>
+        <span className="tnum" style={{ fontSize: t.size.sm, fontWeight: t.weight.bold, letterSpacing: '0.02em' }}>
           {count}
         </span>
       )}
@@ -123,7 +120,7 @@ function ReelCard({
     <div
       style={{
         position: 'relative', width: '100%', height: '100%',
-        background: 'radial-gradient(120% 80% at 50% 0%, #1c130b 0%, #0a0a0a 60%)',
+        background: `radial-gradient(120% 80% at 50% 0%, ${colors.surface2} 0%, ${colors.surface0} 60%)`,
         overflow: 'hidden', borderRadius: 0,
         userSelect: 'none',
       }}
@@ -158,10 +155,10 @@ function ReelCard({
             style={{
               position: 'absolute', top: '50%', left: '50%',
               transform: 'translate(-50%, -50%)',
-              color: FLAME_C, pointerEvents: 'none', zIndex: 10,
+              color: colors.accent, pointerEvents: 'none', zIndex: 10,
             }}
           >
-            <Heart size={80} fill={FLAME_C} />
+            <Heart size={80} fill={colors.accent} />
           </motion.div>
         )}
       </AnimatePresence>
@@ -169,11 +166,11 @@ function ReelCard({
       {/* Tag pill */}
       <div style={{
         position: 'absolute', top: 16, left: 16,
-        background: `${FLAME_C}cc`,
+        background: `${colors.accent}cc`,
         backdropFilter: 'blur(8px)',
-        padding: '3px 10px', borderRadius: 99,
-        fontSize: '0.65rem', fontWeight: 800,
-        letterSpacing: '0.08em', textTransform: 'uppercase', color: '#fff',
+        padding: '3px 10px', borderRadius: radii.full,
+        fontSize: t.size.xs, fontWeight: t.weight.bold,
+        letterSpacing: '0.08em', textTransform: 'uppercase', color: colors.accentOn,
         zIndex: 3,
       }}>
         <Flame size={10} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
@@ -189,8 +186,8 @@ function ReelCard({
           aria-pressed={muted}
           style={{
             background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(8px)',
-            border: 'none', cursor: 'pointer', color: '#fff',
-            width: 36, height: 36, borderRadius: '50%',
+            border: 'none', cursor: 'pointer', color: colors.textPrimary,
+            width: 44, height: 44, borderRadius: '50%',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}
         >
@@ -203,8 +200,8 @@ function ReelCard({
           aria-pressed={!playing}
           style={{
             background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(8px)',
-            border: 'none', cursor: 'pointer', color: '#fff',
-            width: 36, height: 36, borderRadius: '50%',
+            border: 'none', cursor: 'pointer', color: colors.textPrimary,
+            width: 44, height: 44, borderRadius: '50%',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}
         >
@@ -225,23 +222,23 @@ function ReelCard({
             alt={reel.playerName}
             style={{
               width: 46, height: 46, borderRadius: '50%',
-              border: `2px solid ${FLAME_C}`,
-              boxShadow: `0 0 16px ${FLAME_C}44`,
+              border: `2px solid ${colors.accent}`,
+              boxShadow: `0 0 16px ${colors.accent}44`,
               objectFit: 'cover',
             }}
           />
           <div style={{
             position: 'absolute', bottom: -8, left: '50%', transform: 'translateX(-50%)',
-            background: FLAME_C, borderRadius: '50%', width: 18, height: 18,
+            background: colors.accent, borderRadius: '50%', width: 18, height: 18,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            border: '2px solid #000',
+            border: `2px solid ${colors.surface0}`,
           }}>
-            <span style={{ fontSize: '0.65rem', fontWeight: 900, color: '#fff', lineHeight: 1 }}>+</span>
+            <span style={{ fontSize: t.size.xs, fontWeight: t.weight.bold, color: colors.accentOn, lineHeight: 1 }}>+</span>
           </div>
         </div>
 
         <ActionBtn
-          icon={<Heart size={22} fill={reel.isLiked ? FLAME_C : 'none'} />}
+          icon={<Heart size={22} fill={reel.isLiked ? colors.accent : 'none'} />}
           count={fmtCount(reel.likes)}
           active={reel.isLiked}
           ariaLabel={reel.isLiked ? 'Unlike' : 'Like'}
@@ -255,9 +252,9 @@ function ReelCard({
           onClick={(e?: React.MouseEvent) => e?.stopPropagation()}
         />
         <ActionBtn
-          icon={<Bookmark size={22} fill={reel.isSaved ? '#fff' : 'none'} />}
+          icon={<Bookmark size={22} fill={reel.isSaved ? colors.textPrimary : 'none'} />}
           active={reel.isSaved}
-          color="#fff"
+          color={colors.textPrimary}
           ariaLabel={reel.isSaved ? 'Saved' : 'Save'}
           ariaPressed={reel.isSaved}
           onClick={(e?: React.MouseEvent) => { e?.stopPropagation(); onSave(); }}
@@ -278,24 +275,24 @@ function ReelCard({
         {/* Player */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
           <span style={{
-            fontFamily: DISP, fontSize: '1.15rem', fontWeight: 800,
-            textTransform: 'uppercase', letterSpacing: '-0.01em', color: '#fff',
+            fontFamily: DISP, fontSize: t.size.lg, fontWeight: t.weight.bold,
+            textTransform: 'uppercase', letterSpacing: '-0.01em', color: colors.textPrimary,
           }}>
             {reel.playerName}
           </span>
           <span style={{
-            background: `${FLAME_C}22`, color: FLAME_C,
-            fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.07em',
-            textTransform: 'uppercase', padding: '2px 8px', borderRadius: 5,
-            border: `1px solid ${FLAME_C}33`,
+            background: `${colors.accent}22`, color: colors.accent,
+            fontSize: t.size.xs, fontWeight: t.weight.bold, letterSpacing: '0.07em',
+            textTransform: 'uppercase', padding: '2px 8px', borderRadius: radii.sm,
+            border: `1px solid ${colors.accent}33`,
           }}>
             {reel.playerPos}
           </span>
         </div>
-        <div style={{ fontSize: '0.72rem', color: MUTED, marginBottom: 8, letterSpacing: '0.02em' }}>
+        <div style={{ fontSize: t.size.sm, color: colors.textSecondary, marginBottom: 8, letterSpacing: '0.02em' }}>
           {reel.playerSchool}
         </div>
-        <p style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.85)', lineHeight: 1.45, margin: 0 }}>
+        <p style={{ fontSize: t.size.base, color: 'rgba(255,255,255,0.85)', lineHeight: 1.45, margin: 0 }}>
           {reel.caption}
         </p>
       </div>
@@ -401,7 +398,7 @@ export const Reels = () => {
 
   return (
     <div style={{
-      position: 'fixed', inset: 0, background: INK, overflow: 'hidden',
+      position: 'fixed', inset: 0, background: colors.surface0, overflow: 'hidden',
       display: 'flex', flexDirection: 'column',
     }}>
       <h1 className="sr-only">Reels — athlete highlights</h1>
@@ -413,8 +410,8 @@ export const Reels = () => {
         pointerEvents: 'none',
       }}>
         <span style={{
-          fontFamily: DISP, fontSize: '1.2rem', fontWeight: 900,
-          textTransform: 'uppercase', letterSpacing: '0.12em', color: '#fff',
+          fontFamily: DISP, fontSize: t.size.xl, fontWeight: t.weight.bold,
+          textTransform: 'uppercase', letterSpacing: '0.12em', color: colors.textPrimary,
         }}>
           REELS
         </span>
@@ -460,9 +457,9 @@ export const Reels = () => {
         {reels.map((_, idx) => (
           <motion.div
             key={idx}
-            animate={{ height: active === idx ? 20 : 6, background: active === idx ? FLAME_C : 'rgba(255,255,255,0.3)' }}
+            animate={{ height: active === idx ? 20 : 6, background: active === idx ? colors.accent : 'rgba(255,255,255,0.3)' }}
             transition={{ type: 'spring', stiffness: 400, damping: 28 }}
-            style={{ width: 3, borderRadius: 99 }}
+            style={{ width: 3, borderRadius: radii.full }}
           />
         ))}
       </div>
@@ -479,10 +476,10 @@ export const Reels = () => {
           aria-label="Previous reel"
           style={{
             background: active === 0 ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.55)',
-            border: `1px solid ${LINE}`, borderRadius: '50%',
+            border: `1px solid ${colors.border}`, borderRadius: '50%',
             width: 38, height: 38, cursor: active === 0 ? 'default' : 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: active === 0 ? '#333' : '#fff',
+            color: active === 0 ? colors.textTertiary : colors.textPrimary,
             backdropFilter: 'blur(8px)',
           }}
         >
@@ -495,10 +492,10 @@ export const Reels = () => {
           aria-label="Next reel"
           style={{
             background: active === reels.length - 1 ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.55)',
-            border: `1px solid ${LINE}`, borderRadius: '50%',
+            border: `1px solid ${colors.border}`, borderRadius: '50%',
             width: 38, height: 38, cursor: active === reels.length - 1 ? 'default' : 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: active === reels.length - 1 ? '#333' : '#fff',
+            color: active === reels.length - 1 ? colors.textTertiary : colors.textPrimary,
             backdropFilter: 'blur(8px)',
           }}
         >
