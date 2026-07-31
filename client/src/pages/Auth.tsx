@@ -273,10 +273,9 @@ export const Auth = () => {
     setLoading(true);
     try {
       const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
-      const body: Record<string, string> = { email, password };
+      const body: Record<string, string> = { email, password, role };
       if (!isLogin && name) body.name = name;
       if (!isLogin) {
-        body.role = role;
         if (role === 'athlete') {
           body.dob = dob;
           body.guardianEmail = guardianEmail.trim();
@@ -310,7 +309,7 @@ export const Auth = () => {
       }
       if (data?.token && data?.user) login(data.token, data.user);
       navigate(isLogin
-        ? '/feed'
+        ? (role === 'parent' ? '/parent/dashboard' : '/feed')
         : role === 'parent' ? '/parent/dashboard' : '/onboarding'
       );
     } catch {

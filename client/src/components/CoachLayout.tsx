@@ -58,6 +58,7 @@ export const CoachLayout = () => {
     { icon: BarChart3, label: 'Analytics', path: '/coach/analytics' },
     { icon: Users, label: 'My Roster', path: '/coach/roster' },
     { icon: MessageSquare, label: 'Messages', path: '/coach/messages' },
+    { icon: UserCircle, label: 'Profile', path: '/coach/profile' },
   ];
 
   return (
@@ -100,7 +101,7 @@ export const CoachLayout = () => {
             <Settings size={20} />
             <span className="font-medium">Settings</span>
           </Link>
-          <div className="p-4 bg-white/5 rounded-2xl border border-white/5 flex items-center gap-3">
+          <Link to="/coach/profile" className="p-4 bg-white/5 rounded-2xl border border-white/5 flex items-center gap-3 hover:bg-white/10 transition-colors">
             <div className="w-10 h-10 rounded-full bg-surface-hover flex items-center justify-center border border-white/10 shrink-0">
               {coachInitials
                 ? <span className="text-xs font-black text-white tracking-wide">{coachInitials}</span>
@@ -110,7 +111,7 @@ export const CoachLayout = () => {
               <p className="text-sm font-bold truncate text-white">{coachName}</p>
               <p className="text-[10px] text-accent-400 font-bold uppercase tracking-wider truncate">{coachSubtitle}</p>
             </div>
-          </div>
+          </Link>
         </div>
       </aside>
 

@@ -79,6 +79,8 @@ const CoachRoster = lazyNamed(() => import('./pages/coach/CoachRoster'), 'CoachR
 const CoachPlayerProfile = lazyNamed(() => import('./pages/coach/CoachPlayerProfile'), 'CoachPlayerProfile');
 const CoachAnalytics = lazyNamed(() => import('./pages/coach/CoachAnalytics'), 'CoachAnalytics');
 const CoachSignup = lazyNamed(() => import('./pages/coach/CoachSignup'), 'CoachSignup');
+const CoachSettings = lazyNamed(() => import('./pages/coach/CoachSettings'), 'CoachSettings');
+const CoachProfile = lazyNamed(() => import('./pages/coach/CoachProfile'), 'CoachProfile');
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
@@ -322,7 +324,7 @@ function App() {
             </Route>
 
             {/* Parent shell — its own top bar, no athlete sidebar or tabs */}
-            <Route element={<RoleRouteGuard roles={['parent']} loginPath="/auth"><ParentLayout /></RoleRouteGuard>}>
+            <Route element={<RoleRouteGuard roles={['parent']} loginPath="/auth?role=parent"><ParentLayout /></RoleRouteGuard>}>
               <Route path="/parent" element={<ParentDashboard />} />
               <Route path="/parent/dashboard" element={<ParentDashboard />} />
             </Route>
@@ -352,6 +354,8 @@ function App() {
               <Route path="/coach/analytics" element={<CoachAnalytics />} />
               <Route path="/coach/messages" element={<CoachMessages />} />
               <Route path="/coach/roster" element={<CoachRoster />} />
+              <Route path="/coach/settings" element={<CoachSettings />} />
+              <Route path="/coach/profile" element={<CoachProfile />} />
               <Route path="/coach/player/:id" element={<CoachPlayerProfile />} />
             </Route>
           </Routes>

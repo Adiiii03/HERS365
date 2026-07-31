@@ -64,8 +64,8 @@ router.get('/player-subscription/:playerId', async (req: Request, res: Response,
     const subPlanId = subscription[0].planId;
     const plan = subPlanId != null
       ? await db.select()
-          .from(schema.subscriptionPlans)
-          .where(eq(schema.subscriptionPlans.id, subPlanId))
+        .from(schema.subscriptionPlans)
+        .where(eq(schema.subscriptionPlans.id, subPlanId))
       : [];
     res.json({ ...subscription[0], plan: plan[0] || null });
   } catch (err: any) {
@@ -136,7 +136,6 @@ router.get('/profile/stats', requireAuth, async (req: Request, res: Response, ne
   }
 });
 
-
 // Parent Stat Submissions
 router.post(
   '/parent/stats/submit',
@@ -158,11 +157,6 @@ router.post(
         division,
         school,
 
-        // Legacy identity
-        email,
-        name,
-        dob,
-
         // Season
         season,
 
@@ -176,13 +170,8 @@ router.post(
         flagPulls,
         interceptions,
         passingYards,
-        rushingYards,
         receivingYards,
-
-        // Legacy touchdowns
-        touchdownsPassing,
-        touchdownsRushing,
-        touchdownsReceiving,
+        rushingYards,
 
         // Combine
         fortyYardDash,
@@ -192,7 +181,6 @@ router.post(
 
         // Verification
         notes,
-        adminNotes,
         maxPrepsUrl,
       } = req.body;
 
@@ -208,7 +196,6 @@ router.post(
           parentId,
           playerId,
 
-          // Athlete identity
           athleteEmail,
           athleteName,
           athleteDob,
@@ -218,15 +205,8 @@ router.post(
           division,
           school,
 
-          // Legacy identity (fallback to athlete fields if not provided)
-          email: email ?? athleteEmail,
-          name: name ?? athleteName,
-          dob: dob ?? athleteDob,
-
-          // Season
           season,
 
-          // Stats
           passingTds,
           rushingTds,
           receivingTds,
@@ -239,25 +219,15 @@ router.post(
           rushingYards,
           receivingYards,
 
-          // Legacy touchdown columns
-          touchdownsPassing: touchdownsPassing ?? passingTds,
-          touchdownsRushing: touchdownsRushing ?? rushingTds,
-          touchdownsReceiving: touchdownsReceiving ?? receivingTds,
-
-          // Combine
           fortyYardDash,
           verticalJump,
           shuttle5105,
           broadJump,
 
-          // Verification
           maxPrepsUrl,
           source: 'parent_portal',
           notes,
-          adminNotes,
-
           status: 'pending',
-          verificationStatus: 'pending',
         })
         .returning();
 

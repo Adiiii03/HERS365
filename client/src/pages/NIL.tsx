@@ -53,9 +53,13 @@ export const NIL = () => {
   const handleApply = async (opportunityId: number) => {
     setApplying(prev => ({ ...prev, [opportunityId]: true }));
     try {
+      const token = localStorage.getItem('token');
       const res = await fetch('/api/nil/apply', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({ opportunityId }),
       });
       const data = await res.json();

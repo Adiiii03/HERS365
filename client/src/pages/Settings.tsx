@@ -238,8 +238,12 @@ export const Settings = () => {
         phone: data?.phone || '',
       });
       setPrivacySetting(data?.privacySetting || 'public');
-    } catch (err) {
-      setProfileError(errorMessage(err, 'Failed to load profile'));
+    } catch (err: any) {
+      if (err?.status === 403) {
+        setProfileError('Your account is pending guardian approval. Please check your email for the approval link, or contact support@hers365.com if you need help.');
+      } else {
+        setProfileError(errorMessage(err, 'Failed to load profile'));
+      }
     } finally {
       setProfileLoading(false);
     }

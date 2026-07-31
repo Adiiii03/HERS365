@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   MapPin, Edit3, CheckCircle2, Share2, MessageSquare, Loader2, AlertTriangle,
@@ -8,13 +8,14 @@ import {
 import { useNavigate, useParams } from 'react-router-dom';
 import { useNotifications } from '../context/NotificationContext';
 import { useAuth } from '../context/AuthContext';
+import { useIsMobile } from '../hooks/useIsMobile';
 import { apiFetch, errorMessage } from '../lib/api';
 import { athleteAvatar } from '../lib/avatar';
 import { useRatingReveal } from '../hooks/useRatingReveal';
 import { ShareCard } from '../components/ShareCard';
 import { toShareCard, type ShareCardData } from '../lib/shareCard';
 import { colors, type as t, radii } from '../lib/tokens';
-import { Button, Card, Input } from '../components/ui';
+import { Button, Card, Input, Skeleton, EmptyState } from '../components/ui';
 
 const DISP = t.font.display;
 
@@ -120,6 +121,7 @@ export const Profile = () => {
   const [profile, setProfile] = useState<ApiProfile | null>(null);
   const isOwnProfile = !!profile && !!user && user.id === profile.id;
   const canEdit = isOwnProfile && user.role !== 'coach';
+  const isMobile = useIsMobile();
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
   const [isEmpty, setIsEmpty] = useState(false);
@@ -192,9 +194,11 @@ export const Profile = () => {
   const [gameStats, setGameStats] = useState<GameStat[]>([]);
   const [combineStats, setCombineStats] = useState<CombineStat | null>(null);
   const [statsLoading, setStatsLoading] = useState(false);
+  const [statsError, setStatsError] = useState(false);
 
   const [highlights, setHighlights] = useState<Highlight[]>([]);
   const [highlightsLoading, setHighlightsLoading] = useState(false);
+  const [highlightsError, setHighlightsError] = useState(false);
   const [uploadingHighlight, setUploadingHighlight] = useState(false);
   const highlightInputRef = useRef<HTMLInputElement>(null);
 
@@ -300,12 +304,12 @@ export const Profile = () => {
           setGameStats(Array.isArray(d?.game) ? d.game : []);
           setCombineStats(d?.combine ?? null);
         })
-        .catch(() => {})
+        .catch(() => { setStatsError(true); })
         .finally(() => setStatsLoading(false));
     } else {
       apiFetch<GameStat[]>(`/api/players/${profile.id}/stats`)
         .then(d => { setGameStats(Array.isArray(d) ? d : []); })
-        .catch(() => {})
+        .catch(() => { setStatsError(true); })
         .finally(() => setStatsLoading(false));
     }
   }, [profile, isOwnProfile]);
@@ -313,9 +317,10 @@ export const Profile = () => {
   useEffect(() => {
     if (!profile) return;
     setHighlightsLoading(true);
+    setHighlightsError(false);
     apiFetch<Highlight[]>(`/api/players/${profile.id}/highlights`)
       .then(d => setHighlights(Array.isArray(d) ? d : []))
-      .catch(() => setHighlights([]))
+      .catch(() => { setHighlightsError(true); })
       .finally(() => setHighlightsLoading(false));
   }, [profile]);
 
@@ -354,6 +359,26 @@ export const Profile = () => {
       setUploadingHighlight(false);
     }
   };
+
+  const profileCompleteness = useMemo(() => {
+    if (!profile) return null;
+    const items: { label: string; done: boolean; points: number }[] = [
+      { label: 'Add your position', done: !!profile.position, points: 10 },
+      { label: 'Add your school', done: !!profile.school, points: 10 },
+      { label: 'Add your grad year', done: !!profile.gradYear, points: 5 },
+      { label: 'Add your height and weight', done: !!(profile.heightIn && profile.weightLbs), points: 15 },
+      { label: 'Add your GPA', done: !!(profile.gpa?.trim()), points: 10 },
+      { label: 'Write a bio (50+ chars)', done: (profile.bio?.trim().length ?? 0) >= 50, points: 10 },
+      { label: 'Log at least one game stat', done: gameStats.length > 0, points: 15 },
+      { label: 'Record a combine time', done: !!(combineStats && (combineStats.fortyDash || combineStats.shuttle || combineStats.vertical)), points: 15 },
+      { label: 'Upload a highlight reel', done: highlights.length > 0, points: 10 },
+    ];
+    const earned = items.filter(i => i.done).reduce((s, i) => s + i.points, 0);
+    const total = items.reduce((s, i) => s + i.points, 0);
+    const pct = Math.round((earned / total) * 100);
+    const nudges = items.filter(i => !i.done).slice(0, 3);
+    return { pct, nudges };
+  }, [profile, gameStats, combineStats, highlights]);
 
   if (isLoading) {
     return (
@@ -713,6 +738,28 @@ export const Profile = () => {
         {/* OVERVIEW */}
         {activeTab === 'Overview' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {/* Profile completeness — own profile only, no coach view */}
+          {isOwnProfile && !viewAsCoach && profileCompleteness && profileCompleteness.pct < 100 && (
+            <div className="k-card" style={{ padding: '16px 18px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
+                <div style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#555' }}>Profile Strength</div>
+                <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 800, fontSize: '1.1rem', color: '#ff5a2d' }}>{profileCompleteness.pct}%</div>
+              </div>
+              <div style={{ height: 6, borderRadius: 99, background: 'rgba(255,255,255,0.06)', overflow: 'hidden', marginBottom: 12 }}>
+                <div style={{ height: '100%', width: `${profileCompleteness.pct}%`, borderRadius: 99, background: 'linear-gradient(90deg, #ff5a2d, #ff8c66)', transition: 'width 0.6s ease' }} />
+              </div>
+              {profileCompleteness.nudges.length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {profileCompleteness.nudges.map((n) => (
+                    <div key={n.label} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#ff5a2d', flexShrink: 0 }} />
+                      <div style={{ fontSize: '0.75rem', color: '#888' }}>{n.label} <span style={{ color: '#ff5a2d', fontWeight: 600 }}>+{n.points}%</span></div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
             {/* Season totals */}
             <Card style={{ padding: '18px 16px' }}>
@@ -786,7 +833,7 @@ export const Profile = () => {
             {/* Combine */}
             <Card style={{ padding: '18px 16px' }}>
               <div style={{ fontSize: '0.65rem', fontWeight: t.weight.bold, letterSpacing: '0.12em', textTransform: 'uppercase', color: colors.textTertiary, marginBottom: 14 }}>Combine / Measurables</div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 0 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(5, 1fr)', gap: 0 }}>
                 {[
                   { label: '40 Yard', value: combineStats?.fortyDash ?? '--' },
                   { label: 'Shuttle', value: combineStats?.shuttle ?? '--' },
@@ -804,7 +851,22 @@ export const Profile = () => {
 
             {/* Game stats */}
             {statsLoading ? (
-              <Card style={{ padding: '32px', textAlign: 'center', color: colors.textTertiary }}>Loading stats...</Card>
+              <Card style={{ padding: '18px 16px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: 12 }}>
+                  {['Passing', 'Rushing', 'Receiving', 'Defense'].map(section => (
+                    <div key={section}>
+                      <Skeleton width="60%" height={12} style={{ marginBottom: 10 }} />
+                      {[0, 1, 2, 3].map(i => <Skeleton key={i} width="90%" height={10} style={{ marginBottom: 6 }} />)}
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            ) : statsError && gameStats.length === 0 ? (
+              <EmptyState
+                title="Could not load stats"
+                body="Check your connection and try again."
+                cta={<Button variant="ghost" size="sm" onClick={() => { setStatsError(false); }}>Retry</Button>}
+              />
             ) : gameStats.length > 0 ? (
               <>
                 {totals && (
@@ -912,7 +974,19 @@ export const Profile = () => {
             )}
 
             {highlightsLoading ? (
-              <Card style={{ padding: '32px', textAlign: 'center', color: colors.textTertiary }}>Loading highlights...</Card>
+              <Card style={{ padding: '32px', textAlign: 'center', color: colors.textTertiary }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: 12 }}>
+                  {[0, 1, 2].map(i => (
+                    <div key={i} style={{ background: colors.surface2, borderRadius: radii.md, aspectRatio: '16/9' }} />
+                  ))}
+                </div>
+              </Card>
+            ) : highlightsError && highlights.length === 0 ? (
+              <EmptyState
+                title="Could not load highlights"
+                body="Check your connection and try again."
+                cta={<Button variant="ghost" size="sm" onClick={() => { setHighlightsError(false); }}>Retry</Button>}
+              />
             ) : highlights.length > 0 ? (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
                 {highlights.map(h => (
