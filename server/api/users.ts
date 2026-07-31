@@ -3,11 +3,13 @@ import { eq } from 'drizzle-orm';
 import { db } from '../db';
 import * as schema from '../schema';
 import { requireAuth } from '../auth';
+import { requireActivated } from '../middleware/requireActivated';
 import { validateBody } from '../middleware/validate';
 import { userProfilePutBody, userStatsPostBody } from '../middleware/safetySchemas';
 
 const router = express.Router();
 router.use(requireAuth);
+router.use(requireActivated);
 
 function caller(req: express.Request) {
   const u = (req as any).user;

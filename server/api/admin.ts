@@ -3,8 +3,13 @@ import { sql, eq, desc } from 'drizzle-orm';
 import { db } from '../db';
 import * as schema from '../schema';
 import { requireAdmin } from '../auth';
+import { auditPiiAccess } from '../middleware/auditPiiAccess';
 
 const router = express.Router();
+
+// PRD-C P1 #17: /recent-signups returns full player rows (email/phone/dob), so
+// this router is audited too.
+router.use(auditPiiAccess());
 
 // GET /api/admin/data/stats
 router.get('/stats', requireAdmin, async (_req, res) => {

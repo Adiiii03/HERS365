@@ -11,8 +11,13 @@ import { withoutPasswordHash } from './lib/playerPrivacy';
 import { clampIntQuery } from './lib/queryParam';
 import { parseIdParam } from './lib/parseIdParam';
 import { fetchAndExtract, getAIClient } from './lib/scraper';
+import { auditPiiAccess } from './middleware/auditPiiAccess';
 
 const router = express.Router();
+
+// PRD-C P1 #17: log every admin read that returns minor PII. Router-level so
+// no handler can ship PII without a hash-chained admin_access_log entry.
+router.use(auditPiiAccess());
 
 // ----------------------
 // DASHBOARD STATS

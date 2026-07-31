@@ -5,6 +5,7 @@ import * as schema from '../schema';
 import { requireAuth, type TokenPayload } from '../auth';
 import { validateBody } from './../middleware/validate';
 import { storySubmitBody } from '../middleware/safetySchemas';
+import { requireActivated } from '../middleware/requireActivated';
 
 const router = express.Router();
 
@@ -38,9 +39,9 @@ router.get('/', async (req, res) => {
 });
 
 // POST /api/stories — athlete submits commitment story (auth required, goes to pending review).
-// validateBody runs the zod allow-list first so unknown fields are dropped
+// validateBody runs the zod allow-list last so unknown fields are dropped
 // before they ever touch the DB write.
-router.post('/', requireAuth, validateBody(storySubmitBody), async (req, res) => {
+router.post('/', requireAuth, requireActivated, validateBody(storySubmitBody), async (req, res) => {
   try {
     const athleteId = Number(authUser(req)?.id);
     const { athleteName, position, commitmentSchool, commitmentDivision, gradYear, storyText, imageUrl, tags } = req.body;

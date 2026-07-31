@@ -1,11 +1,17 @@
 import { pool } from '../../db';
 
 const TABLES = [
+  'refresh_tokens',
   'messages',
   'message_requests',
   'message_blocks',
   'message_reports',
   'parent_child_relations',
+  'parent_stat_submissions',
+  'guardian_verification_codes',
+  'guardian_consents',
+  'consent_audit_log',
+  'admin_access_log',
   'event_registrations',
   'saved_scholarships',
   'support_interactions',
