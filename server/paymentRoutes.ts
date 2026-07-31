@@ -71,6 +71,9 @@ function requirePlayerPaymentAccess(req: Request, res: Response, playerId: numbe
 // Authenticity is enforced via signature verification instead.
 
 // POST /webhook - Handle Stripe webhooks
+// express.raw must stay: constructEvent below verifies the signature against
+// the exact bytes Stripe sent, and app.ts mounts express.json globally ahead
+// of this router.
 router.post('/webhook', requireStripe, express.raw({ type: 'application/json' }), async (req: Request, res: Response) => {
   const sig = req.headers['stripe-signature'];
   const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -143,12 +146,11 @@ export async function processStripeWebhookEvent(event: Stripe.Event): Promise<vo
           status: 'active',
         }).onConflictDoUpdate({
           target: schema.playerSubscriptions.playerId,
-          // schema.playerSubscriptions has no updatedAt column; previous code
-          // tried to set one. See "Bugs found" in the PR.
           set: {
             planId,
             stripeSubscriptionId: session.subscription as string,
             status: 'active',
+            updatedAt: new Date(),
           },
         });
 
@@ -171,7 +173,7 @@ export async function processStripeWebhookEvent(event: Stripe.Event): Promise<vo
           description: `${plans[0]?.name || 'Subscription'} - Monthly`,
           stripePaymentIntentId: session.payment_intent as string,
           stripeCustomerId: session.customer as string,
-          paidAt: new Date().toISOString(),
+          paidAt: new Date(),
         });
       }
       break;
@@ -289,8 +291,7 @@ router.post('/create-checkout-session', async (req: Request, res: Response) => {
         status: 'active',
       }).onConflictDoUpdate({
         target: schema.playerSubscriptions.playerId,
-        // schema.playerSubscriptions has no updatedAt column; see "Bugs found".
-        set: { planId: plan.id, status: 'active' },
+        set: { planId: plan.id, status: 'active', updatedAt: new Date() },
       });
 
       await db.update(schema.players)
@@ -525,11 +526,11 @@ router.patch('/payments/:id', async (req: Request, res: Response) => {
         const updatedPayment = await db.update(schema.payments)
             .set({
                 ...(status && { status }),
-                ...(paidAt && { paidAt: new Date(paidAt).toISOString() }),
+                ...(paidAt && { paidAt: new Date(paidAt) }),
                 ...(receiptUrl && { receiptUrl }),
                 ...(notes && { notes }),
                 ...(stripePaymentIntentId && { stripePaymentIntentId }),
-                updatedAt: new Date().toISOString(),
+                updatedAt: new Date(),
             })
             .where(eq(schema.payments.id, paymentId))
             .returning();
@@ -555,7 +556,7 @@ router.post('/payments/:id/complete', async (req: Request, res: Response) => {
         }
         const { receiptUrl } = req.body;
 
-        const now = new Date().toISOString();
+        const now = new Date();
         const updatedPayment = await db.update(schema.payments)
             .set({
                 status: 'completed',
@@ -610,7 +611,7 @@ router.post('/payments/:id/refund', async (req: Request, res: Response) => {
             .set({
                 status: 'refunded',
                 notes: reason ? `Refunded: ${reason}${feedback ? ` - ${feedback}` : ''}` : 'Refunded',
-                updatedAt: new Date().toISOString(),
+                updatedAt: new Date(),
             })
             .where(eq(schema.payments.id, paymentId))
             .returning();
@@ -619,8 +620,7 @@ router.post('/payments/:id/refund', async (req: Request, res: Response) => {
         const paymentPlayerId = payment[0].playerId;
         if (payment[0].paymentType === 'subscription' && paymentPlayerId != null) {
             await db.update(schema.playerSubscriptions)
-                // schema.playerSubscriptions has no updatedAt column; see "Bugs found".
-                .set({ status: 'cancelled' })
+                .set({ status: 'cancelled', updatedAt: new Date() })
                 .where(eq(schema.playerSubscriptions.playerId, paymentPlayerId));
 
             // Downgrade player to free tier
