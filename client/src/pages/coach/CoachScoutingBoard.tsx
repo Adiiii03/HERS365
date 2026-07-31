@@ -3,12 +3,16 @@ import { Link } from 'react-router-dom';
 import { Heart, Eye, Trash2, Star, Users, MapPin, GraduationCap, Award } from 'lucide-react';
 import type { ScoutingBoardItem, PlayerSearchResult } from '../../types';
 import { useNotifications } from '../../context/NotificationContext';
+import { Button, Card, EmptyState, CardSkeleton } from '../../components/ui';
+import { colors, radii } from '../../lib/tokens';
 
 const TIERS = [
-  { id: 'top-target', label: 'Top Targets', color: 'bg-red-600', description: 'Priority recruits' },
-  { id: 'watching', label: 'Watching', color: 'bg-yellow-600', description: 'Prospects to monitor' },
-  { id: 'offered', label: 'Offered', color: 'bg-green-600', description: 'Players with offers' },
-];
+  { id: 'top-target', label: 'Top Targets', dot: colors.danger, description: 'Priority recruits' },
+  { id: 'watching', label: 'Watching', dot: colors.pink, description: 'Prospects to monitor' },
+  { id: 'offered', label: 'Offered', dot: colors.success, description: 'Players with offers' },
+] as const;
+
+const DISPLAY = "'Barlow Condensed', sans-serif";
 
 export function CoachScoutingBoard() {
   const [board, setBoard] = useState<ScoutingBoardItem[]>([]);
@@ -97,6 +101,7 @@ export function CoachScoutingBoard() {
   };
 
   const removeFromBoard = async (playerId: number) => {
+    const playerName = players.get(playerId)?.name;
     try {
       const token = localStorage.getItem('coachToken');
       await fetch(`/api/coach/players/${playerId}/save`, {
@@ -107,6 +112,7 @@ export function CoachScoutingBoard() {
       });
 
       setBoard(prev => prev.filter(item => item.playerId !== playerId));
+      showNotification('info', 'Removed from Board', playerName ? `${playerName} was removed from your board.` : 'Player removed from your board.');
     } catch {
       showNotification('error', 'Remove Failed', 'Could not remove player from board. Please try again.');
     }
@@ -128,6 +134,9 @@ export function CoachScoutingBoard() {
         setBoard(prev => prev.map(item =>
           item.playerId === playerId ? { ...item, tier: newTier as ScoutingBoardItem['tier'] } : item
         ));
+        const tierLabel = TIERS.find(t => t.id === newTier)?.label ?? newTier;
+        const playerName = players.get(playerId)?.name;
+        showNotification('success', 'Tier Updated', playerName ? `${playerName} moved to ${tierLabel}.` : `Player moved to ${tierLabel}.`);
       }
     } catch {
       showNotification('error', 'Update Failed', 'Could not update player tier. Please try again.');
@@ -173,26 +182,29 @@ export function CoachScoutingBoard() {
     return Array.from({ length: 5 }, (_, i) => (
       <Star
         key={i}
-        className={`w-4 h-4 ${i < stars ? 'text-yellow-400 fill-current' : 'text-gray-300'}`}
+        className="w-4 h-4"
+        style={{ color: i < stars ? colors.pink : colors.border, fill: i < stars ? colors.pink : 'none' }}
       />
     ));
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
+    <div className="min-h-screen" style={{ background: colors.surface0, color: colors.textPrimary }}>
       {/* Header */}
-      <div className="bg-gray-800 border-b border-gray-700">
+      <div style={{ background: colors.surface1, borderBottom: `1px solid ${colors.border}` }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-white">Scouting Board</h1>
-              <p className="text-gray-400 mt-2">Manage your recruiting pipeline</p>
+              <h1
+                className="text-3xl font-bold"
+                style={{ fontFamily: DISPLAY, letterSpacing: '-0.02em', color: colors.textPrimary }}
+              >
+                Scouting Board
+              </h1>
+              <p className="mt-2" style={{ color: colors.textSecondary }}>Manage your recruiting pipeline</p>
             </div>
-            <Link
-              to="/coach/search"
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-            >
-              Find More Players
+            <Link to="/coach/search">
+              <Button variant="primary">Find More Players</Button>
             </Link>
           </div>
         </div>
@@ -204,11 +216,12 @@ export function CoachScoutingBoard() {
           <div className="flex flex-wrap gap-4 mb-6">
             <button
               onClick={() => setActiveTier('all')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              className="px-4 py-2 min-h-[44px] rounded-lg font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+              style={
                 activeTier === 'all'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-              }`}
+                  ? { background: colors.accent, color: colors.accentOn, ['--tw-ring-color' as string]: colors.accent }
+                  : { background: colors.surface1, color: colors.textSecondary, ['--tw-ring-color' as string]: colors.accent }
+              }
             >
               All Players ({board.length})
             </button>
@@ -216,11 +229,12 @@ export function CoachScoutingBoard() {
               <button
                 key={tier.id}
                 onClick={() => setActiveTier(tier.id)}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                className="px-4 py-2 min-h-[44px] rounded-lg font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+                style={
                   activeTier === tier.id
-                    ? `${tier.color} text-white`
-                    : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-                }`}
+                    ? { background: tier.dot, color: colors.surface0, ['--tw-ring-color' as string]: colors.accent }
+                    : { background: colors.surface1, color: colors.textSecondary, ['--tw-ring-color' as string]: colors.accent }
+                }
               >
                 {tier.label} ({getTierStats(tier.id)})
               </button>
@@ -230,52 +244,51 @@ export function CoachScoutingBoard() {
           {/* Tier Descriptions */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {TIERS.map((tier) => (
-              <div key={tier.id} className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+              <Card key={tier.id} className="p-4">
                 <div className="flex items-center gap-3 mb-2">
-                  <div className={`w-3 h-3 rounded-full ${tier.color}`}></div>
-                  <h3 className="text-lg font-semibold text-white">{tier.label}</h3>
+                  <div className="w-3 h-3 rounded-full" style={{ background: tier.dot }}></div>
+                  <h3
+                    className="text-lg font-semibold"
+                    style={{ fontFamily: DISPLAY, color: colors.textPrimary }}
+                  >
+                    {tier.label}
+                  </h3>
                 </div>
-                <p className="text-gray-400 text-sm">{tier.description}</p>
-                <p className="text-white font-medium mt-2">{getTierStats(tier.id)} players</p>
-              </div>
+                <p className="text-sm" style={{ color: colors.textSecondary }}>{tier.description}</p>
+                <p className="font-medium mt-2" style={{ color: colors.textPrimary }}>{getTierStats(tier.id)} players</p>
+              </Card>
             ))}
           </div>
         </div>
 
         {/* Board Content */}
         {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.from({ length: 6 }).map((_, i) => <CardSkeleton key={i} />)}
           </div>
         ) : loadError ? (
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <p className="text-gray-400 mb-4">Could not load your scouting board.</p>
-            <button
-              onClick={() => { setLoading(true); fetchScoutingBoard(); }}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-            >
-              Retry
-            </button>
-          </div>
+          <EmptyState
+            icon={<Heart className="w-12 h-12" />}
+            title="Could not load your scouting board."
+            cta={
+              <Button variant="primary" onClick={() => { setLoading(true); fetchScoutingBoard(); }}>
+                Retry
+              </Button>
+            }
+          />
         ) : filteredBoard.length === 0 ? (
-          <div className="text-center py-12">
-            <Heart className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-            <h3 className="text-xl font-medium text-gray-400 mb-2">
-              {activeTier === 'all' ? 'Your scouting board is empty' : `No players in ${TIERS.find(t => t.id === activeTier)?.label}`}
-            </h3>
-            <p className="text-gray-500 mb-6">
-              {activeTier === 'all'
-                ? 'Start by searching for players and adding them to your board'
-                : 'Try changing the filter or adding players to this tier'
-              }
-            </p>
-            <Link
-              to="/coach/search"
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
-            >
-              Search Players
-            </Link>
-          </div>
+          <EmptyState
+            icon={<Heart className="w-12 h-12" />}
+            title={activeTier === 'all' ? 'Your scouting board is empty' : `No players in ${TIERS.find(t => t.id === activeTier)?.label}`}
+            body={activeTier === 'all'
+              ? 'Start by searching for players and adding them to your board'
+              : 'Try changing the filter or adding players to this tier'}
+            cta={
+              <Link to="/coach/search">
+                <Button variant="primary" size="lg">Search Players</Button>
+              </Link>
+            }
+          />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredBoard.map((item) => {
@@ -285,17 +298,22 @@ export function CoachScoutingBoard() {
               const tierInfo = TIERS.find(t => t.id === item.tier);
 
               return (
-                <div key={item.playerId} className="bg-gray-800 border border-gray-700 rounded-lg overflow-hidden hover:border-gray-600 transition-colors">
+                <Card key={item.playerId} hover className="overflow-hidden">
                   <div className="p-6">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
-                          <h3 className="text-xl font-semibold text-white">{player.name}</h3>
+                          <h3
+                            className="text-xl font-semibold"
+                            style={{ fontFamily: DISPLAY, color: colors.textPrimary }}
+                          >
+                            {player.name}
+                          </h3>
                           {player.verified && (
-                            <Award className="w-5 h-5 text-blue-400" />
+                            <Award className="w-5 h-5" style={{ color: colors.accentText }} />
                           )}
                         </div>
-                        <div className="flex items-center gap-4 text-sm text-gray-400 mb-2">
+                        <div className="flex items-center gap-4 text-sm mb-2" style={{ color: colors.textSecondary }}>
                           <span className="flex items-center gap-1">
                             <Users className="w-4 h-4" />
                             {player.position}
@@ -309,14 +327,19 @@ export function CoachScoutingBoard() {
                             {player.gradYear}
                           </span>
                         </div>
-                        <div className={`inline-flex items-center gap-2 px-2 py-1 rounded-full text-xs font-medium ${tierInfo?.color} text-white`}>
-                          <div className={`w-2 h-2 rounded-full bg-white`}></div>
+                        <div
+                          className="inline-flex items-center gap-2 px-2 py-1 rounded-full text-xs font-medium"
+                          style={{ background: tierInfo?.dot, color: colors.surface0 }}
+                        >
+                          <div className="w-2 h-2 rounded-full" style={{ background: colors.surface0 }}></div>
                           {tierInfo?.label}
                         </div>
                       </div>
                       <button
                         onClick={() => removeFromBoard(item.playerId)}
-                        className="p-2 text-gray-400 hover:text-red-400 transition-colors"
+                        aria-label={`Remove ${player.name} from board`}
+                        className="inline-flex items-center justify-center min-w-[44px] min-h-[44px] rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+                        style={{ color: colors.textSecondary, ['--tw-ring-color' as string]: colors.accent }}
                       >
                         <Trash2 className="w-5 h-5" />
                       </button>
@@ -324,28 +347,34 @@ export function CoachScoutingBoard() {
 
                     <div className="space-y-3 mb-4">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-400">Breakout Score</span>
-                        <span className="text-lg font-semibold text-green-400">{player.breakoutScore}</span>
+                        <span className="text-sm" style={{ color: colors.textSecondary }}>Breakout Score</span>
+                        <span className="text-lg font-semibold" style={{ color: colors.success }}>{player.breakoutScore}</span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-400">Rating</span>
+                        <span className="text-sm" style={{ color: colors.textSecondary }}>Rating</span>
                         <div className="flex items-center gap-1">
                           {renderStars(player.stars)}
                         </div>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-400">NIL Points</span>
-                        <span className="text-lg font-semibold text-yellow-400">{player.nilPoints.toLocaleString()}</span>
+                        <span className="text-sm" style={{ color: colors.textSecondary }}>NIL Points</span>
+                        <span className="text-lg font-semibold" style={{ color: colors.pinkText }}>{player.nilPoints.toLocaleString()}</span>
                       </div>
                     </div>
 
                     {/* Tier Selector */}
                     <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-300 mb-2">Change Tier</label>
+                      <label className="block text-sm font-medium mb-2" style={{ color: colors.textSecondary }}>Change Tier</label>
                       <select
                         value={item.tier}
                         onChange={(e) => updateTier(item.playerId, e.target.value)}
-                        className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white text-sm"
+                        className="w-full px-3 py-2 text-sm"
+                        style={{
+                          background: colors.surface2,
+                          border: `1px solid ${colors.border}`,
+                          borderRadius: radii.sm,
+                          color: colors.textPrimary,
+                        }}
                       >
                         {TIERS.map((tier) => (
                           <option key={tier.id} value={tier.id}>{tier.label}</option>
@@ -355,58 +384,66 @@ export function CoachScoutingBoard() {
 
                     {/* Notes */}
                     <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-300 mb-2">Notes</label>
+                      <label className="block text-sm font-medium mb-2" style={{ color: colors.textSecondary }}>Notes</label>
                       {editingNotes === item.playerId ? (
                         <div className="space-y-2">
                           <textarea
                             value={notesText}
                             onChange={(e) => setNotesText(e.target.value)}
-                            className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white text-sm h-20 resize-none"
+                            className="w-full px-3 py-2 text-sm h-20 resize-none"
+                            style={{
+                              background: colors.surface2,
+                              border: `1px solid ${colors.border}`,
+                              borderRadius: radii.sm,
+                              color: colors.textPrimary,
+                            }}
                             placeholder="Add notes about this player..."
                           />
                           <div className="flex gap-2">
-                            <button
-                              onClick={() => updateNotes(item.playerId, notesText)}
-                              className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded transition-colors"
-                            >
+                            <Button variant="primary" size="sm" onClick={() => updateNotes(item.playerId, notesText)}>
                               Save
-                            </button>
-                            <button
-                              onClick={() => setEditingNotes(null)}
-                              className="px-3 py-1 bg-gray-600 hover:bg-gray-700 text-white text-sm rounded transition-colors"
-                            >
+                            </Button>
+                            <Button variant="ghost" size="sm" onClick={() => setEditingNotes(null)}>
                               Cancel
-                            </button>
+                            </Button>
                           </div>
                         </div>
                       ) : (
-                        <div
+                        <button
+                          type="button"
                           onClick={() => startEditingNotes(item.playerId, item.notes || '')}
-                          className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white text-sm min-h-[2.5rem] cursor-pointer hover:bg-gray-600 transition-colors"
+                          className="w-full text-left px-3 py-2 text-sm min-h-[2.5rem] cursor-pointer transition-colors"
+                          style={{
+                            background: colors.surface2,
+                            border: `1px solid ${colors.border}`,
+                            borderRadius: radii.sm,
+                            color: colors.textPrimary,
+                          }}
                         >
                           {item.notes ? (
-                            <span className="text-gray-300">{item.notes}</span>
+                            <span style={{ color: colors.textSecondary }}>{item.notes}</span>
                           ) : (
-                            <span className="text-gray-500 italic">Click to add notes...</span>
+                            <span className="italic" style={{ color: colors.textTertiary }}>Click to add notes...</span>
                           )}
-                        </div>
+                        </button>
                       )}
                     </div>
 
                     <div className="flex items-center justify-between">
                       <Link
                         to={`/coach/player/${player.id}`}
-                        className="flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors"
+                        className="flex items-center gap-2 transition-colors"
+                        style={{ color: colors.accentText }}
                       >
                         <Eye className="w-4 h-4" />
                         View Profile
                       </Link>
-                      <div className="text-sm text-gray-400">
+                      <div className="text-sm" style={{ color: colors.textSecondary }}>
                         {player.offers} offers • {player.highlights} highlights
                       </div>
                     </div>
                   </div>
-                </div>
+                </Card>
               );
             })}
           </div>
