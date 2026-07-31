@@ -10,9 +10,7 @@ export interface AthleteData {
   position: string;
   combineStats?: CombineStats;
   maxPrepsStats?: MaxPrepsStats;
-  zybekStats?: ZybekStats;
-  usaTalentIdStats?: USATalentIdStats;
-  otherStats?: OtherSourceStats;
+  tournamentPerformanceStats?: TournamentPerformanceStats;
 }
 
 export interface CombineStats {
@@ -27,8 +25,8 @@ export interface CombineStats {
   catching?: number;
   throwingAccuracy?: number;
   throwingPower?: number;
-  eventId: string;
-  eventDate: string;
+  eventId?: string;
+  eventDate?: string;
 }
 
 export interface MaxPrepsStats {
@@ -65,6 +63,17 @@ export interface USATalentIdStats {
   techniqueRating?: number;
   eventName: string;
   eventDate: string;
+  verified: boolean;
+}
+
+export interface TournamentPerformanceStats {
+  tournamentsPlayed?: number;
+  wins?: number;
+  touchdowns?: number;
+  receivingYards?: number;
+  passingYards?: number;
+  interceptions?: number;
+  mvpAwards?: number;
   verified: boolean;
 }
 
@@ -320,6 +329,52 @@ export function calculateZybekScore(stats: ZybekStats | undefined): number {
   return weight > 0 ? (score / weight) * 100 : 0;
 }
 
+export function calculateTournamentPerformanceScore(
+  stats: TournamentPerformanceStats | undefined
+): number {
+
+  if (!stats) return 0;
+
+  let score = 0;
+  let weight = 0;
+
+
+  if (stats.touchdowns) {
+    score += normalizeValue(
+      stats.touchdowns,
+      0,
+      20
+    ) * 0.4;
+
+    weight += 0.4;
+  }
+
+
+  if (stats.receivingYards) {
+    score += normalizeValue(
+      stats.receivingYards,
+      0,
+      1000
+    ) * 0.3;
+
+    weight += 0.3;
+  }
+
+
+  if (stats.mvpAwards) {
+    score += normalizeValue(
+      stats.mvpAwards,
+      0,
+      5
+    ) * 0.3;
+
+    weight += 0.3;
+  }
+
+
+  return weight > 0 ? score / weight : 0;
+}
+
 // Calculate USA Talent ID score
 export function calculateUSATalentIdScore(stats: USATalentIdStats | undefined): number {
   if (!stats) return 0;
@@ -360,13 +415,13 @@ export function calculateUSATalentIdScore(stats: USATalentIdStats | undefined): 
   return weight > 0 ? (score / weight) * 100 : 0;
 }
 
+
 // Calculate overall ranking score
 export function calculateRankingScore(athlete: AthleteData): {
   overallScore: number;
   combineScore: number;
   maxPrepsScore: number;
-  zybekScore: number;
-  usaTalentIdScore: number;
+  tournamentPerformanceScore: number;
   dataSources: string[];
 } {
   const dataSources: string[] = [];
@@ -378,18 +433,19 @@ export function calculateRankingScore(athlete: AthleteData): {
   const maxPrepsScore = calculateMaxPrepsScore(athlete.maxPrepsStats);
   if (maxPrepsScore > 0) dataSources.push('maxpreps');
   
-  const zybekScore = calculateZybekScore(athlete.zybekStats);
-  if (zybekScore > 0) dataSources.push('zybek');
-  
-  const usaTalentIdScore = calculateUSATalentIdScore(athlete.usaTalentIdStats);
-  if (usaTalentIdScore > 0) dataSources.push('usa_talent_id');
+
+  const tournamentPerformanceScore = calculateTournamentPerformanceScore(athlete.tournamentPerformanceStats);
+  if (tournamentPerformanceScore > 0) dataSources.push('tournament_performance');
   
   // Weight each source type
   const SOURCE_WEIGHTS = {
-    combine: 0.30,
-    maxpreps: 0.25,
-    zybek: 0.25,
-    usa_talent_id: 0.20,
+    combine: 0.40,
+
+    //Verified Game Stats
+    maxpreps: 0.40,
+
+    // She a baller metrics
+    tournament_performance: 0.20,
   };
   
   // Calculate weighted overall score
@@ -405,15 +461,10 @@ export function calculateRankingScore(athlete: AthleteData): {
     overallScore += maxPrepsScore * SOURCE_WEIGHTS.maxpreps;
     totalWeight += SOURCE_WEIGHTS.maxpreps;
   }
-  
-  if (zybekScore > 0) {
-    overallScore += zybekScore * SOURCE_WEIGHTS.zybek;
-    totalWeight += SOURCE_WEIGHTS.zybek;
-  }
-  
-  if (usaTalentIdScore > 0) {
-    overallScore += usaTalentIdScore * SOURCE_WEIGHTS.usa_talent_id;
-    totalWeight += SOURCE_WEIGHTS.usa_talent_id;
+
+  if (tournamentPerformanceScore > 0) {
+    overallScore += tournamentPerformanceScore * SOURCE_WEIGHTS.tournament_performance;
+    totalWeight += SOURCE_WEIGHTS.tournament_performance;
   }
   
   // Normalize by actual weights used
@@ -423,8 +474,7 @@ export function calculateRankingScore(athlete: AthleteData): {
     overallScore: Math.round(finalScore * 100) / 100,
     combineScore: Math.round(combineScore * 100) / 100,
     maxPrepsScore: Math.round(maxPrepsScore * 100) / 100,
-    zybekScore: Math.round(zybekScore * 100) / 100,
-    usaTalentIdScore: Math.round(usaTalentIdScore * 100) / 100,
+    tournamentPerformanceScore: Math.round(tournamentPerformanceScore * 100) / 100,
     dataSources,
   };
 }

@@ -7,10 +7,16 @@ export interface AuthUser {
   role: 'athlete' | 'coach' | 'parent' | 'admin';
 }
 
+export type AuthStatus = 'authenticated' | 'pending' | 'unauthenticated';
+
 interface AuthContextValue {
   user: AuthUser | null;
   token: string | null;
   isAuthenticated: boolean;
+  status: AuthStatus;
+  pendingToken: string | null;
+  setPending: (pendingToken: string) => void;
+  clearPending: () => void;
   login: (token: string, user: AuthUser) => void;
   logout: () => void;
   updateUser: (patch: Partial<AuthUser>) => void;
@@ -31,10 +37,23 @@ function readStoredUser(): AuthUser | null {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(() => localStorage.getItem('token'));
   const [user, setUser] = useState<AuthUser | null>(() => readStoredUser());
+  const [pendingToken, setPendingToken] = useState<string | null>(() => localStorage.getItem('pendingToken'));
+
+  const setPending = useCallback((newPendingToken: string) => {
+    localStorage.setItem('pendingToken', newPendingToken);
+    setPendingToken(newPendingToken);
+  }, []);
+
+  const clearPending = useCallback(() => {
+    localStorage.removeItem('pendingToken');
+    setPendingToken(null);
+  }, []);
 
   const login = useCallback((newToken: string, newUser: AuthUser) => {
     localStorage.setItem('token', newToken);
     localStorage.setItem('user', JSON.stringify(newUser));
+    localStorage.removeItem('pendingToken');
+    setPendingToken(null);
     setToken(newToken);
     setUser(newUser);
   }, []);
@@ -55,8 +74,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  const status: AuthStatus = token ? 'authenticated' : pendingToken ? 'pending' : 'unauthenticated';
+
   return (
-    <AuthContext.Provider value={{ user, token, isAuthenticated: !!token, login, logout, updateUser }}>
+    <AuthContext.Provider value={{ user, token, isAuthenticated: !!token, status, pendingToken, setPending, clearPending, login, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );
