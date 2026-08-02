@@ -156,6 +156,9 @@ router.post(
         state,
         division,
         school,
+        email,
+        name,
+        dob,
 
         // Season
         season,
@@ -173,6 +176,10 @@ router.post(
         receivingYards,
         rushingYards,
 
+        touchdownsPassing,
+        touchdownsRushing,
+        touchdownsReceiving,
+
         // Combine
         fortyYardDash,
         verticalJump,
@@ -182,6 +189,7 @@ router.post(
         // Verification
         notes,
         maxPrepsUrl,
+
       } = req.body;
 
       if (!playerId) {
@@ -204,6 +212,9 @@ router.post(
           state,
           division,
           school,
+          email,
+          name,
+          dob,
 
           season,
 
@@ -218,6 +229,9 @@ router.post(
           passingYards,
           rushingYards,
           receivingYards,
+          touchdownsPassing,
+          touchdownsRushing,
+          touchdownsReceiving,
 
           fortyYardDash,
           verticalJump,
@@ -228,6 +242,7 @@ router.post(
           source: 'parent_portal',
           notes,
           status: 'pending',
+          verificationStatus: 'pending',
         })
         .returning();
 

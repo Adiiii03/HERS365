@@ -141,6 +141,11 @@ export const parentStatSubmissions = pgTable('parent_stat_submissions', {
   division: text('division'),
   school: text('school'),
 
+  email: text('email'),
+  name: text('name'),
+  dob: timestamp('dob'),
+
+
   season: text('season'),
   passingTds: integer('passing_tds'),
   rushingTds: integer('rushing_tds'),
@@ -154,6 +159,11 @@ export const parentStatSubmissions = pgTable('parent_stat_submissions', {
   receivingYards: integer('receiving_yards'),
   hersRating: doublePrecision('hers_rating'),
 
+  touchdownsPassing: integer('touchdowns_passing'),
+  touchdownsRushing: integer('touchdowns_rushing'),
+  touchdownsReceiving: integer('touchdowns_receiving'),
+
+
   fortyYardDash: doublePrecision('forty_yard_dash'),
   verticalJump: doublePrecision('vertical_jump'),
   shuttle5105: doublePrecision('shuttle_5_10_5'),
@@ -164,6 +174,7 @@ export const parentStatSubmissions = pgTable('parent_stat_submissions', {
   notes: text('notes'),
   adminNotes: text('admin_notes'),
   status: text('status').notNull().default('pending'),
+  verificationStatus: text('verification_status').notNull().default('pending'),
   submittedAt: timestamp('submitted_at').default(sql`now()`),
   reviewedAt: timestamp('reviewed_at'),
   reviewedBy: integer('reviewed_by'),
