@@ -113,10 +113,18 @@ function signEmailAuthToken(player: { id: number }): string {
   return auth.signToken({ userId: player.id, role: 'athlete' });
 }
 
-router.post('/register', registerLimiter, async (req, res) => {
+// Runs BEFORE registerLimiter so a closed registration kill-switch always
+// returns a deterministic 403, rather than a 429 once the rate limit has
+// already been tripped by prior attempts.
+function requireRegistrationEnabled(req: express.Request, res: express.Response, next: express.NextFunction): void {
   if (!isRegistrationEnabled()) {
-    return res.status(403).json({ error: 'Registration is currently closed.' });
+    res.status(403).json({ error: 'Registration is currently closed.' });
+    return;
   }
+  next();
+}
+
+router.post('/register', requireRegistrationEnabled, registerLimiter, async (req, res) => {
   const { email, password, name, dob, parentEmail, guardianEmail, guardianPhone } = req.body || {};
 
   if (!email || !password) {

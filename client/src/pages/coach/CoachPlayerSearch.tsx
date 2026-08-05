@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Filter, Eye, Star, MapPin, GraduationCap, Award, Users, Heart } from 'lucide-react';
+import { Search, Filter, Eye, Star, MapPin, GraduationCap, Users, Heart } from 'lucide-react';
 import type { PlayerSearchResult } from '../../types';
 import { useNotifications } from '../../context/NotificationContext';
+import { StatsVerificationStatus } from '../../components/StatsVerificationStatus';
 import { Button, EmptyState } from '../../components/ui';
 
 interface SearchFilters {
@@ -337,7 +338,7 @@ export function CoachPlayerSearch() {
 
               <div className="flex items-end">
                 <div className="w-full">
-                  <label className="block text-sm font-medium text-ink-muted mb-2">Verified Only</label>
+                  <label className="block text-sm font-medium text-ink-muted mb-2">Verified Stats Only</label>
                   <div className="flex items-center">
                     <input
                       type="checkbox"
@@ -345,7 +346,7 @@ export function CoachPlayerSearch() {
                       onChange={(e) => updateFilter('verified', e.target.checked)}
                       className="w-4 h-4 accent-accent-500 bg-surface-hover border-surface-border rounded focus:ring-accent-500"
                     />
-                    <span className="ml-2 text-sm text-ink-muted">Verified players only</span>
+                    <span className="ml-2 text-sm text-ink-muted">Show confirmed official stats only</span>
                   </div>
                 </div>
               </div>
@@ -406,9 +407,9 @@ export function CoachPlayerSearch() {
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
                       <h3 className="font-display uppercase tracking-tight text-xl font-semibold text-ink">{player.name}</h3>
-                      {player.verified && (
-                        <Award className="w-5 h-5 text-accent-400" />
-                      )}
+                    </div>
+                    <div className="mb-2">
+                      <StatsVerificationStatus verified={player.verified} />
                     </div>
                     <div className="flex items-center gap-4 text-sm text-ink-muted">
                       <span className="flex items-center gap-1">

@@ -186,14 +186,15 @@ export const Events = () => {
   }, []);
 
   const register = async (id: number) => {
-    const user = JSON.parse(localStorage.getItem('user') || '{}') as { id?: number };
-    const playerId = user.id;
-
     try {
+      const token = localStorage.getItem('token');
       const res = await fetch('/api/events/register', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ eventId: id, playerId }),
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ eventId: id }),
       });
 
       if (!res.ok) {

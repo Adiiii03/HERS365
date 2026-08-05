@@ -133,28 +133,22 @@ export const parentStatSubmissions = pgTable('parent_stat_submissions', {
   playerId: integer('player_id').references(() => players.id),
 
   athleteEmail: text('athlete_email'),
-  athleteName: text('athlete_name'),
+  athleteName: text('athlete_name').notNull(),
   athleteDob: timestamp('athlete_dob'),
   gradYear: integer('grad_year'),
   position: text('position'),
   state: text('state'),
   division: text('division'),
   school: text('school'),
-  email: text('email'),
-  name: text('name'),
-  dob: timestamp('dob'),
 
   season: text('season'),
   passingTds: integer('passing_tds'),
   rushingTds: integer('rushing_tds'),
   receivingTds: integer('receiving_tds'),
   defensiveTds: integer('defensive_tds'),
-  touchdownsPassing: integer('touchdowns_passing'),
-  touchdownsRushing: integer('touchdowns_rushing'),
-  touchdownsReceiving: integer('touchdowns_receiving'),
+  sacks: doublePrecision('sacks'),
   flagPulls: integer('flag_pulls'),
   interceptions: integer('interceptions'),
-  sacks: doublePrecision('sacks'),
   passingYards: integer('passing_yards'),
   rushingYards: integer('rushing_yards'),
   receivingYards: integer('receiving_yards'),
@@ -170,12 +164,10 @@ export const parentStatSubmissions = pgTable('parent_stat_submissions', {
   notes: text('notes'),
   adminNotes: text('admin_notes'),
   status: text('status').notNull().default('pending'),
-  verificationStatus: text('verification_status').notNull().default('pending'),
   submittedAt: timestamp('submitted_at').default(sql`now()`),
   reviewedAt: timestamp('reviewed_at'),
   reviewedBy: integer('reviewed_by'),
 });
-
 
 export const badges = pgTable('badges', {
   id: serial('id').primaryKey(),
@@ -325,6 +317,8 @@ export const parentChildRelations = pgTable('parent_child_relations', {
   createdAt: timestamp('created_at').default(sql`now()`),
 });
 
+
+
 // Real backing for ConsentRecord. Rows are never deleted; revocation is an
 // UPDATE to revoked_at (enforced by a DB trigger).
 export const guardianConsents = pgTable('guardian_consents', {
@@ -365,6 +359,23 @@ export const guardianVerificationCodes = pgTable('guardian_verification_codes', 
   used: boolean('used').notNull().default(false),
   metadata: jsonb('metadata').default(sql`'{}'::jsonb`),
   createdAt: timestamp('created_at').default(sql`now()`),
+});
+
+// Tracks the state of a single passwordless login attempt. The girl enters her
+// email, a one-time code is issued to her guardian (via issueCode, purpose
+// 'login_approval')
+export const loginRequests = pgTable('login_requests', {
+  id: serial('id').primaryKey(),
+  playerId: integer('player_id').references(() => players.id).notNull(),
+  parentId: integer('parent_id').references(() => parents.id),
+  relationId: integer('relation_id').references(() => parentChildRelations.id),
+  verificationCodeId: integer('verification_code_id').references(() => guardianVerificationCodes.id),
+  status: text('status').notNull().default('pending'), // pending | approved | denied | expired
+  ipAddress: text('ip_address'),
+  userAgent: text('user_agent'),
+  requestedAt: timestamp('requested_at').notNull().default(sql`now()`),
+  approvedAt: timestamp('approved_at'),
+  expiresAt: timestamp('expires_at').notNull(),
 });
 
 // Append only, tamper evident (row_hash chains over prev_hash). Never UPDATE or
@@ -658,6 +669,7 @@ export const athleteRankings = pgTable('athlete_rankings', {
   maxPrepsScore: doublePrecision('max_preps_score'),
   zybekScore: doublePrecision('zybek_score'),
   usaTalentIdScore: doublePrecision('usa_talent_id_score'),
+  tournamentPerformanceScore: doublePrecision('tournament_performance_score'),
   // Data source tracking
   dataSources: text('data_sources'),
   // Last update from each source

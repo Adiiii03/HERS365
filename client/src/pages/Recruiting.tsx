@@ -8,6 +8,7 @@ import {
 import { useSearchParams } from 'react-router-dom';
 import { useNotifications } from '../context/NotificationContext';
 import { useAuth } from '../context/AuthContext';
+import { useIsMobile } from '../hooks/useIsMobile';
 import { apiFetch, type ApiError } from '../lib/api';
 import { FLAG_POSITIONS } from '../lib/positions';
 import { colors, type as t, radii } from '../lib/tokens';
@@ -165,6 +166,10 @@ export const Recruiting = () => {
   // Insights tab
   const [insights, setInsights]         = useState<Insights | null>(null);
   const [insightsLoading, setInsightsLoading] = useState(false);
+  const [scholarshipError, setScholarshipError] = useState(false);
+  const [appsError, setAppsError] = useState(false);
+  const [insightsError, setInsightsError] = useState(false);
+  const isMobile = useIsMobile();
 
   // Sync filters → URL params
   useEffect(() => {
@@ -233,7 +238,7 @@ export const Recruiting = () => {
       isAuthenticated
         ? apiFetch<{ data: Scholarship[] }>('/api/scholarships/saved').then(r => setSavedScholarshipIds(new Set(r.data.map(s => s.id))))
         : Promise.resolve(),
-    ]).catch(() => {}).finally(() => setScholarshipsLoading(false));
+    ]).catch(() => { setScholarshipError(true); }).finally(() => setScholarshipsLoading(false));
   }, [activeTab, isAuthenticated]);
 
   // Fetch applications when that tab is active
@@ -242,7 +247,7 @@ export const Recruiting = () => {
     setAppsLoading(true);
     apiFetch<{ data: Application[] }>('/api/programs/me/applications')
       .then(r => setApplications(r.data))
-      .catch(() => {})
+      .catch(() => { setAppsError(true); })
       .finally(() => setAppsLoading(false));
   }, [activeTab, isAuthenticated]);
 
@@ -252,7 +257,7 @@ export const Recruiting = () => {
     setInsightsLoading(true);
     apiFetch<{ data: Insights }>('/api/athletes/me/insights')
       .then(r => setInsights(r.data))
-      .catch(() => {})
+      .catch(() => { setInsightsError(true); })
       .finally(() => setInsightsLoading(false));
   }, [activeTab, isAuthenticated]);
 
@@ -462,7 +467,7 @@ export const Recruiting = () => {
               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
                 style={{ overflow: 'hidden' }}>
                 <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${colors.border}` }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 10 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)', gap: 10, marginBottom: 10 }}>
                     <div>
                       <div style={{ fontSize: t.size.xs, fontWeight: t.weight.bold, letterSpacing: '0.08em', color: colors.textTertiary, textTransform: 'uppercase', marginBottom: 5 }}>State</div>
                       <select value={filterState} onChange={e => setFilterState(e.target.value)} style={sel}>
@@ -634,8 +639,19 @@ export const Recruiting = () => {
       {/* ── Scholarships Tab ────────────────────────────────────── */}
       {activeTab === 'scholarships' && (
         <div>
-          {scholarshipsLoading && <div style={{ color: colors.textTertiary, textAlign: 'center', padding: '48px 0' }}>Loading scholarships…</div>}
-          {!scholarshipsLoading && scholarships.length === 0 && (
+          {scholarshipsLoading && (
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: 12 }}>
+              {[0, 1, 2].map(i => <SkeletonCard key={i} />)}
+            </div>
+          )}
+          {scholarshipError && !scholarshipsLoading && (
+            <EmptyState
+              title="Could not load scholarships"
+              body="Check your connection and try again."
+              cta={<Button variant="ghost" size="sm" onClick={() => { setScholarshipError(false); setActiveTab('scholarships'); }}><RefreshCw size={13} /> Retry</Button>}
+            />
+          )}
+          {!scholarshipsLoading && !scholarshipError && scholarships.length === 0 && (
             <EmptyState
               icon={<Award size={36} style={{ opacity: 0.3 }} />}
               title="No scholarships yet"
@@ -685,8 +701,27 @@ export const Recruiting = () => {
               title="Sign in to view applications"
             />
           )}
-          {isAuthenticated && appsLoading && <div style={{ color: colors.textTertiary, textAlign: 'center', padding: '48px 0' }}>Loading…</div>}
-          {isAuthenticated && !appsLoading && applications.length === 0 && (
+          {isAuthenticated && appsLoading && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {[0, 1, 2].map(i => (
+                <Card key={i} style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 16 }}>
+                  <Skeleton width={48} height={48} radius={radii.md} />
+                  <div style={{ flex: 1 }}>
+                    <Skeleton width="70%" height={14} style={{ marginBottom: 8 }} />
+                    <Skeleton width="45%" height={10} />
+                  </div>
+                </Card>
+              ))}
+            </div>
+          )}
+          {appsError && !appsLoading && (
+            <EmptyState
+              title="Could not load applications"
+              body="Check your connection and try again."
+              cta={<Button variant="ghost" size="sm" onClick={() => { setAppsError(false); setActiveTab('applications'); }}><RefreshCw size={13} /> Retry</Button>}
+            />
+          )}
+          {isAuthenticated && !appsLoading && !appsError && applications.length === 0 && (
             <EmptyState
               icon={<ClipboardList size={36} style={{ opacity: 0.3 }} />}
               title="No applications yet"
@@ -724,8 +759,24 @@ export const Recruiting = () => {
               title="Sign in to view your insights"
             />
           )}
-          {isAuthenticated && insightsLoading && <div style={{ color: colors.textTertiary, textAlign: 'center', padding: '48px 0' }}>Loading insights…</div>}
-          {isAuthenticated && !insightsLoading && insights && (
+          {isAuthenticated && insightsLoading && (
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12 }}>
+              {[0, 1].map(i => (
+                <Card key={i} style={{ padding: '20px 18px' }}>
+                  <Skeleton width="60%" height={12} style={{ marginBottom: 8 }} />
+                  <Skeleton width="40%" height={24} />
+                </Card>
+              ))}
+            </div>
+          )}
+          {insightsError && !insightsLoading && (
+            <EmptyState
+              title="Could not load insights"
+              body="Check your connection and try again."
+              cta={<Button variant="ghost" size="sm" onClick={() => { setInsightsError(false); setActiveTab('insights'); }}><RefreshCw size={13} /> Retry</Button>}
+            />
+          )}
+          {isAuthenticated && !insightsLoading && !insightsError && insights && (
             <div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 24 }}>
                 {[

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
-import { Search, CheckCircle2 } from 'lucide-react';
+import { Search, CheckCircle2, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { athleteAvatar } from '../lib/avatar';
 import { POSITION_FILTERS } from '../lib/positions';
@@ -142,6 +142,8 @@ export const Rankings = () => {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
+  const [loadError, setLoadError] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
   const isMobile = useIsMobile();
 
   // /api/rankings/me — only fired when the viewer is an athlete. Three
@@ -164,6 +166,11 @@ export const Rankings = () => {
   const headers = isMobile
     ? ['RK', 'ATHLETE', 'SCORE']
     : ['RK', 'ATHLETE', 'POS', 'YEAR', 'GPA', 'SCORE'];
+
+  const retryBoard = () => {
+    setLoadError(false);
+    setRefreshKey(k => k + 1);
+  };
 
   // ── Fetch the board ───────────────────────────────────────────────────
   useEffect(() => {
@@ -193,6 +200,7 @@ export const Rankings = () => {
           setTotalPages(j?.totalPages ?? 1);
         })
         .catch(() => {
+          setLoadError(true);
           setPlayers([]);
           setTotal(0);
           setTotalPages(1);
@@ -201,7 +209,7 @@ export const Rankings = () => {
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [search, pos, page]);
+  }, [search, pos, page, refreshKey]);
 
   // ── Fetch /me — only for authed athletes; everything else fails closed ──
   // Effects keep their setState calls inside async callbacks (the fetch
@@ -537,6 +545,19 @@ export const Rankings = () => {
           ))}
         </div>
       </div>
+
+      {/* Load error */}
+      {loadError && !loading && (
+        <EmptyState
+          title="Could not load rankings"
+          body="Check your connection and try again."
+          cta={
+            <Button variant="ghost" size="sm" onClick={retryBoard}>
+              <RefreshCw size={13} /> Retry
+            </Button>
+          }
+        />
+      )}
 
       {/* Board — wrapper has NO overflow:hidden so sticky header survives. */}
       <div className="rk-board">

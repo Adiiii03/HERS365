@@ -4,7 +4,7 @@ import { db } from '../db';
 import { guardianVerificationCodes } from '../schema';
 
 export type CodeChannel = 'email' | 'sms';
-export type CodePurpose = 'link_consent' | 'email_verify' | 'phone_verify' | 'password_reset';
+export type CodePurpose = 'link_consent' | 'email_verify' | 'phone_verify' | 'password_reset' | 'login_approval';
 
 const isProduction =
   process.env.NODE_ENV === 'production' || process.env.APP_ENV === 'production';
