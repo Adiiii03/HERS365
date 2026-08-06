@@ -474,7 +474,7 @@ export const subscriptionPlans = pgTable('subscription_plans', {
 
 export const playerSubscriptions = pgTable('player_subscriptions', {
   id: serial('id').primaryKey(),
-  playerId: integer('player_id').references(() => players.id).notNull(),
+  playerId: integer('player_id').references(() => players.id).notNull().unique(),
   planId: integer('plan_id').references(() => subscriptionPlans.id).notNull(),
   status: text('status').notNull(),
   stripeSubscriptionId: text('stripe_subscription_id'),
