@@ -979,7 +979,6 @@ router.patch('/parent-stat-submissions/:id', requireAdmin, async (req: Request, 
       .update(schema.parentStatSubmissions)
       .set({
         status: nextStatus,
-        verificationStatus: nextStatus,
         adminNotes,
         reviewedBy,
         reviewedAt,
@@ -1007,9 +1006,9 @@ router.patch('/parent-stat-submissions/:id', requireAdmin, async (req: Request, 
       }
 
       // 2. Sync gameStats
-      const passTds = sub.passingTds ?? sub.touchdownsPassing ?? null;
-      const rushTds = sub.rushingTds ?? sub.touchdownsRushing ?? null;
-      const recTds = sub.receivingTds ?? sub.touchdownsReceiving ?? null;
+      const passTds = sub.passingTds ?? null;
+      const rushTds = sub.rushingTds ?? null;
+      const recTds = sub.receivingTds ?? null;
       const defTds = sub.defensiveTds ?? null;
       const passYds = sub.passingYards ?? null;
       const rushYds = sub.rushingYards ?? null;

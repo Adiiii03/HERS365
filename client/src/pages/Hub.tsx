@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   Compass, Video, Dumbbell, Calendar, BookOpen, Search,
-  Users, Briefcase, GraduationCap, Trophy, Medal, Star
+  Users, Briefcase, GraduationCap, Medal
 } from 'lucide-react';
 import { colors, radii, type as t } from '../lib/tokens';
 import { variants } from '../lib/motion';

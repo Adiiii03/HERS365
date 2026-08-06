@@ -83,14 +83,24 @@ describe('POST /api/subscription-plans', () => {
 });
 
 describe('GET /api/player-subscription/:playerId', () => {
+  it('requires authentication', async () => {
+    const res = await request(app).get('/api/player-subscription/1');
+    expect(res.status).toBe(401);
+  });
+
   it('returns 400 for a non numeric id', async () => {
-    const res = await request(app).get('/api/player-subscription/not-a-number');
+    const athlete = await makeAthlete();
+    const res = await request(app)
+      .get('/api/player-subscription/not-a-number')
+      .set('Authorization', `Bearer ${tokenFor(athlete, 'athlete')}`);
     expect(res.status).toBe(400);
   });
 
   it('returns status:none for a player with no subscription', async () => {
     const athlete = await makeAthlete();
-    const res = await request(app).get(`/api/player-subscription/${athlete.id}`);
+    const res = await request(app)
+      .get(`/api/player-subscription/${athlete.id}`)
+      .set('Authorization', `Bearer ${tokenFor(athlete, 'athlete')}`);
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ status: 'none', plan: null });
   });
@@ -104,7 +114,9 @@ describe('GET /api/player-subscription/:playerId', () => {
       status: 'active',
     });
 
-    const res = await request(app).get(`/api/player-subscription/${athlete.id}`);
+    const res = await request(app)
+      .get(`/api/player-subscription/${athlete.id}`)
+      .set('Authorization', `Bearer ${tokenFor(athlete, 'athlete')}`);
     expect(res.status).toBe(200);
     expect(res.body.status).toBe('active');
     expect(res.body.planId).toBe(plan.id);

@@ -69,7 +69,7 @@ const DEMO_LOGIN_ALLOWLIST = new Set<string>([
   'coach@hers365.com',
 ]);
 
-const ALLOWED_DEMO_ENVS = new Set<string>(['development', 'test', 'staging', 'production']);
+const ALLOWED_DEMO_ENVS = new Set<string>(['development', 'test']);
 
 export function isDemoEmail(email: string | undefined | null): boolean {
   if (!email) return false;
@@ -77,9 +77,9 @@ export function isDemoEmail(email: string | undefined | null): boolean {
 }
 
 export function isDemoLoginEnabled(): boolean {
-  if (process.env.DEMO_ENABLED === 'true') return true;
   const envValue = process.env.APP_ENV ?? process.env.NODE_ENV;
-  if (!envValue || !['development', 'test'].includes(envValue)) return false;
+  if (!envValue || !ALLOWED_DEMO_ENVS.has(envValue)) return false;
+  if (process.env.DEMO_ENABLED !== 'true') return false;
   return true;
 }
 

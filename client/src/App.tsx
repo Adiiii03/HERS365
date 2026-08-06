@@ -5,9 +5,7 @@ import { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { Layout } from './components/Layout';
 import { CoachLayout } from './components/CoachLayout';
 import { ParentLayout } from './components/ParentLayout';
-import { LandingPage } from './pages/LandingPage';
 import { Auth } from './pages/Auth';
-import { ComingSoon } from './pages/ComingSoon';
 
 // Every other route is split into its own chunk so a first-time visitor on
 // /, /auth, or /coach/login does not download Feed + Profile + VideoStudio +
@@ -71,7 +69,6 @@ const StaticPageLayout = lazyNamed(() => import('./pages/StaticPageLayout'), 'St
 const NotFound = lazyNamed(() => import('./pages/NotFound'), 'NotFound');
 const Onboarding = lazyNamed(() => import('./pages/Onboarding'), 'Onboarding');
 
-const CoachLogin = lazyNamed(() => import('./pages/coach/CoachLogin'), 'CoachLogin');
 const CoachDashboard = lazyNamed(() => import('./pages/coach/CoachDashboard'), 'CoachDashboard');
 const CoachPlayerSearch = lazyNamed(() => import('./pages/coach/CoachPlayerSearch'), 'CoachPlayerSearch');
 const CoachScoutingBoard = lazyNamed(() => import('./pages/coach/CoachScoutingBoard'), 'CoachScoutingBoard');
@@ -79,12 +76,11 @@ const CoachMessages = lazyNamed(() => import('./pages/coach/CoachMessages'), 'Co
 const CoachRoster = lazyNamed(() => import('./pages/coach/CoachRoster'), 'CoachRoster');
 const CoachPlayerProfile = lazyNamed(() => import('./pages/coach/CoachPlayerProfile'), 'CoachPlayerProfile');
 const CoachAnalytics = lazyNamed(() => import('./pages/coach/CoachAnalytics'), 'CoachAnalytics');
-const CoachSignup = lazyNamed(() => import('./pages/coach/CoachSignup'), 'CoachSignup');
 const CoachSettings = lazyNamed(() => import('./pages/coach/CoachSettings'), 'CoachSettings');
 const CoachProfile = lazyNamed(() => import('./pages/coach/CoachProfile'), 'CoachProfile');
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { NotificationProvider } from './context/NotificationContext';
 import { AuthProvider } from './context/AuthContext';
 import { Capacitor } from '@capacitor/core';
@@ -145,19 +141,6 @@ function ScrollProgressBar() {
   );
 }
 
-// Mirrors the build-time registration kill switch used in Auth.tsx. When
-// registration is off the public entry points show the coming-soon page and
-// signup deep links bounce there; login stays reachable for existing users.
-const registrationEnabled = import.meta.env.VITE_REGISTRATION_ENABLED !== 'false';
-
-function AuthOrComingSoon() {
-  const [searchParams] = useSearchParams();
-  if (!registrationEnabled && searchParams.get('tab') === 'signup') {
-    return <Navigate to="/" replace />;
-  }
-  return <Auth />;
-}
-
 function AthleteRouteGuard({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const token = localStorage.getItem('token');
@@ -203,14 +186,22 @@ function RoleRouteGuard({ roles, loginPath, children }: {
 // content (athlete PII, scouting data) never flashes for unauthenticated users.
 function CoachRouteGuard({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
-  const token = localStorage.getItem('coachToken');
-  const userStr = localStorage.getItem('coachUser');
+  // Coaches sign in through /auth now, which writes the unified token/user
+  // keys. Fall back to those so a session created after the coach login page
+  // was removed still resolves, and backfill the coach keys the portal's
+  // fetches read.
+  const token = localStorage.getItem('coachToken') || localStorage.getItem('token');
+  const userStr = localStorage.getItem('coachUser') || localStorage.getItem('user');
 
   let isAuthorized = false;
   if (token && userStr) {
     try {
       const user = JSON.parse(userStr);
       isAuthorized = user.role === 'coach' || user.role === 'admin';
+      if (isAuthorized && !localStorage.getItem('coachToken')) {
+        localStorage.setItem('coachToken', token);
+        localStorage.setItem('coachUser', userStr);
+      }
     } catch {
       isAuthorized = false;
     }
@@ -218,7 +209,7 @@ function CoachRouteGuard({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!isAuthorized) {
-      navigate('/coach/login');
+      navigate('/auth?role=coach');
     }
   }, [navigate, isAuthorized]);
 

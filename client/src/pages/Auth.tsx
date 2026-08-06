@@ -315,7 +315,6 @@ export const Auth = () => {
         ? (resolvedRole === 'coach' ? '/coach/dashboard' : resolvedRole === 'parent' ? '/parent/dashboard' : '/feed')
         : (role === 'coach' ? '/coach/dashboard' : role === 'parent' ? '/parent/dashboard' : '/onboarding')
       );
-      );
     } catch {
       setError('Network error — please try again');
     } finally {

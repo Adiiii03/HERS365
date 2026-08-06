@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion, useReducedMotion, AnimatePresence } from 'framer-motion';
 import { MapPin, CheckCircle2, MessageSquare, ArrowLeft, UserPlus, UserCheck, Trophy, Plus, X } from 'lucide-react';
 import { tokens } from '../lib/tokens';
-import { Button, Card, Stat, Badge, Input, Sheet } from '../components/ui';
+import { Button, Card, Stat, Badge } from '../components/ui';
 import { variants, springs } from '../lib/motion';
 import { useHaptics } from '../lib/haptics';
 import { useNotifications } from '../context/NotificationContext';

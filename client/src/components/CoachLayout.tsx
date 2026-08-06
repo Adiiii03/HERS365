@@ -16,7 +16,8 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { variants } from '../lib/motion';
 import { MobileNav } from './MobileNav';
-import { BottomTabBar, NavTab } from './BottomTabBar';
+import { BottomTabBar } from './BottomTabBar';
+import type { NavTab } from './navTabs';
 import { EmptyState } from './ui';
 import { colors } from '../lib/tokens';
 

@@ -115,7 +115,6 @@ describe('POST /api/parent/stat-submissions', () => {
 
     expect(res.status).toBe(201);
     expect(res.body.data.status).toBe('pending');
-    expect(res.body.data.verificationStatus).toBe('pending');
     expect(res.body.data.playerId).toBe(child.id);
     expect(res.body.data.fortyYardDash).toBe(4.81);
     expect(res.body.data.verticalJump).toBe(28);
@@ -173,7 +172,6 @@ describe('Admin verification and auto-sync flow', () => {
       .send({ status: 'verified', adminNotes: 'Verified maxpreps link' });
     expect(patchRes.status).toBe(200);
     expect(patchRes.body.data.status).toBe('verified');
-    expect(patchRes.body.data.verificationStatus).toBe('verified');
 
     const [updatedPlayer] = await db.select().from(schema.players).where(eq(schema.players.id, child.id));
     expect(updatedPlayer.verificationStatus).toBe('verified');

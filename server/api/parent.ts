@@ -275,17 +275,11 @@ const handleParentStatSubmit = async (req: express.Request, res: express.Respons
       state: body.state ?? null,
       division: body.division ?? null,
       school: body.school ?? null,
-      email: body.athleteEmail ?? body.email ?? null,
-      name: athleteName ?? body.name ?? null,
-      dob: body.athleteDob ? new Date(body.athleteDob) : (body.dob ? new Date(body.dob) : null),
       season: body.season ?? null,
       passingTds: body.passingTds ?? body.touchdownsPassing ?? null,
       rushingTds: body.rushingTds ?? body.touchdownsRushing ?? null,
       receivingTds: body.receivingTds ?? body.touchdownsReceiving ?? null,
       defensiveTds: body.defensiveTds ?? null,
-      touchdownsPassing: body.touchdownsPassing ?? body.passingTds ?? null,
-      touchdownsRushing: body.touchdownsRushing ?? body.rushingTds ?? null,
-      touchdownsReceiving: body.touchdownsReceiving ?? body.receivingTds ?? null,
       flagPulls: body.flagPulls ?? null,
       interceptions: body.interceptions ?? null,
       sacks: body.sacks ?? null,
@@ -301,7 +295,6 @@ const handleParentStatSubmit = async (req: express.Request, res: express.Respons
       source: body.source ?? 'parent_portal',
       notes: body.notes ?? null,
       status: 'pending',
-      verificationStatus: 'pending',
     }).returning();
 
     res.status(201).json({ success: true, data: row });

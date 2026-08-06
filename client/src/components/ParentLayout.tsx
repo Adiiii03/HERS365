@@ -1,6 +1,7 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { LogOut, LayoutGrid, Compass, MessageSquare, User } from 'lucide-react';
-import { BottomTabBar, NavTab } from './BottomTabBar';
+import { BottomTabBar } from './BottomTabBar';
+import type { NavTab } from './navTabs';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { apiFetch } from '../lib/api';
