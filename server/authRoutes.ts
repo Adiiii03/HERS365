@@ -64,6 +64,8 @@ const registerLimiter = rateLimit({
 // DEMO_ENABLED is misconfigured/leaked.
 const DEMO_LOGIN_ALLOWLIST = new Set<string>([
   'maya@hers365.com',
+  'parent.maya@hers365.com',
+  'maya.johnson@hers365.app',
   'coach@hers365.com',
 ]);
 
@@ -102,20 +104,39 @@ type FoundUser = {
   status?: string | null;
 };
 
-async function findUserByEmail(email: string, role: auth.UserRole): Promise<FoundUser | null> {
+async function findUserByEmail(email: string, role?: auth.UserRole | string): Promise<FoundUser | null> {
   const e = email.toLowerCase().trim();
   if (role === 'coach') {
     const [row] = await db.select().from(schema.coaches).where(eq(schema.coaches.email, e)).limit(1);
-    if (!row) return null;
-    return { id: row.id, email: row.email, passwordHash: row.passwordHash, name: row.name ?? '', role: 'coach' };
+    if (row) return { id: row.id, email: row.email, passwordHash: row.passwordHash, name: row.name ?? '', role: 'coach' };
   }
   if (role === 'parent') {
     const [row] = await db.select().from(schema.parents).where(eq(schema.parents.email, e)).limit(1);
-    if (!row) return null;
-    return { id: row.id, email: row.email, passwordHash: row.passwordHash, name: row.name, role: 'parent' };
+    if (row) return { id: row.id, email: row.email, passwordHash: row.passwordHash, name: row.name, role: 'parent' };
   }
-  // Admins authenticate through the same default-role login the admin UI posts
-  // to (no role field). admin_users keys on `username`, which holds the email.
+  if (role === 'admin') {
+    const [admin] = await db.select().from(schema.adminUsers).where(eq(schema.adminUsers.username, e)).limit(1);
+    if (admin) {
+      return {
+        id: admin.id,
+        email: admin.username,
+        passwordHash: admin.passwordHash,
+        name: admin.username,
+        role: (admin.role as auth.UserRole) || 'admin',
+      };
+    }
+  }
+
+  // Smart auto-discovery fallback across all tables when logging in from mobile/web
+  const [player] = await db.select().from(schema.players).where(eq(schema.players.email, e)).limit(1);
+  if (player) return { id: player.id, email: player.email, passwordHash: player.passwordHash, name: player.name, role: 'athlete', status: player.status };
+
+  const [parent] = await db.select().from(schema.parents).where(eq(schema.parents.email, e)).limit(1);
+  if (parent) return { id: parent.id, email: parent.email, passwordHash: parent.passwordHash, name: parent.name, role: 'parent' };
+
+  const [coach] = await db.select().from(schema.coaches).where(eq(schema.coaches.email, e)).limit(1);
+  if (coach) return { id: coach.id, email: coach.email, passwordHash: coach.passwordHash, name: coach.name ?? '', role: 'coach' };
+
   const [admin] = await db.select().from(schema.adminUsers).where(eq(schema.adminUsers.username, e)).limit(1);
   if (admin) {
     return {
@@ -127,10 +148,7 @@ async function findUserByEmail(email: string, role: auth.UserRole): Promise<Foun
     };
   }
 
-  // default: athlete
-  const [row] = await db.select().from(schema.players).where(eq(schema.players.email, e)).limit(1);
-  if (!row) return null;
-  return { id: row.id, email: row.email, passwordHash: row.passwordHash, name: row.name, role: 'athlete', status: row.status };
+  return null;
 }
 
 // Sign a slim access token and mint a rotating refresh token. The refresh
@@ -215,6 +233,18 @@ router.post('/register', requireRegistrationEnabled, registerLimiter, async (req
 
   const existing = await findUserByEmail(normalEmail, userRole);
   if (existing) {
+    if (existing.passwordHash === null && userRole === 'athlete') {
+      const passwordHash = await auth.hashPassword(password as string);
+      await db.update(schema.players).set({
+        passwordHash,
+        status: 'active',
+        emailVerified: true,
+        name: existing.name || (name as string) || 'Athlete',
+        dob: dob ? new Date(dob as string) : undefined,
+      }).where(eq(schema.players.id, existing.id));
+      const session = await issueSession(res, existing.id, 'athlete');
+      return res.status(200).json({ ...session, user: { id: existing.id, email: normalEmail, name: existing.name || name, role: 'athlete' } });
+    }
     return res.status(409).json({ error: 'An account with that email already exists' });
   }
 

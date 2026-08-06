@@ -1,0 +1,28 @@
+{
+  "email": "athlete@example.com",
+  "name": "Jane Doe",
+  "dob": "2009-03-15",
+  "gradYear": 2027,
+  "position": "QB",
+  "state": "TX",
+  "division": "6A",
+  "maxPrepsUrl": "https://www.maxpreps.com/athlete/example",
+  "combineMeasurables": {
+    "fortyYardDash": "4.8",
+    "verticalJump": "28.5",
+    "shuttle5105": "4.32",
+    "broadJump": "84.0"
+  },
+  "verifiedGameStats": {
+    "flagPulls": 12,
+    "touchdownsPassing": 18,
+    "touchdownsRushing": 8,
+    "touchdownsReceiving": 24,
+    "interceptions": 5,
+    "sacks": 3.5,
+    "passingYards": 1845
+  },
+  "rating": {
+    "hersRating": 92.5
+  }
+}

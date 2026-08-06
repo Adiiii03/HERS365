@@ -53,6 +53,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('token', newToken);
     localStorage.setItem('user', JSON.stringify(newUser));
     localStorage.removeItem('pendingToken');
+    // The coach portal (guard, layout, and every /api/coach fetch) reads its
+    // session from coachToken/coachUser, which the standalone coach login used
+    // to write. That page is gone and coaches now sign in through /auth, so
+    // mirror the session here or the portal bounces back to login forever.
+    if (newUser.role === 'coach' || newUser.role === 'admin') {
+      localStorage.setItem('coachToken', newToken);
+      localStorage.setItem('coachUser', JSON.stringify(newUser));
+    }
     setPendingToken(null);
     setToken(newToken);
     setUser(newUser);
@@ -61,6 +69,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = useCallback(() => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    localStorage.removeItem('coachToken');
+    localStorage.removeItem('coachUser');
     setToken(null);
     setUser(null);
   }, []);

@@ -305,8 +305,10 @@ router.post('/create-checkout-session', async (req: Request, res: Response) => {
 
     // Build line item — use a pre-configured Stripe price ID when available,
     // otherwise build inline price_data from the DB plan record.
-    const priceId = process.env.STRIPE_PRO_PRICE_ID;
-    const lineItem: Stripe.Checkout.SessionCreateParams.LineItem = priceId
+    const priceId = plan.tierLevel === 'elite'
+      ? (process.env.STRIPE_ELITE_PRICE_ID || process.env.STRIPE_PRO_PRICE_ID)
+      : process.env.STRIPE_PRO_PRICE_ID;
+    const lineItem: Stripe.Checkout.SessionCreateParams.LineItem = (priceId && !priceId.startsWith('price_...'))
       ? { price: priceId, quantity: 1 }
       : {
           price_data: {

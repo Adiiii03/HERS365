@@ -5,9 +5,7 @@ import { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { Layout } from './components/Layout';
 import { CoachLayout } from './components/CoachLayout';
 import { ParentLayout } from './components/ParentLayout';
-import { LandingPage } from './pages/LandingPage';
 import { Auth } from './pages/Auth';
-import { ComingSoon } from './pages/ComingSoon';
 
 // Every other route is split into its own chunk so a first-time visitor on
 // /, /auth, or /coach/login does not download Feed + Profile + VideoStudio +
@@ -47,6 +45,7 @@ const Terms = lazyNamed(() => import('./pages/Terms'), 'Terms');
 const FAQ = lazyNamed(() => import('./pages/FAQ'), 'FAQ');
 const Help = lazyNamed(() => import('./pages/Help'), 'Help');
 const ThankYou = lazyNamed(() => import('./pages/ThankYou'), 'ThankYou');
+const Hub = lazyNamed(() => import('./pages/Hub'), 'Hub');
 const Explore = lazyNamed(() => import('./pages/Explore'), 'Explore');
 const Events = lazyNamed(() => import('./pages/Events'), 'Events');
 const Drills = lazyNamed(() => import('./pages/Drills'), 'Drills');
@@ -70,7 +69,6 @@ const StaticPageLayout = lazyNamed(() => import('./pages/StaticPageLayout'), 'St
 const NotFound = lazyNamed(() => import('./pages/NotFound'), 'NotFound');
 const Onboarding = lazyNamed(() => import('./pages/Onboarding'), 'Onboarding');
 
-const CoachLogin = lazyNamed(() => import('./pages/coach/CoachLogin'), 'CoachLogin');
 const CoachDashboard = lazyNamed(() => import('./pages/coach/CoachDashboard'), 'CoachDashboard');
 const CoachPlayerSearch = lazyNamed(() => import('./pages/coach/CoachPlayerSearch'), 'CoachPlayerSearch');
 const CoachScoutingBoard = lazyNamed(() => import('./pages/coach/CoachScoutingBoard'), 'CoachScoutingBoard');
@@ -78,12 +76,11 @@ const CoachMessages = lazyNamed(() => import('./pages/coach/CoachMessages'), 'Co
 const CoachRoster = lazyNamed(() => import('./pages/coach/CoachRoster'), 'CoachRoster');
 const CoachPlayerProfile = lazyNamed(() => import('./pages/coach/CoachPlayerProfile'), 'CoachPlayerProfile');
 const CoachAnalytics = lazyNamed(() => import('./pages/coach/CoachAnalytics'), 'CoachAnalytics');
-const CoachSignup = lazyNamed(() => import('./pages/coach/CoachSignup'), 'CoachSignup');
 const CoachSettings = lazyNamed(() => import('./pages/coach/CoachSettings'), 'CoachSettings');
 const CoachProfile = lazyNamed(() => import('./pages/coach/CoachProfile'), 'CoachProfile');
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { NotificationProvider } from './context/NotificationContext';
 import { AuthProvider } from './context/AuthContext';
 import { Capacitor } from '@capacitor/core';
@@ -144,19 +141,6 @@ function ScrollProgressBar() {
   );
 }
 
-// Mirrors the build-time registration kill switch used in Auth.tsx. When
-// registration is off the public entry points show the coming-soon page and
-// signup deep links bounce there; login stays reachable for existing users.
-const registrationEnabled = import.meta.env.VITE_REGISTRATION_ENABLED === 'true';
-
-function AuthOrComingSoon() {
-  const [searchParams] = useSearchParams();
-  if (!registrationEnabled && searchParams.get('tab') === 'signup') {
-    return <Navigate to="/" replace />;
-  }
-  return <Auth />;
-}
-
 function AthleteRouteGuard({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const token = localStorage.getItem('token');
@@ -202,14 +186,22 @@ function RoleRouteGuard({ roles, loginPath, children }: {
 // content (athlete PII, scouting data) never flashes for unauthenticated users.
 function CoachRouteGuard({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
-  const token = localStorage.getItem('coachToken');
-  const userStr = localStorage.getItem('coachUser');
+  // Coaches sign in through /auth now, which writes the unified token/user
+  // keys. Fall back to those so a session created after the coach login page
+  // was removed still resolves, and backfill the coach keys the portal's
+  // fetches read.
+  const token = localStorage.getItem('coachToken') || localStorage.getItem('token');
+  const userStr = localStorage.getItem('coachUser') || localStorage.getItem('user');
 
   let isAuthorized = false;
   if (token && userStr) {
     try {
       const user = JSON.parse(userStr);
       isAuthorized = user.role === 'coach' || user.role === 'admin';
+      if (isAuthorized && !localStorage.getItem('coachToken')) {
+        localStorage.setItem('coachToken', token);
+        localStorage.setItem('coachUser', userStr);
+      }
     } catch {
       isAuthorized = false;
     }
@@ -217,7 +209,7 @@ function CoachRouteGuard({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!isAuthorized) {
-      navigate('/coach/login');
+      navigate('/auth?role=coach');
     }
   }, [navigate, isAuthorized]);
 
@@ -301,6 +293,7 @@ function App() {
               <Route path="/faq" element={<FAQ />} />
               <Route path="/help" element={<Help />} />
               <Route path="/thank-you" element={<ThankYou />} />
+              <Route path="/hub" element={<Hub />} />
               <Route path="/explore" element={<Explore />} />
               <Route path="/events" element={<Events />} />
               <Route path="/drills" element={<Drills />} />
@@ -330,9 +323,13 @@ function App() {
             </Route>
 
             {/* Standalone full-page routes (no nav shell) */}
-            <Route path="/" element={registrationEnabled ? <LandingPage /> : <ComingSoon />} />
-            <Route path="/landing" element={registrationEnabled ? <LandingPage /> : <ComingSoon />} />
-            <Route path="/auth" element={<AuthOrComingSoon />} />
+            <Route path="/" element={<Navigate to="/auth" replace />} />
+            <Route path="/landing" element={<Navigate to="/auth" replace />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/login" element={<Navigate to="/auth?tab=login" replace />} />
+            <Route path="/signin" element={<Navigate to="/auth?tab=login" replace />} />
+            <Route path="/signup" element={<Navigate to="/auth?tab=signup" replace />} />
+            <Route path="/register" element={<Navigate to="/auth?tab=signup" replace />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/verify-email" element={<VerifyEmail />} />
@@ -344,8 +341,8 @@ function App() {
             <Route path="/onboarding" element={<Onboarding />} />
 
             {/* Coach Portal Routes */}
-            <Route path="/coach/login" element={<CoachLogin />} />
-            <Route path="/coach/signup" element={<CoachSignup />} />
+            <Route path="/coach/login" element={<Navigate to="/auth" replace />} />
+            <Route path="/coach/signup" element={<Navigate to="/auth" replace />} />
             <Route element={<CoachRouteGuard><CoachLayout /></CoachRouteGuard>}>
               <Route path="/coach" element={<CoachDashboard />} />
               <Route path="/coach/dashboard" element={<CoachDashboard />} />

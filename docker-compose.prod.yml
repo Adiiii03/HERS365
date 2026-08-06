@@ -3,9 +3,12 @@ services:
     build:
       context: ./client
       dockerfile: Dockerfile.prod
+      args:
+        VITE_API_BASE_URL: ""
+        VITE_REGISTRATION_ENABLED: "true"
     container_name: hers365-client-prod
     ports:
-      - "80:80"
+      - "127.0.0.1:8080:80"
     depends_on:
       - api
     networks:
@@ -16,6 +19,21 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.hers365.loadbalancer.server.port=80"
+      - "traefik.http.routers.hers365-staging.rule=Host(`srv1829607.hstgr.cloud`)"
+      - "traefik.http.routers.hers365-staging.entrypoints=websecure"
+      - "traefik.http.routers.hers365-staging.tls=true"
+      - "traefik.http.routers.hers365-staging.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.hers365-staging-http.rule=Host(`srv1829607.hstgr.cloud`)"
+      - "traefik.http.routers.hers365-staging-http.entrypoints=web"
+      - "traefik.http.routers.hers365-prod.rule=Host(`hers365.app`) || Host(`www.hers365.app`)"
+      - "traefik.http.routers.hers365-prod.entrypoints=websecure"
+      - "traefik.http.routers.hers365-prod.tls=true"
+      - "traefik.http.routers.hers365-prod.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.hers365-prod-http.rule=Host(`hers365.app`) || Host(`www.hers365.app`)"
+      - "traefik.http.routers.hers365-prod-http.entrypoints=web"
 
   api:
     build:
@@ -44,19 +62,19 @@ services:
         max-file: "3"
 
   postgres:
-    image: postgres:16
+    image: postgres:16-alpine
     container_name: hers365-postgres-prod
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-hers365}
+      POSTGRES_USER: ${POSTGRES_USER:-hers365_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-Secr3tP4ssw0rd_Hers365_Prod!}
     volumes:
       - pgdata:/var/lib/postgresql/data
     networks:
       - hers365
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-hers365_admin}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -69,6 +87,7 @@ services:
   redis:
     image: redis:7-alpine
     container_name: hers365-redis-prod
+    command: redis-server --appendonly yes
     volumes:
       - redisdata:/data
     networks:

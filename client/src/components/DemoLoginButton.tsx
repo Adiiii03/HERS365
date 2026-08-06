@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { Zap } from 'lucide-react';
 import { useDemoLogin, type DemoRole } from '../hooks/useDemoLogin';
 
-type Variant = 'player' | 'coach';
+type Variant = 'player' | 'coach' | 'parent';
 
 interface Props {
   role: DemoRole;
@@ -58,7 +58,7 @@ export const DemoLoginButton: React.FC<Props> = ({ role, variant, onLoadingChang
       onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.background = 'transparent'; }}
     >
       <Zap size={15} style={{ color: '#8B3BFF' }} />
-      {loading ? 'Entering Demo…' : 'Try Demo Athlete Account'}
+      {loading ? 'Entering Demo…' : (v === 'parent' ? 'Try Demo Parent Account' : 'Try Demo Athlete Account')}
     </button>
   );
 };

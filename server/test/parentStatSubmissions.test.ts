@@ -6,7 +6,7 @@ import { db } from '../db';
 import * as schema from '../schema';
 import { parentStatSubmissionBody } from '../middleware/safetySchemas';
 import { resetDb } from './helpers/db';
-import { makeAthlete, makeCoach, makeParent, linkParentChild, tokenFor } from './helpers/fixtures';
+import { makeAthlete, makeCoach, makeParent, makeAdmin, linkParentChild, tokenFor } from './helpers/fixtures';
 
 const app = createApp();
 beforeEach(resetDb);
@@ -133,3 +133,56 @@ describe('POST /api/parent/stat-submissions', () => {
     expect(row.hersRating).toBe(4.6);
   });
 });
+
+describe('Admin verification and auto-sync flow', () => {
+  it('verifies submission, syncs stats into gameStats and combineStats, and marks player verified', async () => {
+    const parent = await makeParent();
+    const child = await makeAthlete({
+      email: 'sync-athlete@test.local',
+      name: 'Sync Athlete',
+      verificationStatus: 'unverified',
+    });
+    await linkParentChild(parent.id, child.id);
+    const admin = await makeAdmin();
+
+    const submitRes = await request(app)
+      .post('/api/parent/stats/submit')
+      .set('Authorization', `Bearer ${tokenFor(parent, 'parent')}`)
+      .send({
+        playerId: child.id,
+        season: '2026',
+        passingTds: 15,
+        passingYards: 1850,
+        fortyYardDash: 4.75,
+        verticalJump: 30,
+        maxPrepsUrl: 'https://maxpreps.com/athlete/123',
+      });
+    expect(submitRes.status).toBe(201);
+    const subId = submitRes.body.data.id;
+
+    const listRes = await request(app)
+      .get('/api/admin/parent-stat-submissions')
+      .set('Authorization', `Bearer ${tokenFor(admin, 'admin')}`);
+    expect(listRes.status).toBe(200);
+    expect(listRes.body.data.some((s: any) => s.id === subId)).toBe(true);
+
+    const patchRes = await request(app)
+      .patch(`/api/admin/parent-stat-submissions/${subId}`)
+      .set('Authorization', `Bearer ${tokenFor(admin, 'admin')}`)
+      .send({ status: 'verified', adminNotes: 'Verified maxpreps link' });
+    expect(patchRes.status).toBe(200);
+    expect(patchRes.body.data.status).toBe('verified');
+
+    const [updatedPlayer] = await db.select().from(schema.players).where(eq(schema.players.id, child.id));
+    expect(updatedPlayer.verificationStatus).toBe('verified');
+
+    const [gameStatsRow] = await db.select().from(schema.gameStats).where(eq(schema.gameStats.playerId, child.id));
+    expect(gameStatsRow.passingTds).toBe(15);
+    expect(gameStatsRow.passingYards).toBe(1850);
+
+    const [combineStatsRow] = await db.select().from(schema.combineStats).where(eq(schema.combineStats.playerId, child.id));
+    expect(combineStatsRow.fortyDash).toBe('4.75');
+    expect(combineStatsRow.vertical).toBe('30');
+  });
+});
+

@@ -9,7 +9,7 @@ import { assertProductionEnv } from './lib/envAssertions';
 
 // dev:core sets APP_ENV (not NODE_ENV); resolve once so the guards below fire
 // correctly under either. Mirrors the demo gate in authRoutes.ts.
-const APP_ENV = process.env.APP_ENV ?? process.env.NODE_ENV;
+const APP_ENV = process.env.APP_ENV ?? process.env.NODE_ENV ?? 'development';
 
 // [D-02] Fail fast on missing required env vars
 const REQUIRED_ENV_VARS = ['DATABASE_URL', 'JWT_SECRET', 'SESSION_SECRET'];

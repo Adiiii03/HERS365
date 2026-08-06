@@ -7,10 +7,10 @@ import { Button, Card, Stat, Badge } from '../components/ui';
 import { variants, springs } from '../lib/motion';
 import { useHaptics } from '../lib/haptics';
 import { useNotifications } from '../context/NotificationContext';
+import { useAuth } from '../context/AuthContext';
 import { ShareCard } from '../components/ShareCard';
 import { toShareCard, type ShareCardData } from '../lib/shareCard';
 import { apiFetch, errorMessage } from '../lib/api';
-import { useAuth } from '../context/AuthContext';
 
 const { colors, text, type, radii } = tokens;
 
@@ -41,9 +41,6 @@ interface GameStat {
   [key: string]: unknown;
 }
 
-// Count up a numeric value once on first mount. Reduced motion → instant final.
-// setState is deferred into the rAF callback so the effect body stays
-// setState-free (react-hooks/set-state-in-effect).
 function useCountUp(target: number, reduce: boolean, duration = 900): number {
   const [display, setDisplay] = useState(reduce ? target : 0);
   const rafId = useRef<number | null>(null);
@@ -149,8 +146,6 @@ export const PlayerProfile = () => {
     notes: '',
   });
 
-  // Signature #2: subtle pointer parallax on the hero bloom. Reduced motion
-  // pins it dead center. Values are normalized -1..1 off the header midpoint.
   const heroRef = useRef<HTMLDivElement>(null);
   const [parallax, setParallax] = useState({ x: 0, y: 0 });
   const onHeroPointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
@@ -279,9 +274,6 @@ export const PlayerProfile = () => {
     }
   };
 
-  // Premium ShareCard trigger — reuses the existing off-screen export (Profile
-  // uses the identical flow). Fail-closed on a missing rating; PII stays inside
-  // toShareCard's allow-list.
   const shareRatingCard = () => {
     if (exportingCard || !player) return;
     const card = toShareCard({
@@ -355,12 +347,11 @@ export const PlayerProfile = () => {
   const avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(player.name || '')}`;
   const isVerified = player.verified ?? player.verificationStatus === 'verified';
   const hasRatingCard = player.g5Rating != null;
-  const canSubmitStats = isAuthenticated && user?.role === 'parent';
+  const canSubmitStats = isAuthenticated && (user?.role === 'parent' || user?.role === 'admin');
 
   return (
     <div style={{ padding: '24px', maxWidth: 800, margin: '0 auto' }}>
 
-      {/* Back */}
       <motion.button
         onClick={() => navigate(-1)}
         whileTap={reduce ? undefined : variants.press.whileTap}
@@ -370,7 +361,6 @@ export const PlayerProfile = () => {
         <ArrowLeft size={16} /> Back
       </motion.button>
 
-      {/* Header — signature #2: gradient depth + pointer parallax on the hero bloom */}
       <Card
         style={{ padding: 24, marginBottom: 16, position: 'relative', overflow: 'hidden' }}
       >
@@ -380,7 +370,6 @@ export const PlayerProfile = () => {
           onPointerLeave={resetParallax}
           style={{ position: 'relative' }}
         >
-          {/* Depth bloom — same palette DNA as the ShareCard. Parallax nudges it. */}
           <motion.div
             aria-hidden="true"
             animate={{ x: parallax.x * 14, y: parallax.y * 10 }}
@@ -424,7 +413,12 @@ export const PlayerProfile = () => {
                 <h1 style={{ fontFamily: type.font.display, fontWeight: type.weight.bold, fontSize: type.size['2xl'], textTransform: 'uppercase', color: text.primary, margin: 0, letterSpacing: type.tracking.h1 }}>
                   {player.name}
                 </h1>
-                {isVerified && <CheckCircle2 size={16} color={colors.neonOn} fill={colors.neon} />}
+                {isVerified && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <CheckCircle2 size={18} color={colors.neonOn} fill={colors.neon} title="Verified Athlete" />
+                    <Badge tone="neon" style={{ fontSize: '0.68rem', padding: '2px 8px' }}>Verified MaxPreps</Badge>
+                  </div>
+                )}
               </div>
               {player.position && (
                 <Badge tone="accent" style={{ marginBottom: 8 }}>{player.position}</Badge>
@@ -475,7 +469,6 @@ export const PlayerProfile = () => {
         </div>
       </Card>
 
-      {/* Quick stats — Barlow numerals count up on first view (signature #2) */}
       {(player.height || player.gpa != null || player.weight) && (
         <Card style={{ padding: 20, marginBottom: 16 }}>
           <h2 style={{ fontFamily: type.font.display, fontWeight: type.weight.bold, fontSize: type.size.md, textTransform: 'uppercase', color: text.tertiary, marginBottom: 16, letterSpacing: type.tracking.h2 }}>
@@ -489,7 +482,6 @@ export const PlayerProfile = () => {
         </Card>
       )}
 
-      {/* Stats from API */}
       {(stats.length > 0 || canSubmitStats) && (
         <Card style={{ padding: 20 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
@@ -516,7 +508,6 @@ export const PlayerProfile = () => {
         </Card>
       )}
 
-      {/* ── Submit Stats Modal ───────────────────────────────────── */}
       <AnimatePresence>
         {submitStatsOpen && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -600,7 +591,6 @@ export const PlayerProfile = () => {
         )}
       </AnimatePresence>
 
-      {/* Off-screen export target for the rating card (never user-visible). */}
       {shareCardData && (
         <div aria-hidden="true" style={{ position: 'fixed', left: -9999, top: 0, pointerEvents: 'none' }}>
           <ShareCard ref={shareCardRef} data={shareCardData} />

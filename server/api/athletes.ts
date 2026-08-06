@@ -291,6 +291,23 @@ router.get('/:id',optionalAuth, async (req, res) => {
   }
 });
 
+// GET /api/athletes/:id/stats — Fetch game stats for an athlete
+router.get('/:id/stats', optionalAuth, async (req, res) => {
+  try {
+    const id = parseIdParam(req.params.id);
+    if (id === null) return res.status(400).json({ success: false, error: 'Invalid id' });
+    const u = authUser(req);
+    if (!u && !publicAthleteDiscoveryEnabled()) {
+      return res.status(401).json({ success: false, error: 'Authentication required' });
+    }
+    const rows = await db.select().from(schema.gameStats).where(eq(schema.gameStats.playerId, id));
+    res.json({ success: true, data: rows });
+  } catch (err) {
+    console.error('[athletes/stats GET]', err);
+    res.status(500).json({ success: false, error: 'Failed to fetch athlete stats' });
+  }
+});
+
 // PUT /api/athletes/:id - Update own athlete profile (DB-backed, auth required)
 router.put('/:id', requireAuth, validateBody(athletePutBody), async (req, res) => {
   try {

@@ -167,6 +167,17 @@ router.post('/register', requireRegistrationEnabled, registerLimiter, async (req
       .where(eq(schema.players.email, normalizedEmail))
       .limit(1);
     if (existing.length > 0) {
+      if (existing[0].passwordHash === null) {
+        const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
+        await db.update(schema.players).set({
+          passwordHash,
+          status: 'active',
+          emailVerified: true,
+          name: existing[0].name || name || 'Athlete',
+          dob: dob ? new Date(dob) : undefined,
+        }).where(eq(schema.players.id, existing[0].id));
+        return res.status(200).json({ status: 'active', message: 'Account claimed successfully', user: { id: existing[0].id, email: normalizedEmail, name: existing[0].name || name, role: 'athlete' } });
+      }
       // Enumeration defense (PRD section 7 item 15): respond exactly like a
       // fresh signup instead of a distinct 409, and notify the real owner via
       // a reset-style email so a legitimate re-signup can still recover.

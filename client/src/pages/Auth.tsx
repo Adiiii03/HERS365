@@ -134,7 +134,7 @@ function AmbientField({ reduced, faint = false }: { reduced: boolean; faint?: bo
   );
 }
 
-type SignupRole = 'athlete' | 'parent';
+type SignupRole = 'athlete' | 'parent' | 'coach';
 
 export const Auth = () => {
   // GoogleLogin renders the Google Identity Services iframe widget which
@@ -154,7 +154,7 @@ export const Auth = () => {
   // enforce COPPA and parent-gate rules. Parent email is required for athletes
   // under 18 (it's who coach contact gets routed through); 18+ may omit it.
   const [role,        setRole]        = useState<SignupRole>(
-    registrationEnabled && (searchParams.get('role') as SignupRole | null) === 'parent' ? 'parent' : 'athlete',
+    (searchParams.get('role') as SignupRole | null) === 'parent' ? 'parent' : (searchParams.get('role') as SignupRole | null) === 'coach' ? 'coach' : 'athlete',
   );
   const [dob,           setDob]           = useState('');
   const [guardianEmail, setGuardianEmail] = useState('');
@@ -272,7 +272,9 @@ export const Auth = () => {
 
     setLoading(true);
     try {
-      const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
+      const endpoint = isLogin
+        ? (role === 'coach' ? '/api/auth/coach/login' : '/api/auth/login')
+        : (role === 'coach' ? '/api/auth/coach/register' : '/api/auth/register');
       const body: Record<string, string> = { email, password, role };
       if (!isLogin && name) body.name = name;
       if (!isLogin) {
@@ -308,9 +310,10 @@ export const Auth = () => {
         return;
       }
       if (data?.token && data?.user) login(data.token, data.user);
+      const resolvedRole = data?.user?.role || role;
       navigate(isLogin
-        ? (role === 'parent' ? '/parent/dashboard' : '/feed')
-        : role === 'parent' ? '/parent/dashboard' : '/onboarding'
+        ? (resolvedRole === 'coach' ? '/coach/dashboard' : resolvedRole === 'parent' ? '/parent/dashboard' : '/feed')
+        : (role === 'coach' ? '/coach/dashboard' : role === 'parent' ? '/parent/dashboard' : '/onboarding')
       );
     } catch {
       setError('Network error — please try again');
@@ -680,6 +683,30 @@ export const Auth = () => {
 
           {/* Form */}
           <form onSubmit={handleSubmit} noValidate>
+            {/* Role selector — shown on both login and signup so mobile and web users can pick their realm */}
+            <div role="tablist" aria-label="Account type" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6, marginBottom: 18 }}>
+              {(['athlete', 'parent', 'coach'] as const).map((r) => (
+                <button
+                  key={r}
+                  type="button"
+                  role="tab"
+                  aria-selected={role === r}
+                  onClick={() => setRole(r)}
+                  style={{
+                    padding: '11px 4px', borderRadius: 11,
+                    border: `1.5px solid ${role === r ? colors.accent : LINE}`,
+                    background: role === r ? 'rgba(139,59,255,0.12)' : FIELD,
+                    color: role === r ? colors.textPrimary : colors.textSecondary,
+                    fontFamily: t.font.display, fontWeight: 800, fontSize: '.72rem',
+                    letterSpacing: '.12em', textTransform: 'uppercase',
+                    cursor: 'pointer', transition: 'all .18s',
+                  }}
+                >
+                  {r === 'athlete' ? 'Athlete' : r === 'parent' ? 'Parent' : 'Coach'}
+                </button>
+              ))}
+            </div>
+
             <AnimatePresence initial={false}>
               {!isLogin && (
                 <motion.div
@@ -689,29 +716,6 @@ export const Auth = () => {
                   transition={{ duration: 0.25, ease: EASE }}
                   style={{ overflow: 'hidden' }}
                 >
-                  {/* Role selector — athlete vs parent. Coaches sign up at /coach/signup. */}
-                  <div role="tablist" aria-label="Account type" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 18 }}>
-                    {(['athlete', 'parent'] as const).map((r) => (
-                      <button
-                        key={r}
-                        type="button"
-                        role="tab"
-                        aria-selected={role === r}
-                        onClick={() => setRole(r)}
-                        style={{
-                          padding: '12px 10px', borderRadius: 11,
-                          border: `1.5px solid ${role === r ? colors.accent : LINE}`,
-                          background: role === r ? 'rgba(139,59,255,0.12)' : FIELD,
-                          color: role === r ? colors.textPrimary : colors.textSecondary,
-                          fontFamily: t.font.display, fontWeight: 800, fontSize: '.78rem',
-                          letterSpacing: '.16em', textTransform: 'uppercase',
-                          cursor: 'pointer', transition: 'all .18s',
-                        }}
-                      >
-                        {r === 'athlete' ? "I'm an Athlete" : "I'm a Parent"}
-                      </button>
-                    ))}
-                  </div>
                   <Field id="auth-name" label="Full Name" icon={User} value={name} onChange={setName} autoComplete="name" />
                 </motion.div>
               )}
@@ -848,7 +852,7 @@ export const Auth = () => {
             </Button>
 
             {isLogin && (
-              <DemoLoginButton role="player" onLoadingChange={setLoading} onError={msg => setError(msg ?? '')} />
+              <DemoLoginButton role={role === 'coach' ? 'coach' : role === 'parent' ? 'parent' : 'player'} onLoadingChange={setLoading} onError={msg => setError(msg ?? '')} />
             )}
           </form>
 

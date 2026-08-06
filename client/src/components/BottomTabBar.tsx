@@ -1,23 +1,16 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutGrid, Trophy, User, Dumbbell, MessageSquare } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useHaptics } from '../lib/haptics';
 import { colors, radii } from '../lib/tokens';
-
-const tabs = [
-  { icon: LayoutGrid,    label: 'Grid',     path: '/feed' },
-  { icon: Trophy,        label: 'Rankings', path: '/rankings' },
-  { icon: User,          label: 'Profile',  path: '/profile' },
-  { icon: Dumbbell,      label: 'Train',    path: '/training' },
-  { icon: MessageSquare, label: 'Messages', path: '/messages' },
-];
+import { defaultAthleteTabs, type NavTab } from './navTabs';
 
 interface BottomTabBarProps {
   unreadMessages?: number;
+  tabs?: NavTab[];
 }
 
-export const BottomTabBar: React.FC<BottomTabBarProps> = ({ unreadMessages = 0 }) => {
+export const BottomTabBar: React.FC<BottomTabBarProps> = ({ unreadMessages = 0, tabs = defaultAthleteTabs }) => {
   const location = useLocation();
   const haptics = useHaptics();
 

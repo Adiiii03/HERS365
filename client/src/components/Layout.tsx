@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutGrid, Trophy, User, Dumbbell, Search,
-  Settings, MessageSquare, Plus, LogOut
+  Settings, MessageSquare, Plus, LogOut, Compass
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
@@ -25,6 +25,7 @@ const nav: NavItem[] = [
   { icon: LayoutGrid,    label: 'THE GRID',   path: '/feed' },
   { icon: Trophy,        label: 'RANKINGS',   path: '/rankings' },
   { icon: User,          label: 'MY PROFILE', path: '/profile' },
+  { icon: Compass,       label: 'THE HUB',    path: '/hub' },
   { icon: Dumbbell,      label: 'TRAINING',   path: '/training' },
   { icon: Search,        label: 'RECRUITING', path: '/recruiting' },
   { icon: MessageSquare, label: 'MESSAGES',   path: '/messages' },
@@ -92,7 +93,7 @@ export const Layout = () => {
 
           <nav className="hidden md:flex" style={{ marginLeft: 28, gap: 26, alignItems: 'center' }}>
             <Link to="/rankings" style={pubLink}>Rankings</Link>
-            <Link to="/coach/login" style={pubLink}>For Coaches</Link>
+            <Link to="/auth?role=coach" style={pubLink}>For Coaches</Link>
             <Link to="/about" style={pubLink}>About</Link>
           </nav>
 
@@ -174,8 +175,10 @@ export const Layout = () => {
           <motion.button
             whileTap={{ scale: 0.95 }}
             onClick={() => {
-              const hasCoach = localStorage.getItem('coachToken');
-              navigate(hasCoach ? '/coach/dashboard' : '/coach/login');
+              const stored = localStorage.getItem('coachUser') || localStorage.getItem('user');
+              let isCoach = false;
+              try { const u = JSON.parse(stored || '{}'); isCoach = u.role === 'coach' || u.role === 'admin'; } catch { isCoach = false; }
+              navigate(isCoach ? '/coach/dashboard' : '/auth?role=coach');
             }}
             style={{
               flex: 1, padding: '6px 0', borderRadius: radii.full,
