@@ -62,6 +62,30 @@ export const Layout = () => {
   const unreadMessages = unread?.data?.totalUnread ?? 0;
   const p = profile?.data ?? {};
 
+  // If a parent or coach lands on a public route using <Layout /> (e.g. /hub, /rankings),
+  // they should have a way back to their dashboard, not the athlete nav.
+  if (user?.role === 'parent') {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: colors.surface0, color: colors.textPrimary }}>
+        <header style={{ height: 56, display: 'flex', alignItems: 'center', padding: '0 20px', borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(10,10,10,0.84)', position: 'sticky', top: 0, zIndex: 30 }}>
+          <Link to="/parent/dashboard" style={{ color: colors.accent, fontWeight: 700, textDecoration: 'none', fontSize: '0.85rem', letterSpacing: '0.05em' }}>&larr; RETURN TO PARENT DASHBOARD</Link>
+        </header>
+        <main style={{ flex: 1 }}><Outlet /></main>
+      </div>
+    );
+  }
+  
+  if (user?.role === 'coach' || user?.role === 'admin' || user?.role === 'staff') {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: colors.surface0, color: colors.textPrimary }}>
+        <header style={{ height: 56, display: 'flex', alignItems: 'center', padding: '0 20px', borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(10,10,10,0.84)', position: 'sticky', top: 0, zIndex: 30 }}>
+          <Link to="/coach/dashboard" style={{ color: colors.accent, fontWeight: 700, textDecoration: 'none', fontSize: '0.85rem', letterSpacing: '0.05em' }}>&larr; RETURN TO COACH DASHBOARD</Link>
+        </header>
+        <main style={{ flex: 1 }}><Outlet /></main>
+      </div>
+    );
+  }
+
   // Logged-out visitors land here on public pages (rankings, about, privacy,
   // the 404 catch-all, etc.). Render marketing chrome, not the athlete app
   // shell — a signed-out user should never see "SIGN OUT" or a profile card.
