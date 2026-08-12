@@ -143,12 +143,14 @@ export async function processStripeWebhookEvent(event: Stripe.Event): Promise<vo
           playerId,
           planId,
           stripeSubscriptionId: session.subscription as string,
+          stripeCustomerId: session.customer as string,
           status: 'active',
         }).onConflictDoUpdate({
           target: schema.playerSubscriptions.playerId,
           set: {
             planId,
             stripeSubscriptionId: session.subscription as string,
+            stripeCustomerId: session.customer as string,
             status: 'active',
             updatedAt: new Date(),
           },
