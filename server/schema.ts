@@ -470,6 +470,7 @@ export const subscriptionPlans = pgTable('subscription_plans', {
   name: text('name'),
   price: integer('price'), // in cents
   tierLevel: text('tier_level'),
+  stripePriceId: text('stripe_price_id'),
 });
 
 export const playerSubscriptions = pgTable('player_subscriptions', {
