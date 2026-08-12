@@ -304,9 +304,14 @@ router.post('/create-checkout-session', async (req: Request, res: Response) => {
     const planName = plan.name ?? 'Subscription';
     const planPrice = plan.price ?? 0;
 
-    // Build line item â€” use a pre-configured Stripe price ID when available,
-    // otherwise build inline price_data from the DB plan record.
-    const priceId = process.env.STRIPE_PRO_PRICE_ID;
+    if (plan.tierLevel === 'elite' && !process.env.STRIPE_ELITE_PRICE_ID) {
+      console.error('STRIPE_ELITE_PRICE_ID is not set — refusing to fall back to the Pro price for an Elite checkout');
+      return res.status(503).json({ error: 'Elite subscriptions are temporarily unavailable' });
+    }
+    const priceId = plan.tierLevel === 'elite'
+      ? process.env.STRIPE_ELITE_PRICE_ID
+      : process.env.STRIPE_PRO_PRICE_ID;
+
     const lineItem: Stripe.Checkout.SessionCreateParams.LineItem = priceId
       ? { price: priceId, quantity: 1 }
       : {
