@@ -21,6 +21,10 @@ const TABLES = [
   'combine_stats',
   'athlete_rankings',
   'payments',
+  // player_subscriptions/subscription_plans were not here
+  // untested, no test suite state evert depended on this table.
+  'player_subscriptions',
+  'subscription_plans',
   'parents',
   'coaches',
   'players',

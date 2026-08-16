@@ -1,6 +1,6 @@
 {
-  "id": "70e88a0b-35fa-4777-ac66-eb176c8f4385",
-  "prevId": "8bb1f267-89cf-4e03-8299-d918f84109ad",
+  "id": "08f7aac7-0cbf-4c78-b0de-a63a0853a207",
+  "prevId": "9bbf15d7-b21e-406f-9273-58309fe11feb",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -346,6 +346,12 @@
         },
         "usa_talent_id_score": {
           "name": "usa_talent_id_score",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tournament_performance_score": {
+          "name": "tournament_performance_score",
           "type": "double precision",
           "primaryKey": false,
           "notNull": false
@@ -3222,6 +3228,140 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.login_requests": {
+      "name": "login_requests",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "player_id": {
+          "name": "player_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "parent_id": {
+          "name": "parent_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "relation_id": {
+          "name": "relation_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "verification_code_id": {
+          "name": "verification_code_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'pending'"
+        },
+        "ip_address": {
+          "name": "ip_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "user_agent": {
+          "name": "user_agent",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "requested_at": {
+          "name": "requested_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "approved_at": {
+          "name": "approved_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "login_requests_player_id_players_id_fk": {
+          "name": "login_requests_player_id_players_id_fk",
+          "tableFrom": "login_requests",
+          "tableTo": "players",
+          "columnsFrom": [
+            "player_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "login_requests_parent_id_parents_id_fk": {
+          "name": "login_requests_parent_id_parents_id_fk",
+          "tableFrom": "login_requests",
+          "tableTo": "parents",
+          "columnsFrom": [
+            "parent_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "login_requests_relation_id_parent_child_relations_id_fk": {
+          "name": "login_requests_relation_id_parent_child_relations_id_fk",
+          "tableFrom": "login_requests",
+          "tableTo": "parent_child_relations",
+          "columnsFrom": [
+            "relation_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "login_requests_verification_code_id_guardian_verification_codes_id_fk": {
+          "name": "login_requests_verification_code_id_guardian_verification_codes_id_fk",
+          "tableFrom": "login_requests",
+          "tableTo": "guardian_verification_codes",
+          "columnsFrom": [
+            "verification_code_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.mentorship_connections": {
       "name": "mentorship_connections",
       "schema": "",
@@ -4068,6 +4208,259 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.parent_stat_submissions": {
+      "name": "parent_stat_submissions",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "parent_id": {
+          "name": "parent_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "player_id": {
+          "name": "player_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "athlete_email": {
+          "name": "athlete_email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "athlete_name": {
+          "name": "athlete_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "athlete_dob": {
+          "name": "athlete_dob",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "grad_year": {
+          "name": "grad_year",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "position": {
+          "name": "position",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "state": {
+          "name": "state",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "division": {
+          "name": "division",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "school": {
+          "name": "school",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "season": {
+          "name": "season",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "passing_tds": {
+          "name": "passing_tds",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "rushing_tds": {
+          "name": "rushing_tds",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "receiving_tds": {
+          "name": "receiving_tds",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "defensive_tds": {
+          "name": "defensive_tds",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sacks": {
+          "name": "sacks",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "flag_pulls": {
+          "name": "flag_pulls",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "interceptions": {
+          "name": "interceptions",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "passing_yards": {
+          "name": "passing_yards",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "rushing_yards": {
+          "name": "rushing_yards",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "receiving_yards": {
+          "name": "receiving_yards",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "hers_rating": {
+          "name": "hers_rating",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "forty_yard_dash": {
+          "name": "forty_yard_dash",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "vertical_jump": {
+          "name": "vertical_jump",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "shuttle_5_10_5": {
+          "name": "shuttle_5_10_5",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "broad_jump": {
+          "name": "broad_jump",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "max_preps_url": {
+          "name": "max_preps_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "source": {
+          "name": "source",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'parent_portal'"
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "admin_notes": {
+          "name": "admin_notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'pending'"
+        },
+        "submitted_at": {
+          "name": "submitted_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "reviewed_at": {
+          "name": "reviewed_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "reviewed_by": {
+          "name": "reviewed_by",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "parent_stat_submissions_parent_id_parents_id_fk": {
+          "name": "parent_stat_submissions_parent_id_parents_id_fk",
+          "tableFrom": "parent_stat_submissions",
+          "tableTo": "parents",
+          "columnsFrom": [
+            "parent_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "parent_stat_submissions_player_id_players_id_fk": {
+          "name": "parent_stat_submissions_player_id_players_id_fk",
+          "tableFrom": "parent_stat_submissions",
+          "tableTo": "players",
+          "columnsFrom": [
+            "player_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.parents": {
       "name": "parents",
       "schema": "",
@@ -4347,14 +4740,14 @@
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "text",
+          "type": "timestamp",
           "primaryKey": false,
           "notNull": false,
           "default": "now()"
         },
         "paid_at": {
           "name": "paid_at",
-          "type": "text",
+          "type": "timestamp",
           "primaryKey": false,
           "notNull": false
         }
@@ -4615,25 +5008,45 @@
           "name": "player_id",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "plan_id": {
           "name": "plan_id",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "status": {
           "name": "status",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "stripe_subscription_id": {
           "name": "stripe_subscription_id",
           "type": "text",
           "primaryKey": false,
           "notNull": false
+        },
+        "stripe_customer_id": {
+          "name": "stripe_customer_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
         }
       },
       "indexes": {},
@@ -4666,7 +5079,15 @@
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "player_subscriptions_player_id_unique": {
+          "name": "player_subscriptions_player_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "player_id"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -6397,6 +6818,12 @@
         },
         "tier_level": {
           "name": "tier_level",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "stripe_price_id": {
+          "name": "stripe_price_id",
           "type": "text",
           "primaryKey": false,
           "notNull": false

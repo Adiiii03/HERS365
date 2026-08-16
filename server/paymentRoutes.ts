@@ -143,12 +143,14 @@ export async function processStripeWebhookEvent(event: Stripe.Event): Promise<vo
           playerId,
           planId,
           stripeSubscriptionId: session.subscription as string,
+          stripeCustomerId: session.customer as string,
           status: 'active',
         }).onConflictDoUpdate({
           target: schema.playerSubscriptions.playerId,
           set: {
             planId,
             stripeSubscriptionId: session.subscription as string,
+            stripeCustomerId: session.customer as string,
             status: 'active',
             updatedAt: new Date(),
           },
@@ -175,6 +177,42 @@ export async function processStripeWebhookEvent(event: Stripe.Event): Promise<vo
           stripeCustomerId: session.customer as string,
           paidAt: new Date(),
         });
+      }
+      break;
+    }
+      
+    case 'customer.subscription.updated': {
+      const subscription = event.data.object as Stripe.Subscription;
+      const newPriceId = subscription.items.data[0]?.price?.id;
+      console.log(`🔔 Webhook: Subscription updated: ${subscription.id}, price ${newPriceId}`)
+
+      if (!newPriceId) break;
+      
+      const [newPlan] = await db.select().from(schema.subscriptionPlans)
+        .where(eq(schema.subscriptionPlans.stripePriceId, newPriceId));
+      
+      if (!newPlan) {
+        // Price ID on Stripe side doesn't map to any known plan.
+        // Log and stop rather than silently leaving the subscription.
+        console.error(`🔔 Webhook: subscription.updated for price ${newPriceId} matches no subscription_plans row, skipping tier update`);
+        break;
+      }
+
+      const subs = await db.select().from(schema.playerSubscriptions)
+        .where(eq(schema.playerSubscriptions.stripeSubscriptionId, subscription.id));
+      
+      if (subs.length > 0) {
+        const playerId = subs[0].playerId;
+
+        await db.update(schema.playerSubscriptions)
+          .set({ planId: newPlan.id, status: subscription.status === 'active' ? 'active' : subscription.status, updatedAt: new Date() })
+          .where(eq(schema.playerSubscriptions.id, subs[0].id));
+
+        if (playerId != null) {
+          await db.update(schema.players)
+            .set({ subscriptionTier: newPlan.tierLevel })
+            .where(eq(schema.players.id, playerId));
+        }
       }
       break;
     }
@@ -304,9 +342,14 @@ router.post('/create-checkout-session', async (req: Request, res: Response) => {
     const planName = plan.name ?? 'Subscription';
     const planPrice = plan.price ?? 0;
 
-    // Build line item — use a pre-configured Stripe price ID when available,
-    // otherwise build inline price_data from the DB plan record.
-    const priceId = process.env.STRIPE_PRO_PRICE_ID;
+    if (plan.tierLevel === 'elite' && !process.env.STRIPE_ELITE_PRICE_ID) {
+      console.error('STRIPE_ELITE_PRICE_ID is not set � refusing to fall back to the Pro price for an Elite checkout');
+      return res.status(503).json({ error: 'Elite subscriptions are temporarily unavailable' });
+    }
+    const priceId = plan.tierLevel === 'elite'
+      ? process.env.STRIPE_ELITE_PRICE_ID
+      : process.env.STRIPE_PRO_PRICE_ID;
+
     const lineItem: Stripe.Checkout.SessionCreateParams.LineItem = priceId
       ? { price: priceId, quantity: 1 }
       : {

@@ -76,6 +76,10 @@ export function createApp() {
       .split(',').map(o => o.trim()),
     credentials: true,
   }));
+
+  // Stripe signature verification needs to unparsed body.
+  // Thus precede express.json
+  app.use('/api/payments/webhook', express.raw({ type: 'application/json' }));
   app.use(express.json({ limit: '5mb' }));
 
   // Loose global ceiling so unauthenticated reads cannot be scraped at scale.
