@@ -1100,7 +1100,6 @@ async function seedPdfAthletes() {
       playerId = existingPlayer[0].id;
       await db.update(schema.players).set({
         verificationStatus: 'verified',
-        status: 'active',
         emailVerified: true,
         state: existingPlayer[0].state || a.state,
         preferences: { ...(existingPlayer[0].preferences || {}), ...preferences },
@@ -1111,7 +1110,6 @@ async function seedPdfAthletes() {
         name: a.name,
         state: a.state,
         verificationStatus: 'verified',
-        status: 'active',
         emailVerified: true,
         preferences,
       }).returning();
