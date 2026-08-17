@@ -15,11 +15,6 @@ const db = drizzle(pool, { schema });
 
 export const EVENT_ATHLETES = [
   {
-    "name": "(10u) Derek",
-    "email": "(10u).derek@example.com",
-    "state": "CA"
-  },
-  {
     "name": "Lyla Casterline",
     "email": "lylacasterline@gmail.com",
     "state": "WA"
