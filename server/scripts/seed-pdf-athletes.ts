@@ -1101,14 +1101,19 @@ async function seedPdfAthletes() {
       await db.update(schema.players).set({
         verificationStatus: 'verified',
         emailVerified: true,
+        g5Rating: count < 25 ? 5 : (count < 100 ? 4 : 3),
+        xpPoints: 1000 - count,
         state: existingPlayer[0].state || a.state,
         preferences: { ...(existingPlayer[0].preferences || {}), ...preferences },
       }).where(eq(schema.players.id, playerId));
+      count++;
     } else {
       const [inserted] = await db.insert(schema.players).values({
         email: normalEmail,
         name: a.name,
         state: a.state,
+        g5Rating: count < 25 ? 5 : (count < 100 ? 4 : 3),
+        xpPoints: 1000 - count,
         verificationStatus: 'verified',
         emailVerified: true,
         preferences,
