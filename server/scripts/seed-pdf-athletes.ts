@@ -1103,6 +1103,7 @@ async function seedPdfAthletes() {
         emailVerified: true,
         g5Rating: count < 25 ? 5 : (count < 100 ? 4 : 3),
         xpPoints: 1000 - count,
+        privacySetting: 'public',
         state: existingPlayer[0].state || a.state,
         preferences: { ...(existingPlayer[0].preferences || {}), ...preferences },
       }).where(eq(schema.players.id, playerId));
@@ -1116,6 +1117,7 @@ async function seedPdfAthletes() {
         xpPoints: 1000 - count,
         verificationStatus: 'verified',
         emailVerified: true,
+        privacySetting: 'public',
         preferences,
       }).returning();
       playerId = inserted.id;
