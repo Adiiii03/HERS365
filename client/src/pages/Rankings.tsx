@@ -587,7 +587,13 @@ export const Rankings = () => {
           ))}
         </div>
 
-        {players.map((p) => {
+        {(() => {
+          const isFreeUser = !user || (user.role === 'athlete' && (!user.subscriptionTier || user.subscriptionTier === 'free' || user.subscriptionTier === 'rookie'));
+          const visiblePlayers = isFreeUser && page === 1 ? players.slice(0, 25) : players;
+
+          return (
+            <>
+              {visiblePlayers.map((p) => {
           const isSelf = !!user?.id && p.id === user.id;
           return (
             <div
@@ -712,6 +718,33 @@ export const Rankings = () => {
           );
         })}
 
+        {isFreeUser && (
+          <div style={{
+            marginTop: 24,
+            padding: '48px 24px',
+            borderRadius: 16,
+            background: 'linear-gradient(to right, rgba(139,59,255,0.05), rgba(139,59,255,0.1))',
+            border: '1px solid rgba(139,59,255,0.2)',
+            textAlign: 'center',
+            backdropFilter: 'blur(10px)',
+          }}>
+            <h3 style={{ fontFamily: T.font.display, fontSize: 24, fontWeight: 800, color: colors.textPrimary, marginBottom: 8, letterSpacing: '-0.02em' }}>
+              Unlock the Full Leaderboard
+            </h3>
+            <p style={{ color: colors.textSecondary, fontSize: T.size.base, marginBottom: 24, maxWidth: 460, margin: '0 auto 24px' }}>
+              See where every athlete ranks. Upgrade to Pro or Elite to unlock the full top 100+ national rankings, advanced stats, and scouting exposure.
+            </p>
+            <Button
+              variant="default"
+              size="lg"
+              onClick={() => navigate('/subscribe')}
+              style={{ background: colors.accent, color: colors.accentOn, padding: '0 32px' }}
+            >
+              Upgrade to Pro
+            </Button>
+          </div>
+        )}
+
         {players.length === 0 && (
           <div style={{ padding: 48, textAlign: 'center', color: colors.textTertiary }}>
             <div style={{ fontFamily: T.font.display, fontSize: T.size.lg, fontWeight: T.weight.bold }}>
@@ -719,40 +752,41 @@ export const Rankings = () => {
             </div>
           </div>
         )}
+        </>
+        );
+        })()}
       </div>
 
       {totalPages > 1 && (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginTop: 16 }}>
-          <Button
-            variant="ghost"
-            size="sm"
-            disabled={page <= 1}
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-          >
-            Previous
-          </Button>
-          <span className="tnum" style={{ fontSize: T.size.xs, color: colors.textTertiary }}>
-            Page {page} of {totalPages} · {total} athletes
-          </span>
-          {user?.role === 'athlete' && (!user.subscriptionTier || user.subscriptionTier === 'free' || user.subscriptionTier === 'rookie') && page === 1 ? (
-            <Button
-              variant="default"
-              size="sm"
-              onClick={() => navigate('/subscribe')}
-              style={{ background: colors.accent, color: colors.accentOn }}
-            >
-              Upgrade to Pro for more
-            </Button>
-          ) : (
-            <Button
-              variant="ghost"
-              size="sm"
-              disabled={page >= totalPages}
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            >
-              Next
-            </Button>
-          )}
+          {(() => {
+            const isFreeUser = !user || (user.role === 'athlete' && (!user.subscriptionTier || user.subscriptionTier === 'free' || user.subscriptionTier === 'rookie'));
+            if (isFreeUser) return null;
+
+            return (
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  disabled={page <= 1}
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                >
+                  Previous
+                </Button>
+                <span className="tnum" style={{ fontSize: T.size.xs, color: colors.textTertiary }}>
+                  Page {page} of {totalPages} · {total} athletes
+                </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  disabled={page >= totalPages}
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                >
+                  Next
+                </Button>
+              </>
+            );
+          })()}
         </div>
       )}
 
