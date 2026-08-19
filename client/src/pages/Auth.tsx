@@ -33,7 +33,7 @@ function Field({
   id: string; label: string; type?: string; value: string;
   onChange: (v: string) => void; required?: boolean;
   icon: React.ElementType; autoComplete?: string;
-  invalid?: boolean; describedBy?: string;
+  invalid?: boolean; describedBy?: string; onBlur?: () => void;
 }) {
   const [focused, setFocused] = useState(false);
   const [showPw, setShowPw]   = useState(false);
@@ -75,7 +75,7 @@ function Field({
           aria-invalid={invalid || undefined}
           aria-describedby={describedBy}
           onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
+          onBlur={() => { setFocused(false); if (onBlur) onBlur(); }}
           style={{
             width: '100%', background: FIELD,
             border: `1px solid ${focused ? 'rgba(139,59,255,0.5)' : LINE}`,
@@ -150,6 +150,7 @@ export const Auth = () => {
   const [name,     setName]     = useState('');
   const [email,    setEmail]    = useState('');
   const [password, setPassword] = useState('');
+  const [claimableName, setClaimableName] = useState<string | null>(null);
   // New signup-only fields. DOB is required for athletes so the backend can
   // enforce COPPA and parent-gate rules. Parent email is required for athletes
   // under 18 (it's who coach contact gets routed through); 18+ may omit it.
@@ -172,10 +173,18 @@ export const Auth = () => {
   // credential and retry once the guardian email is filled in.
   const [googleCredential, setGoogleCredential] = useState<string | null>(null);
   const navigate  = useNavigate();
-  const { login, pendingToken, setPending, clearPending } = useAuth();
+  const { login, pendingToken, setPending, clearPending, token, user } = useAuth();
   const reduced   = !!useReducedMotion();
   const showPendingScreen = !!pendingToken;
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (token && user && !pendingToken) {
+      if (user.role === 'coach' || user.role === 'admin') navigate('/coach/dashboard', { replace: true });
+      else if (user.role === 'parent') navigate('/parent/dashboard', { replace: true });
+      else navigate('/hub', { replace: true });
+    }
+  }, [token, user, pendingToken, navigate]);
 
   const enterPending = (data: { pendingToken: string; guardianEmailMasked?: string }) => {
     if (data.guardianEmailMasked) {
@@ -240,6 +249,26 @@ export const Auth = () => {
       }
     } catch {
       setPendingNote("We couldn't resend right now — check your connection and try again.");
+    }
+  };
+
+  const handleEmailBlur = async () => {
+    if (isLogin || !email || !email.includes('@')) return;
+    try {
+      const res = await fetch('/api/auth/check-claim', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      const data = await res.json();
+      if (data.claimable) {
+        setClaimableName(data.name);
+        if (!name) setName(data.name || '');
+      } else {
+        setClaimableName(null);
+      }
+    } catch {
+      // ignore
     }
   };
 
@@ -620,6 +649,32 @@ export const Auth = () => {
             </motion.div>
           </AnimatePresence>
 
+          <AnimatePresence>
+            {!isLogin && claimableName && (
+              <motion.div
+                initial={{ opacity: 0, y: -6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                style={{
+                  marginBottom: 20, padding: '14px', borderRadius: 10,
+                  background: 'rgba(139,59,255,0.1)', border: `1px solid rgba(139,59,255,0.3)`,
+                }}
+              >
+                <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                  <Users size={20} style={{ color: colors.accent, marginTop: 2 }} />
+                  <div>
+                    <h3 style={{ margin: '0 0 4px', fontFamily: t.font.display, fontWeight: 800, fontSize: '.9rem', color: colors.textPrimary, textTransform: 'uppercase', letterSpacing: '.05em' }}>
+                      Welcome back, {claimableName}!
+                    </h3>
+                    <p style={{ margin: 0, color: colors.textSecondary, fontSize: '.85rem', lineHeight: 1.5 }}>
+                      You're already on the roster. Complete the form below to claim your account and start posting.
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           {/* Mobile trust line — honest, no invented numbers */}
           <div
             className="flex lg:hidden"
@@ -721,7 +776,7 @@ export const Auth = () => {
               )}
             </AnimatePresence>
 
-            <Field id="auth-email" label="Email Address" type="email" icon={Mail} value={email} onChange={setEmail} required autoComplete="email" invalid={!!error} describedBy={error ? 'auth-error' : undefined} />
+            <Field id="auth-email" label="Email Address" type="email" icon={Mail} value={email} onChange={setEmail} onBlur={handleEmailBlur} required autoComplete="email" invalid={!!error} describedBy={error ? 'auth-error' : undefined} />
             <Field id="auth-password" label="Password" type="password" icon={Lock} value={password} onChange={setPassword} required autoComplete={isLogin ? 'current-password' : 'new-password'} invalid={!!error} describedBy={error ? 'auth-error' : undefined} />
 
             <AnimatePresence initial={false}>

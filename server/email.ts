@@ -35,11 +35,11 @@ export async function sendEmail({ to, subject, html, from }: EmailOptions) {
   const sender = from || process.env.EMAIL_FROM || 'HERS365 <noreply@hers365.com>';
 
   try {
-    if (!process.env.RESEND_API_KEY) {
-      if (!explicitNonProd()) {
+    if (!process.env.RESEND_API_KEY || process.env.RESEND_API_KEY.includes('re_demo_')) {
+      if (!process.env.RESEND_API_KEY && !explicitNonProd()) {
         throw new Error('RESEND_API_KEY is required for email delivery outside development/test');
       }
-      console.warn(`[email] DEV MODE — email to ${to} (${subject}) was not sent. Set RESEND_API_KEY for real delivery.`);
+      console.warn(`[email] MOCK MODE — email to ${to} (${subject}) was not sent. Set a real RESEND_API_KEY for delivery.`);
       return { success: true, data: { id: `mock_${Date.now()}` } };
     }
 
