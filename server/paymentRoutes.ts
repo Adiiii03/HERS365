@@ -326,7 +326,7 @@ router.post('/create-checkout-session', async (req: Request, res: Response) => {
       payment_method_types: ['card'],
       line_items: [lineItem],
       mode: 'subscription',
-      success_url: successUrl || `${process.env.ALLOWED_ORIGINS?.split(',')[0] || 'http://localhost:5173'}/thank-you?plan=${encodeURIComponent(planName)}&amount=${planPrice}&interval=month`,
+      success_url: successUrl || `${process.env.ALLOWED_ORIGINS?.split(',')[0] || 'http://localhost:5173'}/thank-you?plan=${encodeURIComponent(planName)}&amount=${planPrice}&interval=${interval}`,
       cancel_url: cancelUrl || `${process.env.ALLOWED_ORIGINS?.split(',')[0] || 'http://localhost:5173'}/subscribe?subscription=cancelled`,
       metadata: {
         playerId: playerId.toString(),
