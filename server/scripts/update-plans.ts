@@ -1,5 +1,5 @@
-import { db } from './db';
-import * as schema from './schema';
+import { db } from '../db';
+import * as schema from '../schema';
 import { eq } from 'drizzle-orm';
 
 async function updatePlans() {
