@@ -112,7 +112,7 @@ export const Subscription = () => {
           playerId: user.id,
           successUrl: plan.price === 0
             ? `${window.location.origin}/profile`
-            : `${window.location.origin}/thank-you?plan=${encodeURIComponent(plan.name)}&amount=${plan.price}&interval=month`,
+            : `${window.location.origin}/thank-you?plan=${encodeURIComponent(plan.name)}&amount=${plan.price}&interval=${plan.name.toLowerCase().includes('year') ? 'year' : 'month'}`,
           cancelUrl: `${window.location.origin}/subscribe?subscription=cancelled`,
         }),
       });
@@ -220,8 +220,10 @@ export const Subscription = () => {
                       <div style={{ fontFamily: DISP, fontSize: t.size['2xl'], fontWeight: t.weight.bold, lineHeight: 1, color: colors.textPrimary }}>Free</div>
                     ) : (
                       <>
-                        <div style={{ fontFamily: DISP, fontSize: t.size['3xl'], fontWeight: t.weight.bold, lineHeight: 1, color: colors.textPrimary }}>${(plan.price / 100).toFixed(0)}</div>
-                        <div style={{ fontSize: t.size.xs, color: colors.textTertiary, marginTop: 2 }}>per month</div>
+                        <div style={{ fontFamily: DISP, fontSize: t.size['3xl'], fontWeight: t.weight.bold, lineHeight: 1, color: colors.textPrimary }}>${(plan.price / 100).toFixed(2)}</div>
+                        <div style={{ fontSize: t.size.xs, color: colors.textTertiary, marginTop: 2 }}>
+                          {plan.name.toLowerCase().includes('year') ? 'per year' : 'per month'}
+                        </div>
                       </>
                     )}
                   </div>

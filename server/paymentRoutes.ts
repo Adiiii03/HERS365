@@ -305,25 +305,21 @@ router.post('/create-checkout-session', async (req: Request, res: Response) => {
 
     // Build line item — use a pre-configured Stripe price ID when available,
     // otherwise build inline price_data from the DB plan record.
-    const priceId = plan.tierLevel === 'elite'
-      ? (process.env.STRIPE_ELITE_PRICE_ID || process.env.STRIPE_PRO_PRICE_ID)
-      : process.env.STRIPE_PRO_PRICE_ID;
-    const lineItem: Stripe.Checkout.SessionCreateParams.LineItem = (priceId && !priceId.startsWith('price_...'))
-      ? { price: priceId, quantity: 1 }
-      : {
-          price_data: {
-            currency: 'usd',
-            product_data: {
-              name: `H.E.R.S.365 - ${planName} Subscription`,
-              description: `${planName} tier access to H.E.R.S.365 platform`,
-            },
-            unit_amount: planPrice,
-            recurring: {
-              interval: 'month' as const,
-            },
-          },
-          quantity: 1,
-        };
+    const interval = planName.toLowerCase().includes('year') ? 'year' : 'month';
+    const lineItem: Stripe.Checkout.SessionCreateParams.LineItem = {
+      price_data: {
+        currency: 'usd',
+        product_data: {
+          name: `H.E.R.S.365 - ${planName} Subscription`,
+          description: `${planName} tier access to H.E.R.S.365 platform`,
+        },
+        unit_amount: planPrice,
+        recurring: {
+          interval: interval as 'month' | 'year',
+        },
+      },
+      quantity: 1,
+    };
 
     // Create Stripe checkout session
     const session = await getStripe().checkout.sessions.create({
