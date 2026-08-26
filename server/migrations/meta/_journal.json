@@ -106,6 +106,13 @@
       "when": 1783915300000,
       "tag": "0014_schema_drift_repair",
       "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1787761795422,
+      "tag": "0015_square_satana",
+      "breakpoints": true
     }
   ]
 }
