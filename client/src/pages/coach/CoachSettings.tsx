@@ -1,8 +1,20 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { User, Mail, School, Award, Bell, LogOut, Shield, Megaphone, Calendar } from 'lucide-react';
+import {
+  User,
+  Mail,
+  School,
+  Award,
+  Bell,
+  LogOut,
+  Shield,
+  Megaphone,
+  Calendar,
+} from 'lucide-react';
+
 import { useNotifications } from '../../context/NotificationContext';
+import { useAuth } from '../../context/AuthContext';
 import { Button } from '../../components/ui';
 
 interface CoachUser {
@@ -23,6 +35,7 @@ interface NotifPrefs {
 export function CoachSettings() {
   const navigate = useNavigate();
   const { showNotification } = useNotifications();
+  const { logout } = useAuth();
 
   const coachUser: CoachUser = (() => {
     try {
@@ -47,21 +60,29 @@ export function CoachSettings() {
     });
   };
 
-  const handleSignOut = async () => {
-    try {
-      await fetch('/api/auth/logout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refreshToken: localStorage.getItem('coachToken') }),
-      });
-    } catch {
-      // Non-fatal: continue with local sign-out even if server revocation fails
-    }
-    localStorage.removeItem('coachToken');
-    localStorage.removeItem('coachUser');
-    showNotification('info', 'Signed Out', 'You have been signed out of the Coach Portal.');
-    navigate('/coach/login');
-  };
+const handleSignOut = async () => {
+  try {
+    await fetch('/api/auth/logout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        refreshToken: localStorage.getItem('coachToken'),
+      }),
+    });
+  } catch {
+    // Non-fatal: continue with local sign-out even if server revocation fails
+  }
+
+  await logout();
+
+  showNotification(
+    'info',
+    'Signed Out',
+    'You have been signed out of the Coach Portal.'
+  );
+
+  navigate('/auth');
+};
 
   const accountFields = [
     { icon: User, label: 'Full Name', value: coachUser.name || 'Not set' },

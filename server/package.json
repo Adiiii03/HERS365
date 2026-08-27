@@ -5,7 +5,8 @@
   "main": "index.ts",
   "type": "module",
   "scripts": {
-    "dev": "APP_ENV=development tsx watch core-server.ts",
+    "dev:core": "APP_ENV=development tsx watch core-server.ts",
+    "dev": "tsx watch index.ts",
     "dev:enterprise": "tsx watch index.ts",
     "dev:legacy": "tsx watch index.ts",
     "dev:microservices": "tsx watch index.ts",
