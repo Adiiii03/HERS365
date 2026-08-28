@@ -48,7 +48,8 @@
     "compliance:setup": "tsx scripts/setup-compliance-infrastructure.ts",
     "test": "vitest run",
     "test:watch": "vitest",
-    "db:push:test": "DATABASE_URL=postgres://localhost:5432/hers365_test drizzle-kit push --force"
+    "db:push:test": "DATABASE_URL=postgres://localhost:5432/hers365_test drizzle-kit push --force",
+    "worker:video": "tsx video-worker.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.105.0",
