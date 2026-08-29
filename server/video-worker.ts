@@ -4,7 +4,7 @@
 import './load-env';
 
 import { randomUUID } from 'node:crypto';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -28,6 +28,20 @@ import {
 const POLL_INTERVAL_MS =
     Number(process.env.VIDEO_WORKER_POLL_MS) || 5_000;
 
+const MOCK_PROCESSING_ENABLED =
+    process.env.VIDEO_PROCESSING_MOCK === 'true';
+
+function validateWorkerConfiguration(): void {
+    if (
+        process.env.NODE_ENV === 'production' &&
+        MOCK_PROCESSING_ENABLED
+    ) {
+        throw new Error(
+            'VIDEO_PROCESSING_MOCK cannot be enabled in production',
+        );
+    }
+}
+
 let shuttingDown = false;
 
 function handleShutdown(signal: string): void {
@@ -42,6 +56,24 @@ function sleep(milliseconds: number): Promise<void> {
     return new Promise((resolve) => {
         setTimeout(resolve, milliseconds);
     });
+}
+
+async function processVideoMock(
+    outputPath: string,
+    thumbnailPath: string,
+): Promise<void> {
+    await sleep(1_500);
+
+    await Promise.all([
+        writeFile(
+            outputPath,
+            'Mock processed video output',
+        ),
+        writeFile(
+            thumbnailPath,
+            'Mock thumbnail output',
+        ),
+    ]);
 }
 
 function createOutputKeys(job: VideoJob): {
@@ -114,13 +146,24 @@ export async function processClaimedVideoJob(
 
         console.log(`[video-worker] Processing job ${job.id}`);
 
-        await processVideo({
-            inputPath,
-            outputPath,
-            thumbnailPath,
-            trimStartSeconds: job.clipSettings?.start,
-            trimEndSeconds: job.clipSettings?.end,
-        });
+        if (MOCK_PROCESSING_ENABLED) {
+            console.log(
+                `[video-worker] Mock-processing job ${job.id}`,
+            );
+
+            await processVideoMock(
+                outputPath,
+                thumbnailPath,
+            );
+        } else {
+            await processVideo({
+                inputPath,
+                outputPath,
+                thumbnailPath,
+                trimStartSeconds: job.clipSettings?.start,
+                trimEndSeconds: job.clipSettings?.end,
+            });
+        }
 
         console.log(
             `[video-worker] Uploading outputs for job ${job.id}`,
@@ -199,8 +242,16 @@ async function processNextJob(): Promise<boolean> {
 async function runWorker(): Promise<void> {
     console.log('[video-worker] Starting');
 
-    await assertFfmpegAvailable();
-    console.log('[video-worker] FFmpeg is available');
+    validateWorkerConfiguration();
+
+    if (MOCK_PROCESSING_ENABLED) {
+        console.log(
+            '[video-worker] Mock processing enabled',
+        );
+    } else {
+        await assertFfmpegAvailable();
+        console.log('[video-worker] FFmpeg is available');
+    }
 
     const recoveredJobs = await recoverStaleVideoJobs();
 
