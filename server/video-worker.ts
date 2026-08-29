@@ -28,13 +28,14 @@ import {
 const POLL_INTERVAL_MS =
     Number(process.env.VIDEO_WORKER_POLL_MS) || 5_000;
 
-const MOCK_PROCESSING_ENABLED =
-    process.env.VIDEO_PROCESSING_MOCK === 'true';
+export function isMockProcessingEnabled(): boolean {
+    return process.env.VIDEO_PROCESSING_MOCK === 'true';
+}
 
-function validateWorkerConfiguration(): void {
+export function validateWorkerConfiguration(): void {
     if (
         process.env.NODE_ENV === 'production' &&
-        MOCK_PROCESSING_ENABLED
+        isMockProcessingEnabled()
     ) {
         throw new Error(
             'VIDEO_PROCESSING_MOCK cannot be enabled in production',
@@ -49,8 +50,7 @@ function handleShutdown(signal: string): void {
     shuttingDown = true;
 }
 
-process.once('SIGINT', () => handleShutdown('SIGINT'));
-process.once('SIGTERM', () => handleShutdown('SIGTERM'));
+
 
 function sleep(milliseconds: number): Promise<void> {
     return new Promise((resolve) => {
@@ -146,7 +146,7 @@ export async function processClaimedVideoJob(
 
         console.log(`[video-worker] Processing job ${job.id}`);
 
-        if (MOCK_PROCESSING_ENABLED) {
+        if (isMockProcessingEnabled()) {
             console.log(
                 `[video-worker] Mock-processing job ${job.id}`,
             );
@@ -197,7 +197,7 @@ export async function processClaimedVideoJob(
     }
 }
 
-async function processNextJob(): Promise<boolean> {
+export async function processNextJob(): Promise<boolean> {
     const job = await claimNextVideoJob();
 
     if (!job) {
@@ -239,12 +239,12 @@ async function processNextJob(): Promise<boolean> {
     }
 }
 
-async function runWorker(): Promise<void> {
+export async function runWorker(): Promise<void> {
     console.log('[video-worker] Starting');
 
     validateWorkerConfiguration();
 
-    if (MOCK_PROCESSING_ENABLED) {
+    if (isMockProcessingEnabled()) {
         console.log(
             '[video-worker] Mock processing enabled',
         );
@@ -283,15 +283,27 @@ async function runWorker(): Promise<void> {
     console.log('[video-worker] Stopped');
 }
 
-runWorker()
-    .catch((error: unknown) => {
-        console.error(
-            '[video-worker] Fatal startup error',
-            error,
-        );
+if (process.env.NODE_ENV !== 'test') {
+    process.once(
+        'SIGINT',
+        () => handleShutdown('SIGINT'),
+    );
 
-        process.exitCode = 1;
-    })
-    .finally(async () => {
-        await pool.end();
-    });
+    process.once(
+        'SIGTERM',
+        () => handleShutdown('SIGTERM'),
+    );
+
+    runWorker()
+        .catch((error: unknown) => {
+            console.error(
+                '[video-worker] Fatal startup error',
+                error,
+            );
+
+            process.exitCode = 1;
+        })
+        .finally(async () => {
+            await pool.end();
+        });
+}
