@@ -311,7 +311,6 @@ router.post('/create-checkout-session', async (req: Request, res: Response) => {
         currency: 'usd',
         product_data: {
           name: `H.E.R.S.365 - ${planName} Subscription`,
-          description: `${planName} tier access to H.E.R.S.365 platform`,
         },
         unit_amount: planPrice,
         recurring: {
