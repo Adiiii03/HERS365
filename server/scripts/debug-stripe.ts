@@ -10,7 +10,6 @@ async function main() {
   console.log('Testing Stripe Live Key:', process.env.STRIPE_SECRET_KEY?.substring(0, 14) + '...');
   try {
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
       line_items: [{
         price_data: {
           currency: 'usd',
@@ -25,6 +24,7 @@ async function main() {
       cancel_url: 'http://localhost/cancel',
     });
     console.log('✅ Success! Session ID:', session.id);
+    console.log('✅ Session URL:', session.url);
   } catch (err: any) {
     console.error('❌ Stripe Error:', err.message);
   }
