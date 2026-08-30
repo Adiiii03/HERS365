@@ -322,7 +322,6 @@ router.post('/create-checkout-session', async (req: Request, res: Response) => {
 
     // Create Stripe checkout session
     const session = await getStripe().checkout.sessions.create({
-      payment_method_types: ['card'],
       line_items: [lineItem],
       mode: 'subscription',
       success_url: successUrl || `${process.env.ALLOWED_ORIGINS?.split(',')[0] || 'http://localhost:5173'}/thank-you?plan=${encodeURIComponent(planName)}&amount=${planPrice}&interval=${interval}`,
