@@ -23,7 +23,7 @@ if (!STRIPE_KEY) {
 }
 
 const stripe: Stripe | null = STRIPE_KEY
-  ? new Stripe(STRIPE_KEY, { apiVersion: '2025-02-24.acacia' })
+  ? new Stripe(STRIPE_KEY, { apiVersion: '2025-03-31.basil' as any })
   : null;
 
 function requireStripe(req: Request, res: Response, next: express.NextFunction) {
