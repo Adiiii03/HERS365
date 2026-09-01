@@ -54,6 +54,8 @@ const Reels = lazyNamed(() => import('./pages/Reels'), 'Reels');
 const VideoStudio = lazyNamed(() => import('./pages/VideoStudio'), 'VideoStudio');
 const Settings = lazyNamed(() => import('./pages/Settings'), 'Settings');
 const Messages = lazyNamed(() => import('./pages/Messages'), 'Messages');
+const Analytics = lazyNamed(() => import('./pages/Analytics'), 'Analytics');
+const CollegeFit = lazyNamed(() => import('./pages/CollegeFit'), 'CollegeFit');
 const MaxPrepsLookup = lazyNamed(() => import('./pages/MaxPrepsLookup'), 'MaxPrepsLookup');
 const CollegeFitCalculator = lazyNamed(() => import('./pages/CollegeFitCalculator'), 'CollegeFitCalculator');
 const CollegeFlagFootball = lazyNamed(() => import('./pages/CollegeFlagFootball'), 'CollegeFlagFootball');
@@ -276,6 +278,9 @@ function App() {
           <Routes>
             <Route element={<Layout />}>
               <Route path="/feed" element={<AthleteRouteGuard><Feed /></AthleteRouteGuard>} />
+              <Route path="/college-fit" element={<AthleteRouteGuard><CollegeFit /></AthleteRouteGuard>} />
+              <Route path="/analytics" element={<AthleteRouteGuard><Analytics /></AthleteRouteGuard>} />
+              <Route path="/messages" element={<AthleteRouteGuard><Messages /></AthleteRouteGuard>} />
               <Route path="/rankings" element={<Rankings />} />
               <Route path="/profile" element={<AthleteRouteGuard><Profile /></AthleteRouteGuard>} />
               <Route path="/profile/:id" element={<PlayerProfile />} />

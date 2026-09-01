@@ -660,4 +660,94 @@ export async function createNotification(
   }
 }
 
+// ─── MESSAGING (Pro/Elite) ────────────────────────────────────────────────────────────
+router.post('/messages', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const pId = authUser(req)!.userId;
+    const { coachId, content } = req.body;
+    
+    // Ensure athlete has pro tier to send messages
+    const [player] = await db.select().from(schema.players).where(eq(schema.players.id, pId)).limit(1);
+    const isPaid = !!player?.subscriptionTier && player.subscriptionTier !== 'free';
+    if (!isPaid) {
+      return res.status(403).json({ error: 'Pro subscription required to message coaches' });
+    }
+
+    // Insert message
+    const [message] = await db.insert(schema.messages).values({
+      coachId,
+      athleteId: pId,
+      senderId: pId,
+      senderType: 'athlete',
+      content,
+    }).returning();
+
+    res.json(message);
+  } catch (err: any) {
+    next(err);
+  }
+});
+
+router.get('/messages', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const pId = authUser(req)!.userId;
+    const [player] = await db.select().from(schema.players).where(eq(schema.players.id, pId)).limit(1);
+    const isPaid = !!player?.subscriptionTier && player.subscriptionTier !== 'free';
+    if (!isPaid) {
+      return res.status(403).json({ error: 'Pro subscription required' });
+    }
+
+    // Get all messages for this athlete
+    const msgs = await db.select().from(schema.messages).where(eq(schema.messages.athleteId, pId));
+    res.json(msgs);
+  } catch (err: any) {
+    next(err);
+  }
+});
+
+// ─── ANALYTICS (Pro/Elite) ────────────────────────────────────────────────────────────
+router.get('/analytics/performance', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const pId = authUser(req)!.userId;
+    const [player] = await db.select().from(schema.players).where(eq(schema.players.id, pId)).limit(1);
+    const isPaid = !!player?.subscriptionTier && player.subscriptionTier !== 'free';
+    if (!isPaid) {
+      return res.status(403).json({ error: 'Pro subscription required' });
+    }
+
+    const stats = await db.select().from(schema.gameStats).where(eq(schema.gameStats.playerId, pId));
+    res.json(stats);
+  } catch (err: any) {
+    next(err);
+  }
+});
+
+// ─── COLLEGE FIT (Pro/Elite) ──────────────────────────────────────────────────────────
+router.get('/college-fit', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const pId = authUser(req)!.userId;
+    const [player] = await db.select().from(schema.players).where(eq(schema.players.id, pId)).limit(1);
+    const isPaid = !!player?.subscriptionTier && player.subscriptionTier !== 'free';
+    if (!isPaid) {
+      return res.status(403).json({ error: 'Pro subscription required' });
+    }
+
+    const allTeams = await db.select().from(schema.teams).where(eq(schema.teams.type, 'college'));
+    
+    const matches = allTeams.map(team => {
+      let score = 50; 
+      if (player.state && team.state && player.state === team.state) score += 20;
+      if (player.g5Rating && player.g5Rating >= 4 && team.division === 'NCAA D1') score += 20;
+      if (player.g5Rating && player.g5Rating <= 3 && (team.division === 'NCAA D2' || team.division === 'NCAA D3')) score += 20;
+      score += Math.floor(Math.random() * 10) - 5;
+      return { ...team, matchScore: Math.min(100, Math.max(0, score)) };
+    }).sort((a, b) => b.matchScore - a.matchScore).slice(0, 20);
+
+    res.json(matches);
+  } catch (err: any) {
+    next(err);
+  }
+});
+
 export default router;
+
