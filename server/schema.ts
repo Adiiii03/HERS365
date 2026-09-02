@@ -286,6 +286,40 @@ export const playerHighlights = pgTable('player_highlights', {
   createdAt: timestamp('created_at').default(sql`now()`),
 });
 
+// Background FFmpeg processing jobs
+export const videoJobs = pgTable('video_jobs', {
+  id: serial('id').primaryKey(),
+
+  playerId: integer('player_id')
+    .notNull()
+    .references(() => players.id),
+
+  // Permanent S3 keys—not temporary signed URLs
+  sourceKey: text('source_key').notNull(),
+  outputKey: text('output_key'),
+  thumbnailKey: text('thumbnail_key'),
+
+
+  targetType: text('target_type').notNull(),
+  targetId: integer('target_id').notNull(),
+
+  // Expected shape: { start?: number, end?: number }
+  clipSettings: jsonb('clip_settings'),
+
+  // pending | processing | completed | failed
+  status: text('status').notNull().default('pending'),
+
+  attempts: integer('attempts').notNull().default(0),
+  maxAttempts: integer('max_attempts').notNull().default(3),
+
+  error: text('error'),
+  lockedAt: timestamp('locked_at'),
+  processedAt: timestamp('processed_at'),
+
+  createdAt: timestamp('created_at').notNull().default(sql`now()`),
+  updatedAt: timestamp('updated_at').notNull().default(sql`now()`),
+});
+
 // Parents table - for parent accounts who can manage their children's profiles and payments
 export const parents = pgTable('parents', {
   id: serial('id').primaryKey(),

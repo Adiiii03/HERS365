@@ -35,7 +35,7 @@ async function main() {
     subscriptionTier: 'free',
     verificationStatus: 'verified',
     emailVerified: true,
-    status: 'pending_guardian', 
+    status: 'pending_guardian',
     privacySetting: 'public'
   }).returning();
 

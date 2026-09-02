@@ -11,6 +11,10 @@
 // ServerSideEncryption AES256.
 
 import { randomUUID } from 'crypto';
+import { createReadStream, createWriteStream } from 'node:fs';
+import { rm, stat } from 'node:fs/promises';
+import { Readable } from 'node:stream';
+import { pipeline } from 'node:stream/promises';
 import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
@@ -45,6 +49,19 @@ export interface UploadResult {
 function sanitizeFilename(filename: string): string {
   return filename.replace(/[^a-zA-Z0-9._-]/g, '').slice(0, 100) || 'file';
 }
+
+
+function assertVideoKey(key: string): void {
+  if (!key.startsWith('videos/')) {
+    throw new Error('Invalid video storage key');
+  }
+
+  if (key.includes('..') || key.includes('\\')) {
+    throw new Error('Invalid video storage key');
+  }
+}
+
+
 
 export async function uploadVideo(file: Buffer, filename: string, contentType: string): Promise<UploadResult> {
   // [D-08] Enforce the size cap server-side regardless of any client check.
@@ -122,9 +139,10 @@ export async function getSignedUploadUrl(
   return await getSignedUrl(s3Client, command, { expiresIn });
 }
 
-export async function getSignedDownloadUrl(key: string, expiresIn = DOWNLOAD_URL_TTL): Promise<string> {
-  // Default to the photo bucket; pass a videos/ key for film and it resolves
-  // against the video bucket instead.
+export async function getSignedDownloadUrl(
+  key: string,
+  expiresIn = DOWNLOAD_URL_TTL,
+): Promise<string> {
   const isVideo = key.startsWith('videos/');
   const command = new GetObjectCommand({
     Bucket: isVideo ? videoBucket : photoBucket,
@@ -133,3 +151,71 @@ export async function getSignedDownloadUrl(key: string, expiresIn = DOWNLOAD_URL
 
   return await getSignedUrl(s3Client, command, { expiresIn });
 }
+
+export async function downloadVideoToLocal(
+  key: string,
+  localPath: string,
+): Promise<void> {
+  assertVideoKey(key);
+
+  const response = await s3Client.send(
+    new GetObjectCommand({
+      Bucket: videoBucket,
+      Key: key,
+    }),
+  );
+
+  if (!response.Body) {
+    throw new Error(`Video object has no body: ${key}`);
+  }
+
+  try {
+    await pipeline(
+      response.Body as Readable,
+      createWriteStream(localPath, { flags: 'wx' }),
+    );
+  } catch (error) {
+    await rm(localPath, { force: true }).catch(() => undefined);
+    throw error;
+  }
+}
+
+export async function uploadProcessedFile(
+  localPath: string,
+  key: string,
+  contentType: string,
+): Promise<string> {
+  assertVideoKey(key);
+
+  const fileStats = await stat(localPath);
+
+  if (!fileStats.isFile()) {
+    throw new Error(`Processed output is not a file: ${localPath}`);
+  }
+
+  if (fileStats.size === 0) {
+    throw new Error(`Processed output is empty: ${localPath}`);
+  }
+
+  const fileStream = createReadStream(localPath);
+
+  try {
+    await s3Client.send(
+      new PutObjectCommand({
+        Bucket: videoBucket,
+        Key: key,
+        Body: fileStream,
+        ContentLength: fileStats.size,
+        ContentType: contentType,
+        ServerSideEncryption: 'AES256',
+        CacheControl: 'public, max-age=31536000, immutable',
+      }),
+    );
+  } finally {
+    fileStream.destroy();
+  }
+
+  return getSignedDownloadUrl(key);
+}
+
+

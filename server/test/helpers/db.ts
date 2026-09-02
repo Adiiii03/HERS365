@@ -1,4 +1,6 @@
+import '../../load-env';
 import { pool } from '../../db';
+
 
 const TABLES = [
   'refresh_tokens',
@@ -23,6 +25,8 @@ const TABLES = [
   'payments',
   'parents',
   'coaches',
+  'video_jobs',
+  'player_highlights',
   'players',
   // event_inbox is the dedupe ledger for Stripe webhook idempotency; clear so
   // tests that replay the same event.id start from a known state.
