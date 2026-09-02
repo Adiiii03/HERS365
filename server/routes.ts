@@ -660,52 +660,11 @@ export async function createNotification(
   }
 }
 
-// ─── MESSAGING (Pro/Elite) ────────────────────────────────────────────────────────────
-router.post('/messages', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const pId = authUser(req)!.userId;
-    const { coachId, content } = req.body;
-    
-    // Ensure athlete has pro tier to send messages
-    const [player] = await db.select().from(schema.players).where(eq(schema.players.id, pId)).limit(1);
-    const isPaid = !!player?.subscriptionTier && player.subscriptionTier !== 'free';
-    if (!isPaid) {
-      return res.status(403).json({ error: 'Pro subscription required to message coaches' });
-    }
-
-    // Insert message
-    const [message] = await db.insert(schema.messages).values({
-      coachId,
-      athleteId: pId,
-      senderId: pId,
-      senderType: 'athlete',
-      content,
-    }).returning();
-
-    res.json(message);
-  } catch (err: any) {
-    next(err);
-  }
-});
-
-router.get('/messages', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const pId = authUser(req)!.userId;
-    const [player] = await db.select().from(schema.players).where(eq(schema.players.id, pId)).limit(1);
-    const isPaid = !!player?.subscriptionTier && player.subscriptionTier !== 'free';
-    if (!isPaid) {
-      return res.status(403).json({ error: 'Pro subscription required' });
-    }
-
-    // Get all messages for this athlete
-    const msgs = await db.select().from(schema.messages).where(eq(schema.messages.athleteId, pId));
-    res.json(msgs);
-  } catch (err: any) {
-    next(err);
-  }
-});
-
 // ─── ANALYTICS (Pro/Elite) ────────────────────────────────────────────────────────────
+// This is the legacy paywalled analytics endpoint, NOT the messaging routes above.
+// The old /api/messages (GET/POST) paywalled routes were removed because they were
+// shadowed by the safety-first messagesRouter mounted at app.ts:/api/messages —
+// any request to /api/messages now goes through the gated, parent-approval flow.
 router.get('/analytics/performance', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const pId = authUser(req)!.userId;

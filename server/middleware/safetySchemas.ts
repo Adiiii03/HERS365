@@ -230,6 +230,11 @@ export const coachProfilePutBody = z.object({
   recruitingStates: stringList(60).optional(),
 }).refine((b) => Object.keys(b).length > 0, { message: 'At least one updatable field is required' });
 
+export const coachSettingsBody = z.record(z.string(), z.unknown()).refine(
+  (b) => !Array.isArray(b),
+  { message: 'Body must be an object of preferences' },
+);
+
 // ─── Athlete saved-schools mutations ────────────────────────────────────────
 
 export const savedSchoolBody = z.object({
