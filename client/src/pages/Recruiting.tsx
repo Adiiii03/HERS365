@@ -65,7 +65,7 @@ interface Application {
 interface Insights {
   totalViewsLast30d: number;
   uniqueCoachesLast30d: number;
-  recentViews: { viewerName: string | null; viewerType: string; viewedAt: string }[];
+  recentViews: { viewerName: string | null; viewerType: string; viewedAt: string; viewerUniversity: string | null }[];
 }
 
 const divisions     = ['All', 'NCAA D1', 'NCAA D2', 'NCAA D3', 'NAIA', 'JUCO'];
@@ -794,8 +794,15 @@ export const Recruiting = () => {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                     {insights.recentViews.map((v, i) => (
                       <Card key={i} style={{ padding: '10px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div style={{ fontSize: t.size.base, color: colors.textSecondary, fontWeight: t.weight.semibold }}>{v.viewerName ?? 'A coach'} viewed your profile</div>
-                        <div style={{ fontSize: t.size.xs, color: colors.textTertiary }}>{new Date(v.viewedAt).toLocaleDateString()}</div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                          <div style={{ fontSize: t.size.base, color: colors.textSecondary, fontWeight: t.weight.semibold }}>
+                            {v.viewerUniversity ? `Coach from ${v.viewerUniversity}` : v.viewerName ?? 'A coach'} viewed your profile
+                          </div>
+                          {v.viewerUniversity && v.viewerName && (
+                            <div style={{ fontSize: t.size.xs, color: colors.textTertiary }}>{v.viewerName}</div>
+                          )}
+                        </div>
+                        <div style={{ fontSize: t.size.xs, color: colors.textTertiary, flexShrink: 0 }}>{new Date(v.viewedAt).toLocaleDateString()}</div>
                       </Card>
                     ))}
                   </div>
