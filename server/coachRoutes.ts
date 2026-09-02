@@ -20,6 +20,7 @@ import {
   coachPlayerTierBody,
   coachPlayerParams,
   coachProfilePutBody,
+  coachSettingsBody,
 } from './middleware/safetySchemas';
 import { publicPlayerView } from './lib/playerPrivacy';
 import { moderateMessage } from './lib/moderation';
@@ -77,6 +78,55 @@ router.put('/profile', validateBody(coachProfilePutBody), async (req, res) => {
     return res.json(profile);
   } catch (err) {
     return res.status(500).json({ error: 'Failed to update coach profile' });
+  }
+});
+
+// ─── Coach notification settings (self-service, like profile) ───────────────────
+// Exempt from the verification gate so a newly-signed-up coach can configure
+// notification prefs while their account is pending admin review.
+
+// GET /coach/settings — read the coach's persisted preferences JSON.
+router.get('/settings', async (req, res) => {
+  try {
+    const coachId = coachUserId(req);
+    if (!coachId) return res.status(401).json({ error: 'Unauthorized' });
+
+    const [row] = await db
+      .select({ preferences: schema.coaches.preferences })
+      .from(schema.coaches)
+      .where(eq(schema.coaches.id, coachId))
+      .limit(1);
+
+    res.json({ success: true, data: (row?.preferences as Record<string, unknown> | null) ?? {} });
+  } catch (err) {
+    console.error('[coach/settings GET]', err);
+    res.status(500).json({ error: 'Failed to load settings' });
+  }
+});
+
+// PUT /coach/settings — merge a partial preferences object into the coach row.
+router.put('/settings', validateBody(coachSettingsBody), async (req, res) => {
+  try {
+    const coachId = coachUserId(req);
+    if (!coachId) return res.status(401).json({ error: 'Unauthorized' });
+
+    const patch = (req.body ?? {}) as Record<string, unknown>;
+    const [row] = await db
+      .select({ preferences: schema.coaches.preferences })
+      .from(schema.coaches)
+      .where(eq(schema.coaches.id, coachId))
+      .limit(1);
+
+    const merged = { ...((row?.preferences as Record<string, unknown> | null) ?? {}), ...patch };
+    await db
+      .update(schema.coaches)
+      .set({ preferences: merged })
+      .where(eq(schema.coaches.id, coachId));
+
+    res.json({ success: true, data: merged });
+  } catch (err) {
+    console.error('[coach/settings PUT]', err);
+    res.status(500).json({ error: 'Failed to save settings' });
   }
 });
 
@@ -664,7 +714,6 @@ router.get('/messages', async (req, res) => {
       read: schema.messages.read,
       createdAt: schema.messages.createdAt,
       coachName: schema.coaches.name,
-      coachEmail: schema.coaches.email,
       athleteName: schema.players.name,
     })
     .from(schema.messages)
@@ -704,6 +753,11 @@ router.get('/analytics', async (req, res) => {
       searchQueriesThisWeekRow,
       profileViewsThisWeekRow,
       avgSessionRow,
+      positionBreakdownRows,
+      offeredCountRow,
+      weeklyActivityRows,
+      viewsActivityRows,
+      saveActivityRows,
     ] = await Promise.all([
       db.select({ count: sql<number>`count(*)` })
         .from(schema.coachProspects)
@@ -747,6 +801,61 @@ router.get('/analytics', async (req, res) => {
           eq(schema.coachEvents.coachId, coachId),
           eq(schema.coachEvents.eventType, 'session_ended'),
         )),
+      // Position breakdown for the coach's board — group prospects by position.
+      db.select({
+        position: schema.players.position,
+        count: sql<number>`count(*)::int`,
+      })
+        .from(schema.coachProspects)
+        .innerJoin(schema.players, eq(schema.players.id, schema.coachProspects.athleteId))
+        .where(eq(schema.coachProspects.coachId, coachId))
+        .groupBy(schema.players.position)
+        .orderBy(desc(sql`count(*)`)),
+      // Count prospects at the 'offered' tier for the recruiting pipeline.
+      db.select({ count: sql<number>`count(*)::int` })
+        .from(schema.coachProspects)
+        .where(and(
+          eq(schema.coachProspects.coachId, coachId),
+          eq(schema.coachProspects.tier, 'offered'),
+        )),
+      // Weekly activity: searches per day for the last 7 days.
+      db.select({
+        day: sql<string>`to_char(${schema.coachEvents.createdAt}, 'D')::text`,
+        searches: sql<number>`count(*)::int`,
+      })
+        .from(schema.coachEvents)
+        .where(and(
+          eq(schema.coachEvents.coachId, coachId),
+          eq(schema.coachEvents.eventType, 'search_run'),
+          sql`${schema.coachEvents.createdAt} >= ${sevenDaysAgo}`,
+        ))
+        .groupBy(sql`to_char(${schema.coachEvents.createdAt}, 'D')`)
+        .orderBy(sql`${schema.coachEvents.createdAt}`),
+      // Weekly activity: profile views + player views per day for the last 7 days.
+      db.select({
+        day: sql<string>`to_char(${schema.coachEvents.createdAt}, 'D')::text`,
+        views: sql<number>`count(*)::int`,
+      })
+        .from(schema.coachEvents)
+        .where(and(
+          eq(schema.coachEvents.coachId, coachId),
+          sql`${schema.coachEvents.eventType} IN ('profile_viewed', 'player_viewed')`,
+          sql`${schema.coachEvents.createdAt} >= ${sevenDaysAgo}`,
+        ))
+        .groupBy(sql`to_char(${schema.coachEvents.createdAt}, 'D')`)
+        .orderBy(sql`${schema.coachEvents.createdAt}`),
+      // Weekly activity: saves per day = new coachProspects rows in the last 7 days.
+      db.select({
+        day: sql<string>`to_char(${schema.coachProspects.createdAt}, 'D')::text`,
+        saves: sql<number>`count(*)::int`,
+      })
+        .from(schema.coachProspects)
+        .where(and(
+          eq(schema.coachProspects.coachId, coachId),
+          sql`${schema.coachProspects.createdAt} >= ${sevenDaysAgo}`,
+        ))
+        .groupBy(sql`to_char(${schema.coachProspects.createdAt}, 'D')`)
+        .orderBy(sql`${schema.coachProspects.createdAt}`),
     ]);
 
     const boardCount = Number(boardCountRow[0]?.count ?? 0);
@@ -762,6 +871,49 @@ router.get('/analytics', async (req, res) => {
       ? Math.round((playersContacted / boardCount) * 100)
       : 0;
 
+    // Position breakdown — derive percentage from the board total.
+    const positionTotal = positionBreakdownRows.reduce((sum, r) => sum + Number(r.count ?? 0), 0);
+    const positionBreakdown = positionBreakdownRows
+      .filter((r) => r.position)
+      .map((r) => ({
+        position: r.position!,
+        count: Number(r.count ?? 0),
+        percentage: positionTotal > 0
+          ? Math.round((Number(r.count ?? 0) / positionTotal) * 100)
+          : 0,
+      }));
+
+    const offeredCount = Number(offeredCountRow[0]?.count ?? 0);
+
+    // Weekly activity — merge searches, views, and saves into one row per day.
+    // Day numbers (1=Sun..7=Sat) from to_char('D') are mapped to short weekday
+    // labels matching the frontend's display order.
+    const dayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const weekdayByDayNum: Record<string, string> = {};
+    for (let i = 1; i <= 7; i++) {
+      weekdayByDayNum[String(i)] = dayLabels[(i - 1) % 7];
+    }
+
+    const searchesByDay = new Map<string, number>();
+    for (const r of weeklyActivityRows) {
+      searchesByDay.set(weekdayByDayNum[r.day] ?? r.day, Number(r.searches ?? 0));
+    }
+    const viewsByDay = new Map<string, number>();
+    for (const r of viewsActivityRows) {
+      viewsByDay.set(weekdayByDayNum[r.day] ?? r.day, Number(r.views ?? 0));
+    }
+    const savesByDay = new Map<string, number>();
+    for (const r of saveActivityRows) {
+      savesByDay.set(weekdayByDayNum[r.day] ?? r.day, Number(r.saves ?? 0));
+    }
+
+    const weeklyActivity = dayLabels.map((day) => ({
+      day,
+      searches: searchesByDay.get(day) ?? 0,
+      views: viewsByDay.get(day) ?? 0,
+      saves: savesByDay.get(day) ?? 0,
+    }));
+
     res.json({
       boardCount,
       messagesSent,
@@ -775,11 +927,11 @@ router.get('/analytics', async (req, res) => {
       recruitingPipeline: {
         prospects: boardCount,
         contacted: playersContacted,
-        offered: 0,
+        offered: offeredCount,
         committed: 0,
       },
-      weeklyActivity: [] as { day: string; searches: number; views: number; saves: number }[],
-      positionBreakdown: [] as { position: string; count: number; percentage: number }[],
+      weeklyActivity,
+      positionBreakdown,
     });
   } catch (error) {
     console.error('Failed to fetch analytics:', error);
@@ -838,6 +990,10 @@ router.get('/player-clips', async (req, res) => {
         verified: s.verified,
         title: s.archetype && s.archetype !== '\u2014' ? s.archetype : `${s.position} \u00b7 ${s.school}`,
         thumbnailUrl: s.highlightThumbnailUrl || s.profileImage || '',
+        // Highlight view/like tracking isn't captured in the schema yet;
+        // surface 0 so the coach dashboard cards render without NaN.
+        views: 0,
+        likes: 0,
       }));
 
     res.json({ clips });
