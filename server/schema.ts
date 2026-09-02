@@ -445,6 +445,8 @@ export const coaches = pgTable('coaches', {
   verifiedAt: timestamp('verified_at'),
   // Free-text reason / staff page URL / .edu email proof, captured at signup.
   verificationNote: text('verification_note'),
+  // Persisted coach-side preferences (notification toggles, etc.).
+  preferences: jsonb('preferences').default(sql`'{}'::jsonb`),
 });
 
 // Coach activity events — feeds the analytics dashboard. eventType is one of

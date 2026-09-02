@@ -35,6 +35,18 @@ async function refreshAccessToken(): Promise<string | null> {
         const data = await res.json();
         if (data?.token) {
           localStorage.setItem('token', data.token);
+          // Coach sessions store the same JWT under a separate key for the
+          // coach portal's raw-fetch calls. Keep it in sync on refresh so the
+          // portal doesn't get stuck on an expired token after a silent renew.
+          const userStr = localStorage.getItem('user');
+          if (userStr) {
+            try {
+              const role = JSON.parse(userStr).role;
+              if (role === 'coach' || role === 'admin') {
+                localStorage.setItem('coachToken', data.token);
+              }
+            } catch { /* ignore parse failure */ }
+          }
           return data.token as string;
         }
         return null;
@@ -61,7 +73,7 @@ export async function apiFetch<T = any>(path: string, opts: RequestInit = {}): P
     return fetch(targetUrl, { ...opts, headers });
   };
 
-  let res = await doFetch(localStorage.getItem('token'));
+  let res = await doFetch(localStorage.getItem('token') || localStorage.getItem('coachToken'));
 
   if (res.status === 401 && !path.startsWith('/api/auth/')) {
     const newToken = await refreshAccessToken();
