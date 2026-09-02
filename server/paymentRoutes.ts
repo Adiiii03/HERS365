@@ -23,7 +23,7 @@ if (!STRIPE_KEY) {
 }
 
 const stripe: Stripe | null = STRIPE_KEY
-  ? new Stripe(STRIPE_KEY, { apiVersion: '2025-02-24.acacia' })
+  ? new Stripe(STRIPE_KEY, { apiVersion: '2025-03-31.basil' as any })
   : null;
 
 function requireStripe(req: Request, res: Response, next: express.NextFunction) {
@@ -311,7 +311,7 @@ router.post('/create-checkout-session', async (req: Request, res: Response) => {
         currency: 'usd',
         product_data: {
           name: `H.E.R.S.365 - ${planName} Subscription`,
-          description: `${planName} tier access to H.E.R.S.365 platform`,
+          tax_code: 'txcd_10000000',
         },
         unit_amount: planPrice,
         recurring: {
@@ -323,7 +323,6 @@ router.post('/create-checkout-session', async (req: Request, res: Response) => {
 
     // Create Stripe checkout session
     const session = await getStripe().checkout.sessions.create({
-      payment_method_types: ['card'],
       line_items: [lineItem],
       mode: 'subscription',
       success_url: successUrl || `${process.env.ALLOWED_ORIGINS?.split(',')[0] || 'http://localhost:5173'}/thank-you?plan=${encodeURIComponent(planName)}&amount=${planPrice}&interval=${interval}`,

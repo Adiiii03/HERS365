@@ -66,7 +66,6 @@ const DEMO_LOGIN_ALLOWLIST = new Set<string>([
   'maya@hers365.com',
   'parent.maya@hers365.com',
   'maya.johnson@hers365.app',
-  'coach@hers365.com',
 ]);
 
 const ALLOWED_DEMO_ENVS = new Set<string>(['development', 'test']);
