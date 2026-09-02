@@ -381,6 +381,9 @@ router.get('/posts', optionalAuth, async (req: Request, res: Response, next: Nex
     if (!authUser(req) && !publicAthleteDiscoveryEnabled()) {
       return res.status(401).json({ error: 'Authentication required' });
     }
+    const page  = Math.max(1, parseInt(req.query.page  as string) || 1);
+    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 25));
+    const offset = (page - 1) * limit;
     const allPosts = await db
       .select({
         id: schema.posts.id,
@@ -401,7 +404,8 @@ router.get('/posts', optionalAuth, async (req: Request, res: Response, next: Nex
       .from(schema.posts)
       .leftJoin(schema.players, eq(schema.posts.playerId, schema.players.id))
       .orderBy(desc(schema.posts.createdAt))
-      .limit(50);
+      .limit(limit)
+      .offset(offset);
     res.json(allPosts);
   } catch (err: any) {
     next(err);

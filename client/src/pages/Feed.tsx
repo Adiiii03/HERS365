@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { athleteAvatar } from '../lib/avatar';
@@ -715,14 +715,20 @@ export const Feed = () => {
   const [feedType, setFeedType] = useState<'recent' | 'trending'>('recent');
   const [posts, setPosts] = useState<PostData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isError, setIsError] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [athleteCount, setAthleteCount] = useState<number | null>(null);
   const [topAthletes, setTopAthletes] = useState<RankedAthlete[]>([]);
   const [topLoading, setTopLoading] = useState(true);
 
-  useEffect(() => {
+  const PAGE_LIMIT = 25;
+
+  const fetchPage = useCallback((pageNum: number, append: boolean) => {
     const ctrl = new AbortController();
-    fetch('/api/posts', { signal: ctrl.signal })
-      .then(r => r.json())
+    fetch(`/api/posts?page=${pageNum}&limit=${PAGE_LIMIT}`, { signal: ctrl.signal })
+      .then(r => { if (!r.ok) throw new Error('Network error'); return r.json(); })
       .then((data: PostApiRow[]) => {
         const rows = Array.isArray(data) ? data : [];
         const mapped: PostData[] = rows.map((p) => ({
@@ -736,12 +742,25 @@ export const Feed = () => {
           highlights: p.mediaType === 'video' || p.category === 'game',
           isLiked: false,
         }));
-        setPosts(mapped);
+        setPosts(prev => append ? [...prev, ...mapped] : mapped);
+        setHasMore(rows.length === PAGE_LIMIT);
+        setPage(pageNum);
       })
-      .catch(() => {})
-      .finally(() => setIsLoading(false));
+      .catch((err) => { if (err.name !== 'AbortError') setIsError(true); })
+      .finally(() => { setIsLoading(false); setLoadingMore(false); });
     return () => ctrl.abort();
   }, []);
+
+  // Flags live here rather than in fetchPage so the mount effect below can
+  // reuse the fetch without writing state synchronously during the effect.
+  const loadPosts = useCallback((pageNum: number, append: boolean) => {
+    if (pageNum === 1) setIsLoading(true);
+    else setLoadingMore(true);
+    setIsError(false);
+    return fetchPage(pageNum, append);
+  }, [fetchPage]);
+
+  useEffect(() => fetchPage(1, false), [fetchPage]);
 
   useEffect(() => {
     fetch('/api/athletes')
@@ -1171,7 +1190,26 @@ export const Feed = () => {
           />
         ))}
 
-        {!isLoading && posts.length === 0 && (
+        {isError && (
+          <motion.div {...reveal} style={{ textAlign: 'center', padding: '40px 20px' }}>
+            <div style={{ fontSize: '.95rem', color: MUTED, marginBottom: 14 }}>
+              Could not load posts. Check your connection.
+            </div>
+            <button
+              onClick={() => loadPosts(page, false)}
+              style={{
+                background: 'transparent', border: `1px solid ${LINE_2}`,
+                borderRadius: 8, padding: '8px 20px',
+                color: MUTED, fontSize: '.85rem', cursor: 'pointer',
+                fontFamily: BODY,
+              }}
+            >
+              Try again
+            </button>
+          </motion.div>
+        )}
+
+        {!isLoading && !isError && posts.length === 0 && (
           <motion.div
             {...reveal}
             style={{ textAlign: 'center', padding: '72px 20px 40px' }}
@@ -1189,33 +1227,51 @@ export const Feed = () => {
           </motion.div>
         )}
 
-        {/* end-of-feed marker */}
-        {!isLoading && posts.length > 0 && (
-        <motion.div
-          {...reveal}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 14,
-            margin: '8px 0 0',
-            color: colors.textTertiary,
-          }}
-        >
-          <span style={{ flex: 1, height: 1, background: LINE }} />
-          <span
-            style={{
-              fontFamily: DISP,
-              fontWeight: 700,
-              fontSize: t.size.xs,
-              letterSpacing: '.2em',
-              textTransform: 'uppercase',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            You're all caught up
-          </span>
-          <span style={{ flex: 1, height: 1, background: LINE }} />
-        </motion.div>
+        {/* Load more / end-of-feed */}
+        {!isLoading && !isError && posts.length > 0 && (
+          hasMore ? (
+            <div style={{ textAlign: 'center', padding: '24px 0 8px' }}>
+              <button
+                onClick={() => loadPosts(page + 1, true)}
+                disabled={loadingMore}
+                style={{
+                  background: 'transparent', border: `1px solid ${LINE_2}`,
+                  borderRadius: 8, padding: '9px 28px',
+                  color: loadingMore ? colors.textTertiary : colors.textSecondary,
+                  fontSize: t.size.sm, cursor: loadingMore ? 'default' : 'pointer',
+                  fontFamily: BODY, transition: 'opacity .15s',
+                }}
+              >
+                {loadingMore ? 'Loading…' : 'Load more'}
+              </button>
+            </div>
+          ) : (
+            <motion.div
+              {...reveal}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 14,
+                margin: '8px 0 0',
+                color: colors.textTertiary,
+              }}
+            >
+              <span style={{ flex: 1, height: 1, background: LINE }} />
+              <span
+                style={{
+                  fontFamily: DISP,
+                  fontWeight: 700,
+                  fontSize: t.size.xs,
+                  letterSpacing: '.2em',
+                  textTransform: 'uppercase',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                You're all caught up
+              </span>
+              <span style={{ flex: 1, height: 1, background: LINE }} />
+            </motion.div>
+          )
         )}
       </div>
 
