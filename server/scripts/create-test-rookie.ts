@@ -31,7 +31,6 @@ async function main() {
     email,
     passwordHash: hashedPassword,
     name: 'Test Rookie',
-    role: 'athlete',
     subscriptionTier: 'free',
     verificationStatus: 'verified',
     emailVerified: true,

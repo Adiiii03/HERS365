@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 dotenv.config({ path: '../.env.production' });
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  apiVersion: '2023-10-16',
+  apiVersion: '2025-03-31.basil' as any,
 });
 
 async function main() {
