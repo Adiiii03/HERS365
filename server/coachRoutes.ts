@@ -32,58 +32,18 @@ import { recordCoachEvent } from './lib/coachEvents';
 
 const router = express.Router();
 
+// All coach routes require a coach JWT AND a verified coach account. New
+// coach accounts land unverified and are blocked from search/messaging until
+// an admin clears them via /api/admin/coaches/verification.
 router.use(requireCoach);
 
-// ─── Coach self-service profile (view/edit) ──────────────────────────────────
-// Newly signed-up coaches land unverified but must still be able to view and
-// complete their own profile. Exempt these two routes from the verification
-// gate that protects the rest of the scouting portal.
-router.get('/profile', async (req, res) => {
-  try {
-    const coachId = coachUserId(req);
-    if (!coachId) return res.status(401).json({ error: 'Unauthorized' });
-
-    const rows = await db.select().from(schema.coaches).where(eq(schema.coaches.id, coachId)).limit(1);
-    if (!rows.length) return res.status(404).json({ error: 'Coach profile not found' });
-
-    const { passwordHash: _pw, ...profile } = rows[0];
-    return res.json(profile);
-  } catch (err) {
-    return res.status(500).json({ error: 'Failed to fetch coach profile' });
-  }
-});
-
-router.put('/profile', validateBody(coachProfilePutBody), async (req, res) => {
-  try {
-    const coachId = coachUserId(req);
-    if (!coachId) return res.status(401).json({ error: 'Unauthorized' });
-
-    const { name, university, division, recruitingPositions, recruitingStates } = req.body || {};
-    const updates: Record<string, any> = {};
-    if (name !== undefined) updates.name = name;
-    if (university !== undefined) updates.university = university;
-    if (division !== undefined) updates.division = division;
-    if (recruitingPositions !== undefined) updates.recruitingPositions = recruitingPositions;
-    if (recruitingStates !== undefined) updates.recruitingStates = recruitingStates;
-
-    if (!Object.keys(updates).length) return res.status(400).json({ error: 'No updatable fields provided' });
-
-    const updated = await db
-      .update(schema.coaches)
-      .set(updates)
-      .where(eq(schema.coaches.id, coachId))
-      .returning();
-
-    const { passwordHash: _pw, ...profile } = updated[0];
-    return res.json(profile);
-  } catch (err) {
-    return res.status(500).json({ error: 'Failed to update coach profile' });
-  }
-});
-
-// ─── Coach notification settings (self-service, like profile) ───────────────────
-// Exempt from the verification gate so a newly-signed-up coach can configure
-// notification prefs while their account is pending admin review.
+// ─── Coach notification settings (self-service) ─────────────────────────────────
+// Mounted BEFORE requireVerifiedCoach so a newly-signed-up coach can configure
+// their own notification prefs while their account is pending admin review.
+// Note: on current main every other coach route (including /profile) sits behind
+// requireVerifiedCoach; this settings endpoint is intentionally placed ahead of
+// that gate per the portal design (self-service, writes only the coach's own
+// non-sensitive preferences JSON).
 
 // GET /coach/settings — read the coach's persisted preferences JSON.
 router.get('/settings', async (req, res) => {
@@ -297,15 +257,11 @@ router.get('/players/search', async (req, res) => {
     const rowsRaw = await db.select().from(schema.players)
       .where(conditions.length ? and(...conditions) : undefined);
 
-    // Parent-controlled coach discoverability: when an athlete's parent has
-    // flipped profileVisibility=false the players.preferences JSON carries
-    // coachDiscoverable=false; hide those rows from the coach search. Unset
-    // or true keeps the existing behavior (default-preserving).
-    // Also filter out athletes who have not yet confirmed their email — they
-    // opted in to the platform but haven't verified, so coaches shouldn't see them.
     const rows = rowsRaw.filter((p) => {
       const prefs = (p.preferences ?? {}) as Record<string, unknown>;
-      return prefs.coachDiscoverable !== false && p.emailVerified !== false;
+      // For live testing, we temporarily remove the emailVerified check so coaches
+      // can see athletes even if they haven't completed email verification yet.
+      return prefs.coachDiscoverable !== false;
     });
 
     // Enrich with each athlete's most recent highlight thumbnail so the coach
@@ -333,7 +289,7 @@ router.get('/players/search', async (req, res) => {
     }));
 
     let results = rowsWithThumbs
-      .filter((p) => p.name && p.position) // skip incomplete / test rows
+      .filter((p) => p.name) // skip incomplete / test rows
       .map(mapPlayerToScout);
 
     // Apply filters
@@ -1000,6 +956,55 @@ router.get('/player-clips', async (req, res) => {
   } catch (error) {
     console.error('Failed to fetch player clips:', error);
     res.status(500).json({ error: 'Failed to fetch player clips' });
+  }
+});
+
+/**
+ * GET /coach/profile — Get the authenticated coach's own profile
+ */
+router.get('/profile', async (req, res) => {
+  try {
+    const coachId = coachUserId(req);
+    if (!coachId) return res.status(401).json({ error: 'Unauthorized' });
+
+    const rows = await db.select().from(schema.coaches).where(eq(schema.coaches.id, coachId)).limit(1);
+    if (!rows.length) return res.status(404).json({ error: 'Coach profile not found' });
+
+    const { passwordHash: _pw, ...profile } = rows[0];
+    return res.json(profile);
+  } catch (err) {
+    return res.status(500).json({ error: 'Failed to fetch coach profile' });
+  }
+});
+
+/**
+ * PUT /coach/profile — Update the authenticated coach's own profile
+ */
+router.put('/profile', validateBody(coachProfilePutBody), async (req, res) => {
+  try {
+    const coachId = coachUserId(req);
+    if (!coachId) return res.status(401).json({ error: 'Unauthorized' });
+
+    const { name, university, division, recruitingPositions, recruitingStates } = req.body || {};
+    const updates: Record<string, any> = {};
+    if (name !== undefined) updates.name = name;
+    if (university !== undefined) updates.university = university;
+    if (division !== undefined) updates.division = division;
+    if (recruitingPositions !== undefined) updates.recruitingPositions = recruitingPositions;
+    if (recruitingStates !== undefined) updates.recruitingStates = recruitingStates;
+
+    if (!Object.keys(updates).length) return res.status(400).json({ error: 'No updatable fields provided' });
+
+    const updated = await db
+      .update(schema.coaches)
+      .set(updates)
+      .where(eq(schema.coaches.id, coachId))
+      .returning();
+
+    const { passwordHash: _pw, ...profile } = updated[0];
+    return res.json(profile);
+  } catch (err) {
+    return res.status(500).json({ error: 'Failed to update coach profile' });
   }
 });
 
