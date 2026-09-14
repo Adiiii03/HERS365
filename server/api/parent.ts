@@ -54,11 +54,8 @@ router.get('/children', async (req, res) => {
         school: schema.players.school,
         position: schema.players.position,
         gradYear: schema.players.gradYear,
-        stars: schema.players.stars,
-        breakoutScore: schema.players.breakoutScore,
         nilPoints: schema.players.nilPoints,
         profileImage: schema.players.profileImage,
-        offers: schema.players.offers,
       })
       .from(schema.players)
       .where(inArray(schema.players.id, childIds));
