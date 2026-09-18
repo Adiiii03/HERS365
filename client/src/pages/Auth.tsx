@@ -173,75 +173,130 @@ export const Auth = () => {
   const reduced   = !!useReducedMotion();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
+  e.preventDefault();
+  setError('');
 
-    // Client-side guard: athlete signups need a DOB, and the user must be 13+.
-    // Server enforces the same; this just avoids a round trip.
-    if (!isLogin && role === 'athlete') {
-      if (!dob) {
-        setError('Date of birth is required.');
-        return;
+  // Validate athlete signup requirements before sending the request.
+  if (!isLogin && role === 'athlete') {
+    if (!dob) {
+      setError('Date of birth is required.');
+      return;
+    }
+
+    const ageYears =
+      (Date.now() - new Date(dob).getTime()) /
+      (1000 * 60 * 60 * 24 * 365.25);
+
+    if (Number.isNaN(ageYears) || ageYears < 13) {
+      setError(
+        'Athletes must be at least 13. A parent can set up a managed account.'
+      );
+      return;
+    }
+
+    if (ageYears < 18 && !parentEmail.trim()) {
+      setError(
+        'A parent or guardian email is required for athletes under 18.'
+      );
+      return;
+    }
+  }
+
+  setLoading(true);
+
+  try {
+    const endpoint = isLogin
+      ? '/api/auth/login'
+      : '/api/auth/register';
+
+    const body: Record<string, string> = {
+      email,
+      password,
+    };
+
+    // Registration-only fields.
+    if (!isLogin) {
+      body.role = role;
+
+      if (name) {
+        body.name = name;
       }
-      const ageYears = (Date.now() - new Date(dob).getTime()) / (1000 * 60 * 60 * 24 * 365.25);
-      if (Number.isNaN(ageYears) || ageYears < 13) {
-        setError('Athletes must be at least 13. A parent can set up a managed account.');
-        return;
-      }
-      if (ageYears < 18 && !parentEmail.trim()) {
-        setError('A parent or guardian email is required for athletes under 18.');
-        return;
+
+      if (role === 'athlete') {
+        body.dob = dob;
+
+        if (parentEmail.trim()) {
+          body.parentEmail = parentEmail.trim();
+        }
       }
     }
 
-    setLoading(true);
-    try {
-      const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
-      const body: Record<string, string> = { email, password };
-      if (!isLogin && name) body.name = name;
-      if (!isLogin) {
-        body.role = role;
-        if (role === 'athlete') {
-          body.dob = dob;
-          if (parentEmail.trim()) body.parentEmail = parentEmail.trim();
-        }
-      }
-      const res  = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-      const data = await res.json().catch(() => null);
-      if (!res.ok) {
-        setError(
-          data?.error || data?.message ||
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+
+    const data = await res.json().catch(() => null);
+
+    // Handle API errors.
+    if (!res.ok) {
+      setError(
+        data?.error ||
+          data?.message ||
           (isLogin
             ? "We couldn't sign you in — check your email and password."
             : "We couldn't create your account — please try again.")
-        );
-        return;
-      }
-      if (data?.token && data?.user) login(data.token, data.user);
-      navigate(isLogin
-        ? '/feed'
-        : role === 'parent' ? '/parent/dashboard' : '/onboarding'
       );
-    } catch {
-      // Sandbox fallback if API server is offline or unreachable during testing
-      const testUser = {
-        id: 1,
-        email: email || 'maya@hers365.com',
-        name: name || 'Maya Johnson',
-        role: role || 'athlete',
-        subscriptionTier: 'free',
-        diamondOverride: false,
-      };
-      login('demo-jwt-token-sandbox-365', testUser);
-      navigate(isLogin ? '/feed' : role === 'parent' ? '/parent/dashboard' : '/onboarding');
-    } finally {
-      setLoading(false);
+      return;
     }
-  };
+
+    // Successful authentication.
+    if (data?.token && data?.user) {
+      login(data.token, data.user);
+
+      if (isLogin) {
+        // Login: use the role returned by the server.
+        if (data.user.role === 'parent') {
+          navigate('/parent/dashboard');
+        } else {
+          navigate('/feed');
+        }
+      } else {
+        // Signup: use the role selected during registration.
+        if (role === 'parent') {
+          navigate('/parent/dashboard');
+        } else {
+          navigate('/onboarding');
+        }
+      }
+    }
+  } catch {
+    // Sandbox fallback if the API server is offline or unreachable.
+    const testUser = {
+      id: 1,
+      email: email || 'maya@hers365.com',
+      name: name || 'Maya Johnson',
+      role: role || 'athlete',
+      subscriptionTier: 'free',
+      diamondOverride: false,
+    };
+
+    login('demo-jwt-token-sandbox-365', testUser);
+
+    if (isLogin) {
+      navigate('/feed');
+    } else if (role === 'parent') {
+      navigate('/parent/dashboard');
+    } else {
+      navigate('/onboarding');
+    }
+  } finally {
+    setLoading(false);
+  }
+};
 
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
 
@@ -599,7 +654,7 @@ export const Auth = () => {
             </AnimatePresence>
 
 
-            <Field id="auth-email" label="Email Address" type="email" icon={Mail} value={email} onChange={setEmail} onBlur={handleEmailBlur} required autoComplete="email" invalid={!!error} describedBy={error ? 'auth-error' : undefined} />
+            <Field id="auth-email" label="Email Address" type="email" icon={Mail} value={email} onChange={setEmail} required autoComplete="email" invalid={!!error} describedBy={error ? 'auth-error' : undefined} />
             <Field id="auth-password" label="Password" type="password" icon={Lock} value={password} onChange={setPassword} required autoComplete={isLogin ? 'current-password' : 'new-password'} invalid={!!error} describedBy={error ? 'auth-error' : undefined} />
 
             <AnimatePresence initial={false}>
