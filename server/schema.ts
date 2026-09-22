@@ -43,10 +43,16 @@ export const players = pgTable('players', {
   // Custom profile photo. Public URL returned from /api/upload/presign.
   // Falls back to the generated initials avatar when null.
   profileImage: text('profile_image'),
-  // Verified when the athlete clicks the link in the sign-up confirmation email.
+    // Verified when the athlete clicks the link in the sign-up confirmation email.
   // Defaults true so existing users are grandfathered. New registrations set this
   // false explicitly and must verify before appearing in coach search.
   emailVerified: boolean('email_verified').notNull().default(true),
+
+  status: text('status').notNull().default('pending_guardian'),
+  activatedAt: timestamp('activated_at'),
+  deactivatedAt: timestamp('deactivated_at'),
+  pendingToken: text('pending_token').unique(),
+
   createdAt: timestamp('created_at').default(sql`now()`),
 });
 
@@ -257,6 +263,11 @@ export const parents = pgTable('parents', {
   passwordHash: text('password_hash').notNull(),
   name: text('name').notNull(),
   phone: text('phone'),
+
+  emailVerified: boolean('email_verified').notNull().default(false),
+  phoneVerified: boolean('phone_verified').notNull().default(false),
+  phoneE164: text('phone_e164'),
+
   // Persisted parent-side preferences (notification toggles, visibility
   // defaults, etc.). Server-backed replacement for the local useState
   // toggles that lived in ParentHub and ParentDashboard.
@@ -264,12 +275,37 @@ export const parents = pgTable('parents', {
   createdAt: timestamp('created_at').default(sql`now()`),
 });
 
+export const guardianConsents = pgTable('guardian_consents', {
+  id: serial('id').primaryKey(),
+  parentId: integer('parent_id').references(() => parents.id),
+  playerId: integer('player_id').references(() => players.id),
+  consentType: text('consent_type').notNull(),
+  framework: text('framework').notNull(),
+  consented: boolean('consented').notNull(),
+  consentVersion: text('consent_version').notNull(),
+  consentText: text('consent_text').notNull(),
+  method: text('method'),
+  grantedAt: timestamp('granted_at').default(sql`now()`),
+  revokedAt: timestamp('revoked_at'),
+  expiresAt: timestamp('expires_at'),
+  grantedBy: text('granted_by'),
+  ipAddress: text('ip_address'),
+  userAgent: text('user_agent'),
+  withdrawalReason: text('withdrawal_reason'),
+  metadata: jsonb('metadata').default(sql`'{}'::jsonb`),
+});
+
 // Link between parents and their children (athletes)
 export const parentChildRelations = pgTable('parent_child_relations', {
   id: serial('id').primaryKey(),
   parentId: integer('parent_id').references(() => parents.id),
   playerId: integer('player_id').references(() => players.id),
-  relationship: text('relationship'), // 'mother', 'father', 'guardian', etc.
+  relationship: text('relationship'),
+  isPrimary: boolean('is_primary').default(false),
+  status: text('status').notNull().default('pending'),
+  consentId: integer('consent_id').references(() => guardianConsents.id),
+  verifiedAt: timestamp('verified_at'),
+  revokedAt: timestamp('revoked_at'),
   createdAt: timestamp('created_at').default(sql`now()`),
 });
 

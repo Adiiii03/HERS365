@@ -120,6 +120,56 @@ async function findUserByEmail(email: string, role: auth.UserRole): Promise<Foun
   return { id: row.id, email: row.email, passwordHash: row.passwordHash, name: row.name, role: 'athlete' };
 }
 
+async function findLoginUserByEmail(email: string): Promise<FoundUser | null> {
+  const e = email.toLowerCase().trim();
+
+  // Keep the existing admin login behavior.
+  const [admin] = await db.select().from(schema.adminUsers)
+    .where(eq(schema.adminUsers.username, e))
+    .limit(1);
+
+  if (admin) {
+    return {
+      id: admin.id,
+      email: admin.username,
+      passwordHash: admin.passwordHash,
+      name: admin.username,
+      role: (admin.role as auth.UserRole) || 'admin',
+    };
+  }
+
+  // Generic login can identify an athlete or parent by email.
+  const [player] = await db.select().from(schema.players)
+    .where(eq(schema.players.email, e))
+    .limit(1);
+
+  if (player) {
+    return {
+      id: player.id,
+      email: player.email,
+      passwordHash: player.passwordHash,
+      name: player.name,
+      role: 'athlete',
+    };
+  }
+
+  const [parent] = await db.select().from(schema.parents)
+    .where(eq(schema.parents.email, e))
+    .limit(1);
+
+  if (parent) {
+    return {
+      id: parent.id,
+      email: parent.email,
+      passwordHash: parent.passwordHash,
+      name: parent.name,
+      role: 'parent',
+    };
+  }
+
+  return null;
+}
+
 // ─── POST /api/auth/register ──────────────────────────────────────────────────
 
 router.post('/register', registerLimiter, async (req, res) => {
@@ -219,7 +269,7 @@ router.post('/register', registerLimiter, async (req, res) => {
 // ─── POST /api/auth/login ─────────────────────────────────────────────────────
 
 router.post('/login', loginLimiter, async (req, res) => {
-  const { email, password, role = 'athlete' } = req.body ?? {};
+  const { email, password, role } = req.body ?? {};
 
   if (!email || !password) {
     return res.status(400).json({ error: 'email and password are required' });
@@ -227,7 +277,10 @@ router.post('/login', loginLimiter, async (req, res) => {
 
   if (rejectIfDemoLocked(email as string, res)) return;
 
-  const user = await findUserByEmail((email as string).toLowerCase(), (role as auth.UserRole) || 'athlete');
+  const user = role
+    ? await findUserByEmail((email as string).toLowerCase(), role as auth.UserRole)
+    : await findLoginUserByEmail((email as string).toLowerCase());
+
   if (!user || !user.passwordHash) {
     return res.status(401).json({ error: 'Invalid credentials' });
   }
