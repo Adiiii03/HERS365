@@ -30,7 +30,7 @@ describe('admin PII access auditing (PRD-C P1 #17)', () => {
 
     const res = await request(app)
       .get('/api/admin/data/recent-signups')
-      .set('Authorization', `Bearer ${signToken({ userId: admin.id, role: 'admin' })}`);
+      .set('Authorization', `Bearer ${signToken({ userId: admin.id, role: 'admin', email: 'admin@test.com', name: 'Admin' })}`);
     expect(res.status).toBe(200);
 
     const rows = await waitForAuditRows(1);
@@ -53,7 +53,7 @@ describe('admin PII access auditing (PRD-C P1 #17)', () => {
 
     const res = await request(app)
       .get('/api/admin/data/recent-signups')
-      .set('Authorization', `Bearer ${signToken({ userId: admin.id, role: 'admin' })}`);
+      .set('Authorization', `Bearer ${signToken({ userId: admin.id, role: 'admin', email: 'admin@test.com', name: 'Admin' })}`);
     expect(res.status).toBe(200);
 
     const [row] = await waitForAuditRows(1);
@@ -64,7 +64,7 @@ describe('admin PII access auditing (PRD-C P1 #17)', () => {
   it('chains a second read onto the first (prev_hash == first row_hash)', async () => {
     const admin = await makeAdmin();
     await makeAthlete();
-    const token = `Bearer ${signToken({ userId: admin.id, role: 'admin' })}`;
+    const token = `Bearer ${signToken({ userId: admin.id, role: 'admin', email: 'admin@test.com', name: 'Admin' })}`;
 
     await request(app).get('/api/admin/data/recent-signups').set('Authorization', token).expect(200);
     await waitForAuditRows(1);
@@ -87,7 +87,7 @@ describe('admin PII access auditing (PRD-C P1 #17)', () => {
 
     await request(app)
       .get('/api/admin/data/stats')
-      .set('Authorization', `Bearer ${signToken({ userId: admin.id, role: 'admin' })}`)
+      .set('Authorization', `Bearer ${signToken({ userId: admin.id, role: 'admin', email: 'admin@test.com', name: 'Admin' })}`)
       .expect(200);
 
     // Give any stray async write a chance to land, then assert none did.

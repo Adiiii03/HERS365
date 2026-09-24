@@ -1,0 +1,1 @@
+ALTER TABLE "players" ADD COLUMN "diamond_override" boolean DEFAULT false;

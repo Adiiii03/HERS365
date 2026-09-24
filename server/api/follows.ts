@@ -3,6 +3,7 @@ import { and, eq } from 'drizzle-orm';
 import { db } from '../db';
 import * as schema from '../schema';
 import { requireAuth, type TokenPayload } from '../auth';
+import { requireActivated } from '../middleware/requireActivated';
 import { parseIdParam } from '../lib/parseIdParam';
 
 const router = express.Router();
@@ -17,7 +18,7 @@ function stripPasswordHash<T extends { passwordHash?: string | null }>(player: T
 }
 
 // POST / — follow a player
-router.post('/', requireAuth, async (req, res) => {
+router.post('/', requireAuth, requireActivated, async (req, res) => {
   try {
     const followerId = Number(authUser(req)?.id);
     const followingId = parseIdParam(req.body?.followingId);
@@ -49,7 +50,7 @@ router.post('/', requireAuth, async (req, res) => {
 });
 
 // DELETE /:id — unfollow (id = the player being followed)
-router.delete('/:id', requireAuth, async (req, res) => {
+router.delete('/:id', requireAuth, requireActivated, async (req, res) => {
   try {
     const followerId = Number(authUser(req)?.id);
     const followingId = parseIdParam(req.params.id);
