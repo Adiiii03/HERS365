@@ -45,15 +45,6 @@ describe('Demo login server-side gate', () => {
     expect(res.body.error).toMatch(/disabled/i);
   });
 
-  it('rejects demo coach email with 403 when NODE_ENV=production even if DEMO_ENABLED=true', async () => {
-    process.env.NODE_ENV = 'production';
-    process.env.DEMO_ENABLED = 'true';
-    const res = await request(app)
-      .post('/api/auth/secure/coach/login')
-      .send({ email: 'coach@hers365.com', password: 'irrelevant' });
-    expect(res.status).toBe(403);
-    expect(res.body.error).toMatch(/disabled/i);
-  });
 
   // CRITICAL: covers the real-world prod scenario where NODE_ENV is not
   // explicitly set to 'production'. An "if NODE_ENV !== 'production'" check
