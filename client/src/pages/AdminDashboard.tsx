@@ -34,7 +34,7 @@ export const AdminDashboard = () => {
 
   const toggleDiamondOverride = async (userId: number, currentOverride?: boolean | null) => {
     const token = localStorage.getItem('token') ?? '';
-    const nextVal = !Boolean(currentOverride);
+    const nextVal = !currentOverride;
     try {
       const res = await fetch(`/api/admin/data/users/${userId}/toggle-diamond`, {
         method: 'PATCH',
