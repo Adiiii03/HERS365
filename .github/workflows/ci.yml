@@ -20,7 +20,7 @@ jobs:
           node-version: "20.x"
           cache: npm
           cache-dependency-path: client/package-lock.json
-      - run: npm ci
+      - run: npm install
       - run: npx tsc --noEmit
       - run: npm run build
       - run: npm run lint
@@ -38,7 +38,7 @@ jobs:
           node-version: "20.x"
           cache: npm
           cache-dependency-path: client/package-lock.json
-      - run: npm ci --ignore-scripts
+      - run: npm install --ignore-scripts
       - run: npm test
 
   server-build:
@@ -54,7 +54,7 @@ jobs:
           node-version: "20.x"
           cache: npm
           cache-dependency-path: server/package-lock.json
-      - run: npm ci
+      - run: npm install
       - run: npx tsc --noEmit
 
   # [D-04] Fail the build if schema.ts has changed without a committed migration.
@@ -71,7 +71,7 @@ jobs:
           node-version: "20.x"
           cache: npm
           cache-dependency-path: server/package-lock.json
-      - run: npm ci
+      - run: npm install
       - run: npm run db:generate
       - name: Verify no uncommitted migration
         run: |
@@ -113,6 +113,6 @@ jobs:
           node-version: "20.x"
           cache: npm
           cache-dependency-path: server/package-lock.json
-      - run: npm ci
+      - run: npm install
       - run: npm run db:migrate
       - run: npm test
