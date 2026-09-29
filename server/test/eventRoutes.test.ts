@@ -6,7 +6,7 @@ import { db } from '../db';
 import * as schema from '../schema';
 import eventRouter from '../eventRoutes';
 import { resetDb } from './helpers/db';
-import { makeAthlete } from './helpers/fixtures';
+import { makeAthlete, tokenFor } from './helpers/fixtures';
 
 // eventRoutes is not yet wired into createApp(). To exercise the real router
 // code end-to-end (real handlers, real db) we mount it on a small test app
@@ -56,7 +56,8 @@ describe('POST /api/events/register', () => {
 
     const res = await request(app)
       .post('/api/events/register')
-      .send({ eventId: ev.id, playerId: athlete.id });
+      .set('Authorization', `Bearer ${tokenFor(athlete, 'athlete')}`)
+      .send({ eventId: ev.id });
     expect(res.status).toBe(200);
     expect(res.body.message).toMatch(/registered/i);
 
@@ -81,7 +82,8 @@ describe('POST /api/events/register', () => {
 
     const res = await request(app)
       .post('/api/events/register')
-      .send({ eventId: ev.id, playerId: athlete.id });
+      .set('Authorization', `Bearer ${tokenFor(athlete, 'athlete')}`)
+      .send({ eventId: ev.id });
     expect(res.status).toBe(400);
     expect(res.body.message).toMatch(/already registered/i);
 
@@ -100,10 +102,12 @@ describe('POST /api/events/register', () => {
 
     const r1 = await request(app)
       .post('/api/events/register')
-      .send({ eventId: ev.id, playerId: a.id });
+      .set('Authorization', `Bearer ${tokenFor(a, 'athlete')}`)
+      .send({ eventId: ev.id });
     const r2 = await request(app)
       .post('/api/events/register')
-      .send({ eventId: ev.id, playerId: b.id });
+      .set('Authorization', `Bearer ${tokenFor(b, 'athlete')}`)
+      .send({ eventId: ev.id });
     expect(r1.status).toBe(200);
     expect(r2.status).toBe(200);
 

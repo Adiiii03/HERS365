@@ -2,8 +2,13 @@ import { Router } from 'express';
 import { db } from './db';
 import * as schema from './schema';
 import { eq, and, sql } from 'drizzle-orm';
+import { requireAuth, type TokenPayload } from './auth';
 
 const router = Router();
+
+function authUser(req: Request & { user?: TokenPayload }): TokenPayload | undefined {
+  return req.user;
+}
 
 // Parse "TYPE|ORG|FEATURED|actual description" encoded in the description field.
 // Falls back gracefully if the format is not present.
@@ -45,17 +50,22 @@ router.get('/', async (_req, res) => {
   }
 });
 
-// POST /api/events/register — register a player for an event
-router.post('/register', async (req, res) => {
-  const { eventId, playerId } = req.body as { eventId?: number; playerId?: number };
+// POST /api/events/register — register the authenticated player for an event
+router.post('/register', requireAuth, async (req, res) => {
   try {
+    const { eventId } = req.body as { eventId?: number };
+    const playerId = Number(authUser(req as any)?.userId);
+    if (!eventId || Number.isNaN(playerId)) {
+      return res.status(400).json({ message: 'eventId is required' });
+    }
+
     const existing = await db
       .select()
       .from(schema.eventRegistrations)
       .where(
         and(
-          eq(schema.eventRegistrations.eventId, eventId as number),
-          eq(schema.eventRegistrations.playerId, playerId as number)
+          eq(schema.eventRegistrations.eventId, eventId),
+          eq(schema.eventRegistrations.playerId, playerId)
         )
       );
 
@@ -64,8 +74,8 @@ router.post('/register', async (req, res) => {
     }
 
     await db.insert(schema.eventRegistrations).values({
-      eventId: eventId as number,
-      playerId: playerId as number,
+      eventId,
+      playerId,
     });
 
     await db.execute(

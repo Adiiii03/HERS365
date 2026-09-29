@@ -44,7 +44,11 @@ export class ComplianceOrchestrator {
 
   private setupConfiguration(): void {
     // Initialize Azure clients
-    this.cosmosClient = new OptimizedCosmosClient(COSMOS_SCHEMA);
+    if (process.env.COSMOS_ENDPOINT) {
+      this.cosmosClient = new OptimizedCosmosClient(COSMOS_SCHEMA);
+    } else {
+      logger.warn('⚠️ Cosmos DB endpoint missing - Compliance features requiring Cosmos DB will be disabled');
+    }
     if (process.env.AZURE_SERVICEBUS_CONNECTION_STRING) {
       this.serviceBusClient = new ServiceBusClient(
         process.env.AZURE_SERVICEBUS_CONNECTION_STRING

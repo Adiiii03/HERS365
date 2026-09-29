@@ -15,7 +15,7 @@ let redisClient: RedisClientType | null = null;
 let redisUnavailable = false;
 
 // True only when Redis is configured and hasn't already failed to connect.
-function redisEnabled(): boolean {
+export function redisEnabled(): boolean {
   return !!process.env.REDIS_URL && !redisUnavailable;
 }
 

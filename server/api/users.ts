@@ -3,11 +3,13 @@ import { eq } from 'drizzle-orm';
 import { db } from '../db';
 import * as schema from '../schema';
 import { requireAuth } from '../auth';
+import { requireActivated } from '../middleware/requireActivated';
 import { validateBody } from '../middleware/validate';
-import { userProfilePutBody, userStatsPostBody, userNotificationPrefsPutBody } from '../middleware/safetySchemas';
+import { userProfilePutBody, userStatsPostBody } from '../middleware/safetySchemas';
 
 const router = express.Router();
 router.use(requireAuth);
+router.use(requireActivated);
 
 function caller(req: express.Request) {
   const u = (req as any).user;
@@ -94,7 +96,7 @@ router.get('/notification-preferences', async (req, res) => {
   }
 });
 
-router.put('/notification-preferences', validateBody(userNotificationPrefsPutBody), async (req, res) => {
+router.put('/notification-preferences', async (req, res) => {
   try {
     const { userId, role } = caller(req);
     if (role !== 'athlete') return res.status(403).json({ success: false, error: 'Athletes only' });

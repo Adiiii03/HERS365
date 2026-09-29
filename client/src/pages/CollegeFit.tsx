@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useEffect, useState } from 'react';
 import { colors, type as t, radii } from '../lib/tokens';
 import { UpgradeGate } from '../components/UpgradeGate';

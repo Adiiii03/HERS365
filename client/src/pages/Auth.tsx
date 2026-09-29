@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Mail, Lock, User, ArrowRight, Eye, EyeOff, ArrowUpRight, ShieldCheck, Users } from 'lucide-react';

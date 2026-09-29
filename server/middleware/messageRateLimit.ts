@@ -1,5 +1,6 @@
 import rateLimit, { ipKeyGenerator, MemoryStore } from 'express-rate-limit';
 import type { Request } from 'express';
+import { makeLimiterStore } from '../lib/limiterStore';
 
 // Per-sender flood guard on coach↔athlete messaging. Mount on both
 // POST /api/messages and POST /api/coach/message/:playerId AFTER requireAuth
@@ -48,7 +49,7 @@ export const messageRateLimit = rateLimit({
   // test set process.env.MESSAGE_RATE_LIMIT_MAX before exercising the route
   // even though the module loaded with the default in place.
   limit: () => getMessageRateMax(),
-  store: messageRateStore,
+  store: makeLimiterStore('message') ?? messageRateStore,
   standardHeaders: true,
   legacyHeaders: false,
   validate: false,

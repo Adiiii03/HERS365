@@ -162,13 +162,13 @@ describe('Admin verification and auto-sync flow', () => {
 
     const listRes = await request(app)
       .get('/api/admin/parent-stat-submissions')
-      .set('Authorization', `Bearer ${tokenFor(admin, 'admin')}`);
+      .set('Authorization', `Bearer ${tokenFor({ ...admin, email: 'admin@hers365.com', name: 'Admin' } as any, 'admin')}`);
     expect(listRes.status).toBe(200);
     expect(listRes.body.data.some((s: any) => s.id === subId)).toBe(true);
 
     const patchRes = await request(app)
       .patch(`/api/admin/parent-stat-submissions/${subId}`)
-      .set('Authorization', `Bearer ${tokenFor(admin, 'admin')}`)
+      .set('Authorization', `Bearer ${tokenFor({ ...admin, email: 'admin@hers365.com', name: 'Admin' } as any, 'admin')}`)
       .send({ status: 'verified', adminNotes: 'Verified maxpreps link' });
     expect(patchRes.status).toBe(200);
     expect(patchRes.body.data.status).toBe('verified');

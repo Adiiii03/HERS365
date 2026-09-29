@@ -1,0 +1,1 @@
+ALTER TABLE "coaches" ADD COLUMN "preferences" jsonb DEFAULT '{}'::jsonb;
