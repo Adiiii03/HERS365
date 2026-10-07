@@ -4,6 +4,7 @@ import { Suspense, lazy, useEffect, useRef, useState } from 'react';
 // opposite of the win this PR is going for.
 import { Layout } from './components/Layout';
 import { CoachLayout } from './components/CoachLayout';
+import { ParentLayout } from './components/ParentLayout';
 import { LandingPage } from './pages/LandingPage';
 import { Auth } from './pages/Auth';
 
@@ -59,7 +60,15 @@ const LeagueFinder = lazyNamed(() => import('./pages/LeagueFinder'), 'LeagueFind
 const SquadFinder = lazyNamed(() => import('./pages/SquadFinder'), 'SquadFinder');
 const TeamFinder = lazyNamed(() => import('./pages/TeamFinder'), 'TeamFinder');
 const ScholarshipTracker = lazyNamed(() => import('./pages/ScholarshipTracker'), 'ScholarshipTracker');
-const ParentDashboard = lazyNamed(() => import('./pages/ParentDashboard'), 'ParentDashboard');
+const ParentDashboard = lazyNamed(() => import('./pages/parent/ParentDashboard'), 'ParentDashboard');
+const ParentPrivacy = lazyNamed(() => import('./pages/parent/ParentPrivacy'), 'ParentPrivacy');
+const ParentVerifications = lazyNamed(() => import('./pages/parent/ParentVerifications'), 'ParentVerifications');
+const ParentAthletes = lazyNamed(() => import('./pages/parent/ParentAthletes'), 'ParentAthletes');
+const ParentGrid = lazyNamed(() => import('./pages/parent/ParentGrid'), 'ParentGrid');
+const ParentSettings = lazyNamed(() => import('./pages/parent/ParentSettings'), 'ParentSettings');
+const ParentBilling = lazyNamed(() => import('./pages/parent/ParentBilling'), 'ParentBilling');
+const ParentCheckout = lazyNamed(() => import('./pages/parent/ParentCheckout'), 'ParentCheckout');
+const ParentReceipt = lazyNamed(() => import('./pages/parent/ParentReceipt'), 'ParentReceipt');
 const AdminDashboard = lazyNamed(() => import('./pages/AdminDashboard'), 'AdminDashboard');
 const AdminLogin = lazyNamed(() => import('./pages/AdminLogin'), 'AdminLogin');
 const StaffDashboard = lazyNamed(() => import('./pages/StaffDashboard'), 'StaffDashboard');
@@ -81,7 +90,7 @@ const CoachSettings = lazyNamed(() => import('./pages/coach/CoachSettings'), 'Co
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { NotificationProvider } from './context/NotificationContext';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
 import GlobalErrorBoundary from './components/GlobalErrorBoundary';
@@ -183,6 +192,23 @@ function CoachRouteGuard({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+// Role-based guard for parent routes. Parents authenticate through the shared
+// token + AuthContext (not a coach token). AuthContext hydrates from
+// localStorage synchronously, so protected content never flashes. Admins are
+// allowed through so they aren't locked out of the parent surface.
+function ParentRouteGuard({ children }: { children: React.ReactNode }) {
+  const navigate = useNavigate();
+  const { isAuthenticated, user } = useAuth();
+  const isAuthorized = isAuthenticated && (user?.role === 'parent' || user?.role === 'admin');
+
+  useEffect(() => {
+    if (!isAuthorized) navigate('/auth');
+  }, [navigate, isAuthorized]);
+
+  if (!isAuthorized) return null;
+  return <>{children}</>;
+}
+
 function App() {
   // Signal JS+React are running so the CSS scroll-reveal resilience rule
   // (html:not(.js-ready) [data-reveal]) releases its forced-visible override
@@ -268,8 +294,6 @@ function App() {
               <Route path="/squads" element={<SquadFinder />} />
               <Route path="/teams/find" element={<TeamFinder />} />
               <Route path="/scholarships" element={<ScholarshipTracker />} />
-              <Route path="/parent" element={<ParentDashboard />} />
-              <Route path="/parent/dashboard" element={<ParentDashboard />} />
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/login" element={<AdminLogin />} />
               <Route path="/staff" element={<StaffDashboard />} />
@@ -301,6 +325,20 @@ function App() {
               <Route path="/coach/roster" element={<CoachRoster />} />
               <Route path="/coach/player/:id" element={<CoachPlayerProfile />} />
               <Route path="/coach/settings" element={<CoachSettings />} />
+            </Route>
+
+            {/* Parent Portal Routes */}
+            <Route element={<ParentRouteGuard><ParentLayout /></ParentRouteGuard>}>
+              <Route path="/parent" element={<ParentDashboard />} />
+              <Route path="/parent/dashboard" element={<ParentDashboard />} />
+              <Route path="/parent/grid" element={<ParentGrid />} />
+              <Route path="/parent/athletes" element={<ParentAthletes />} />
+              <Route path="/parent/verifications" element={<ParentVerifications />} />
+              <Route path="/parent/billing" element={<ParentBilling />} />
+              <Route path="/parent/billing/checkout/:plan" element={<ParentCheckout />} />
+              <Route path="/parent/billing/receipt/:plan" element={<ParentReceipt />} />
+              <Route path="/parent/privacy" element={<ParentPrivacy />} />
+              <Route path="/parent/settings" element={<ParentSettings />} />
             </Route>
           </Routes>
           </Suspense>

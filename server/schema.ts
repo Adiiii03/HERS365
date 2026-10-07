@@ -691,6 +691,24 @@ export const messageRequests = pgTable('message_requests', {
   updatedAt: text('updated_at').default(sql`now()`),
 });
 
+// Athlete-submitted changes to their own profile awaiting parent approval (the
+// Verifications "Profile Change Requests" flow). On approve, a tight allowlist of
+// fields is written to the player's profile; status/consent are never touched
+// here. resolvedBy/resolvedAt are a lightweight audit for v1.
+export const athleteChangeRequests = pgTable('athlete_change_requests', {
+  id: serial('id').primaryKey(),
+  playerId: integer('player_id').notNull().references(() => players.id),
+  kind: text('kind').notNull(), // 'photo' | 'stat' | 'school'
+  field: text('field'), // the players column to change (allowlisted on apply)
+  currentValue: text('current_value'),
+  proposedValue: text('proposed_value'),
+  status: text('status').notNull().default('pending'), // pending | approved | denied
+  note: text('note'),
+  resolvedBy: integer('resolved_by').references(() => parents.id),
+  resolvedAt: timestamp('resolved_at'),
+  createdAt: timestamp('created_at').default(sql`now()`),
+});
+
 export const athleteRankings = pgTable('athlete_rankings', {
   id: serial('id').primaryKey(),
   playerId: integer('player_id').references(() => players.id).unique(),

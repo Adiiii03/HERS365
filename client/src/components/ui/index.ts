@@ -12,6 +12,8 @@ export { Stat } from './Stat';
 export type { StatProps } from './Stat';
 export { Sheet } from './Sheet';
 export type { SheetProps } from './Sheet';
+export { Switch } from './Switch';
+export type { SwitchProps } from './Switch';
 export { EmptyState } from './EmptyState';
 export type { EmptyStateProps } from './EmptyState';
 export { StatCardSkeleton, RowSkeleton, CardSkeleton } from './Skeletons';

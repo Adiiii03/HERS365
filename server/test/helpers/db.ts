@@ -22,6 +22,7 @@ const TABLES = [
   'faqs',
   'combine_stats',
   'athlete_rankings',
+  'athlete_change_requests',
   'payments',
   'parents',
   'coaches',

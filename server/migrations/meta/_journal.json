@@ -127,6 +127,13 @@
       "when": 1790287258048,
       "tag": "0017_unique_warpath",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1791174760532,
+      "tag": "0018_solid_robin_chapel",
+      "breakpoints": true
     }
   ]
 }
