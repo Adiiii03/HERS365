@@ -80,6 +80,20 @@ export const parentInviteBody = z.object({
   relationship: z.string().trim().min(1).max(64).optional(),
 });
 
+// Parent self profile update. Name + phone only; email is the unique login id
+// (with emailVerified) and changing it needs a re-verify path, so it is not
+// updatable here.
+export const parentProfileBody = z.object({
+  name: z.string().trim().min(1).max(120).optional(),
+  phone: z.string().trim().max(32).optional().nullable(),
+}).refine((b) => Object.keys(b).length > 0, { message: 'At least one updatable field is required' });
+
+// Athlete change-request approve/deny (parent side). Matches the Verifications
+// popups' Approve/Deny wording.
+export const changeRequestRespondBody = z.object({
+  action: z.enum(['approve', 'deny']),
+});
+
 const optionalNumber = z.coerce.number().finite().optional().nullable();
 const nonNegativeInt = z.coerce.number().int().min(0).optional().nullable();
 

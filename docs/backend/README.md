@@ -6,6 +6,7 @@ Welcome to the backend documentation for the H.E.R.S.365 system. This folder con
 
 - [**Master List**](./master_list.md): A complete registry of all API routes and database tables.
 - [**Workflow & Architecture**](./workflow.md): Visual diagrams and sequence flows for system operations.
+- [**Parent Portal — Backend Needs**](./backend-needs-for-parent-portal.md): What's implemented for the parent portal in this PR, and what still needs infrastructure or secrets.
 
 ## 🚀 Getting Started
 

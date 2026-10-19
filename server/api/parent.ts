@@ -9,6 +9,8 @@ import {
   parentSettingsBody,
   parentInviteBody,
   parentStatSubmissionBody,
+  parentProfileBody,
+  changeRequestRespondBody,
   idParam,
 } from '../middleware/safetySchemas';
 import { parseIdParam } from '../lib/parseIdParam';
@@ -47,7 +49,12 @@ router.get('/children', async (req, res) => {
     const childIds = await getChildIds(parentId);
     if (childIds.length === 0) return res.json({ success: true, data: [] });
 
-    const children = await db
+    // Widened parent read: identity + the athlete fields the portal needs, all
+    // already on `players` (plus the decimal HERS score from athlete_rankings).
+    // Still parent-scoped by the childIds filter. Response is shaped to the names
+    // the client reads (stars / breakoutScore / offers / verifiedStatus) so the
+    // Dashboard renders real data with no client change.
+    const rows = await db
       .select({
         id: schema.players.id,
         name: schema.players.name,
@@ -55,11 +62,58 @@ router.get('/children', async (req, res) => {
         school: schema.players.school,
         position: schema.players.position,
         gradYear: schema.players.gradYear,
+        profileImage: schema.players.profileImage,
+        g5Rating: schema.players.g5Rating,
+        collegeOffers: schema.players.collegeOffers,
+        gpa: schema.players.gpa,
+        heightIn: schema.players.heightIn,
+        weightLbs: schema.players.weightLbs,
+        city: schema.players.city,
+        bio: schema.players.bio,
+        nilPoints: schema.players.nilPoints,
+        verificationStatus: schema.players.verificationStatus,
+        overallScore: schema.athleteRankings.overallScore,
       })
       .from(schema.players)
+      .leftJoin(schema.athleteRankings, eq(schema.athleteRankings.playerId, schema.players.id))
       .where(inArray(schema.players.id, childIds));
 
-    res.json({ success: true, data: children });
+    // Fields that count toward "profile completeness". Keep in sync with what the
+    // athlete profile actually lets a girl fill in.
+    const COMPLETENESS_FIELDS = [
+      'profileImage', 'bio', 'position', 'gradYear', 'school',
+      'gpa', 'heightIn', 'weightLbs', 'city', 'g5Rating',
+    ] as const;
+
+    const data = rows.map((r) => {
+      const filled = COMPLETENESS_FIELDS.filter((f) => {
+        const v = (r as Record<string, unknown>)[f];
+        return v !== null && v !== undefined && v !== '';
+      }).length;
+      const offers = Array.isArray(r.collegeOffers) ? r.collegeOffers.length : 0;
+      return {
+        id: r.id,
+        name: r.name,
+        age: r.age,
+        school: r.school,
+        position: r.position,
+        gradYear: r.gradYear,
+        profileImage: r.profileImage,
+        // Client-shaped names: Dashboard reads stars, breakoutScore, offers.
+        stars: r.g5Rating,
+        breakoutScore: r.overallScore,
+        offers,
+        gpa: r.gpa,
+        heightIn: r.heightIn,
+        weightLbs: r.weightLbs,
+        city: r.city,
+        nilPoints: r.nilPoints ?? 0,
+        verifiedStatus: r.verificationStatus === 'verified' ? 'Verified' : 'Pending Review',
+        profileCompleteness: Math.round((filled / COMPLETENESS_FIELDS.length) * 100),
+      };
+    });
+
+    res.json({ success: true, data });
   } catch (err) {
     console.error('[parent/children]', err);
     res.status(500).json({ success: false, error: 'Failed to fetch children' });
@@ -419,6 +473,141 @@ router.put('/settings', validateBody(parentSettingsBody), async (req, res) => {
   } catch (err) {
     console.error('[parent/settings PUT]', err);
     res.status(500).json({ success: false, error: 'Failed to save settings' });
+  }
+});
+
+// GET /api/parent/profile — the caller's own name / email / phone + member-since.
+// Lets the Settings profile form prefill the current phone (not carried on the auth
+// user) and show a real "Member Since".
+router.get('/profile', async (req, res) => {
+  try {
+    const parentId = requireParent(req, res);
+    if (parentId == null) return;
+    const [row] = await db
+      .select({
+        id: schema.parents.id,
+        name: schema.parents.name,
+        email: schema.parents.email,
+        phone: schema.parents.phone,
+        memberSince: schema.parents.createdAt,
+      })
+      .from(schema.parents)
+      .where(eq(schema.parents.id, parentId))
+      .limit(1);
+    if (!row) return res.status(404).json({ success: false, error: 'Parent not found' });
+    res.json({ success: true, data: row });
+  } catch (err) {
+    console.error('[parent/profile GET]', err);
+    res.status(500).json({ success: false, error: 'Failed to load profile' });
+  }
+});
+
+// PUT /api/parent/profile — update the parent's own name / phone. Email is the
+// unique login id (with emailVerified) and is not changed here (needs a re-verify
+// path, which is Resend-backed and owned by the backend lead).
+router.put('/profile', validateBody(parentProfileBody), async (req, res) => {
+  try {
+    const parentId = requireParent(req, res);
+    if (parentId == null) return;
+    const { name, phone } = req.body ?? {};
+    const updates: Record<string, unknown> = {};
+    if (typeof name === 'string') updates.name = name.trim();
+    if (phone !== undefined) updates.phone = phone === null ? null : String(phone).trim();
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ success: false, error: 'At least one updatable field is required' });
+    }
+    await db.update(schema.parents).set(updates).where(eq(schema.parents.id, parentId));
+    const [row] = await db
+      .select({ id: schema.parents.id, name: schema.parents.name, email: schema.parents.email, phone: schema.parents.phone })
+      .from(schema.parents)
+      .where(eq(schema.parents.id, parentId))
+      .limit(1);
+    res.json({ success: true, data: row });
+  } catch (err) {
+    console.error('[parent/profile PUT]', err);
+    res.status(500).json({ success: false, error: 'Failed to update profile' });
+  }
+});
+
+// ─── Athlete change requests (parent approve/deny) ───────────────────────────
+// Athlete-submitted changes to their own profile that a parent reviews before
+// they go live (the Verifications "Profile Change Requests" popups). The create
+// side (athlete submits) is future athlete-portal work, so today these read
+// empty for real parents until that lands. On approve we only ever write a tight
+// allowlist of profile fields, never status/consent (which a DB trigger guards).
+const CHANGE_REQUEST_APPLY_FIELDS = new Set(['school', 'profileImage']);
+
+// GET /api/parent/change-requests — pending + recently resolved, for this
+// parent's children only.
+router.get('/change-requests', async (req, res) => {
+  try {
+    const parentId = requireParent(req, res);
+    if (parentId == null) return;
+
+    const childIds = await getChildIds(parentId);
+    if (childIds.length === 0) return res.json({ success: true, data: [] });
+
+    const rows = await db
+      .select()
+      .from(schema.athleteChangeRequests)
+      .where(inArray(schema.athleteChangeRequests.playerId, childIds))
+      .orderBy(desc(schema.athleteChangeRequests.createdAt));
+
+    res.json({ success: true, data: rows });
+  } catch (err) {
+    console.error('[parent/change-requests GET]', err);
+    res.status(500).json({ success: false, error: 'Failed to fetch change requests' });
+  }
+});
+
+// POST /api/parent/change-requests/:id/respond — approve or deny. Approving a
+// request whose field is in the apply-allowlist writes the proposed value to the
+// athlete's profile in the same transaction; other fields are recorded approved
+// but not auto-applied (e.g. stat corrections need the stats pipeline).
+router.post('/change-requests/:id/respond', validateParams(idParam), validateBody(changeRequestRespondBody), async (req, res) => {
+  try {
+    const parentId = requireParent(req, res);
+    if (parentId == null) return;
+
+    const id = parseIdParam(req.params.id);
+    if (id === null) return res.status(400).json({ success: false, error: 'Invalid id' });
+
+    const { action } = req.body ?? {};
+
+    const [reqRow] = await db
+      .select()
+      .from(schema.athleteChangeRequests)
+      .where(eq(schema.athleteChangeRequests.id, id))
+      .limit(1);
+    if (!reqRow) return res.status(404).json({ success: false, error: 'Change request not found' });
+
+    const childIds = await getChildIds(parentId);
+    if (reqRow.playerId == null || !childIds.includes(reqRow.playerId)) {
+      return res.status(403).json({ success: false, error: 'Not your child\'s request' });
+    }
+    if (reqRow.status !== 'pending') {
+      return res.status(409).json({ success: false, error: 'Request already resolved' });
+    }
+
+    await db.transaction(async (tx) => {
+      await tx
+        .update(schema.athleteChangeRequests)
+        .set({ status: action === 'approve' ? 'approved' : 'denied', resolvedAt: new Date(), resolvedBy: parentId })
+        .where(eq(schema.athleteChangeRequests.id, id));
+
+      // Apply only on approve, only for allowlisted fields, never status/consent.
+      if (action === 'approve' && reqRow.field && CHANGE_REQUEST_APPLY_FIELDS.has(reqRow.field)) {
+        await tx
+          .update(schema.players)
+          .set({ [reqRow.field]: reqRow.proposedValue })
+          .where(eq(schema.players.id, reqRow.playerId!));
+      }
+    });
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('[parent/change-requests respond]', err);
+    res.status(500).json({ success: false, error: 'Failed to respond to change request' });
   }
 });
 
