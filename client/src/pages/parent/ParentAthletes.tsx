@@ -38,7 +38,7 @@ interface Child {
 const DEFAULT_CHILD: Child = {
   id: 101,
   name: 'Maya Johnson',
-  position: 'Point Guard',
+  position: 'QB',
   school: 'Lincoln High School',
   gradYear: 2027,
 };

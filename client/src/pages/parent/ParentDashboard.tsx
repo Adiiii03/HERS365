@@ -41,7 +41,7 @@ interface PendingMsg {
 const DEFAULT_CHILD: Child = {
   id: 101,
   name: 'Maya Johnson',
-  position: 'Point Guard',
+  position: 'QB',
   gradYear: 2027,
   stars: 4,
   breakoutScore: 4.2,
