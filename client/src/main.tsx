@@ -12,7 +12,12 @@ window.fetch = async function (input: RequestInfo | URL, init?: RequestInit) {
   let url = input;
   if (typeof url === 'string' && url.startsWith('/api')) {
     const isMobileOrCustom = window.location.protocol === 'capacitor:' || window.location.hostname === 'hers365.app' || (window.location.hostname === 'localhost' && window.location.port !== '5173' && window.location.port !== '4173');
-    const baseUrl = import.meta.env.VITE_API_URL || (isMobileOrCustom ? 'https://srv1829607.hstgr.cloud' : '');
+    // Only prepend an absolute API origin. A path-style value (e.g. "/api") would
+    // double the prefix and 404 (/api/api/...), so ignore anything that isn't http(s).
+    const configured = import.meta.env.VITE_API_URL;
+    const baseUrl = (configured && /^https?:\/\//.test(configured))
+      ? configured.replace(/\/+$/, '')
+      : (isMobileOrCustom ? 'https://srv1829607.hstgr.cloud' : '');
     url = `${baseUrl}${url}`;
   }
   return originalFetch(url, init);
