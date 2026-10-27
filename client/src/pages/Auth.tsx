@@ -36,7 +36,7 @@ function GoogleMark({ size = 16 }: { size?: number }) {
 
 function Field({
   id, label, type = 'text', value, onChange, required = false,
-  icon: Icon, autoComplete, invalid, describedBy,
+  icon: Icon, autoComplete, invalid, describedBy, onBlur,
 }: {
   id: string; label: string; type?: string; value: string;
   onChange: (v: string) => void; required?: boolean;
@@ -262,6 +262,12 @@ export const Auth = () => {
         // Login: use the role returned by the server.
         if (data.user.role === 'parent') {
           navigate('/parent/dashboard');
+        } else if (data.user.role === 'coach') {
+          // Coaches sign in through the same form but live in the separate
+          // coach portal, which reads its own token/identity from localStorage.
+          localStorage.setItem('coachToken', data.token);
+          localStorage.setItem('coachUser', JSON.stringify(data.user));
+          navigate('/coach/dashboard');
         } else {
           navigate('/feed');
         }

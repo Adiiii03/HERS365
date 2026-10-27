@@ -90,10 +90,36 @@ function coachUserId(req: Request): number {
   return Number(u?.userId);
 }
 
+// ── Honesty gate: the demo coach may see sample stats; real coaches never do ──
+// The platform does not yet collect combine/box-score data. For the demo credential
+// (dev-only) we fabricate complete-looking cards so partners/investors see a full
+// portal. For every REAL coach we must NOT invent stats about a real minor — we show
+// the real value or null ("Not measured" on the client). Mirrors the frontend
+// isDemoCoach() allowlist (keep these two lists identical) and authRoutes
+// isDemoLoginEnabled()'s positive non-prod assertion: anything that isn't explicitly
+// development/test fails closed, so production never fabricates.
+const DEMO_COACH_EMAILS = new Set<string>(['coach@hers365.com']);
+const ALLOWED_DEMO_ENVS = new Set<string>(['development', 'test']);
+function isDemoCoachEnv(email?: string | null): boolean {
+  const env = process.env.APP_ENV ?? process.env.NODE_ENV;
+  if (!env || !ALLOWED_DEMO_ENVS.has(env)) return false;
+  return !!email && DEMO_COACH_EMAILS.has(email.toLowerCase().trim());
+}
+
+// Look up the signed-in coach's email so the handler can decide demo vs real.
+async function coachIsDemo(req: Request): Promise<boolean> {
+  const [row] = await db
+    .select({ email: schema.coaches.email })
+    .from(schema.coaches)
+    .where(eq(schema.coaches.id, coachUserId(req)))
+    .limit(1);
+  return isDemoCoachEnv(row?.email);
+}
+
 // ── Map a real DB player row → the scouting-card shape the coach UI expects ──
-// Identity, academics, and recruiting fields are real. The platform does not yet
-// collect combine/box-score data, so those are derived deterministically from the
-// athlete's real rating + position (stable per athlete) so cards render complete.
+// Identity, academics, and recruiting fields are always real. Combine/box-score/
+// height/weight are fabricated ONLY for the demo coach (demo=true); real coaches get
+// the real value or null. See the honesty gate above.
 function scoutSeed(s: string): number {
   let h = 0;
   for (let i = 0; i < (s || '').length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
@@ -119,14 +145,11 @@ function scoutCombine(tier: number, seed: number) {
   return { fortyYard: (5.1 - tier * 0.08 - (seed % 10) * 0.01).toFixed(2), vertical: 24 + tier * 2 + (seed % 6), broadJump: 95 + tier * 4 + (seed % 12) };
 }
 
-function mapPlayerToScout(p: any) {
-  const seed = scoutSeed(`${p.name}:${p.id}`);
-  const tier = Math.max(1, p.g5Rating ?? 3);
-  const pos = (p.position || '').toLowerCase();
-  const heightBase = pos.includes('qb') || pos.includes('wr') || pos.includes('te') ? 64 : 62;
-  const inches = heightBase + (seed % 6); // 5'2"–5'9"
-  const gpaNum = p.gpa ? parseFloat(p.gpa) : 3.0 + (seed % 10) / 10;
-  return {
+// `demo` is REQUIRED (no default) so every call site is forced to pass it; a
+// silent default would leak fabricated stats to real coaches.
+function mapPlayerToScout(p: any, demo: boolean) {
+  // Always-real fields, shared by both paths.
+  const base = {
     id: p.id,
     name: p.name,
     position: p.position || 'ATH',
@@ -134,17 +157,7 @@ function mapPlayerToScout(p: any) {
     city: p.city || '',
     school: p.school || '',
     gradYear: p.gradYear || null,
-    height: `${Math.floor(inches / 12)}'${inches % 12}"`,
-    weight: 110 + (seed % 26) + (pos.includes('rb') || pos.includes('center') ? 8 : 0),
-    gpa: Number.isFinite(gpaNum) ? Number(gpaNum.toFixed(1)) : 3.0,
-    breakoutScore: Math.min(99, 60 + tier * 7 + (seed % 8)),
-    stars: tier,
-    archetype: p.archetype || '—',
-    stats: scoutStats(p.position, tier, seed),
-    combineStats: scoutCombine(tier, seed),
-    highlights: seed % 5,
     verified: p.verificationStatus === 'verified',
-    offers: Array.isArray(p.collegeOffers) ? p.collegeOffers.length : (tier >= 5 ? 4 : tier >= 4 ? 2 : 0),
     committed: false,
     nilPoints: p.nilPoints ?? 0,
     avatarUrl: null,
@@ -154,6 +167,46 @@ function mapPlayerToScout(p: any) {
     // Latest highlight thumbnail, populated by a post-query enrichment step
     // below when the field exists. Null when the athlete has no highlights yet.
     highlightThumbnailUrl: p.latestHighlightThumbnail ?? null,
+  };
+
+  if (!demo) {
+    // Real coach: real value or null. Never invent a measurement about a real
+    // minor. The client renders null as "Not measured".
+    const realGpa = p.gpa != null && p.gpa !== '' ? parseFloat(p.gpa) : null;
+    return {
+      ...base,
+      height: p.heightIn != null ? `${Math.floor(p.heightIn / 12)}'${p.heightIn % 12}"` : null,
+      weight: p.weightLbs ?? null,
+      gpa: realGpa != null && Number.isFinite(realGpa) ? Number(realGpa.toFixed(1)) : null,
+      breakoutScore: null,          // no real source yet (Adi A1)
+      stars: p.g5Rating ?? null,    // real rating only — do NOT fall back to 3
+      archetype: p.archetype || null,
+      stats: null,                  // no real box-score source yet
+      combineStats: null,           // real combine lives on the detail endpoint
+      highlights: p.highlightCount ?? 0, // real count from the handler's query
+      offers: Array.isArray(p.collegeOffers) ? p.collegeOffers.length : 0,
+    };
+  }
+
+  // Demo coach (dev-only): fabricate a complete card so the sample looks full.
+  const seed = scoutSeed(`${p.name}:${p.id}`);
+  const tier = Math.max(1, p.g5Rating ?? 3);
+  const pos = (p.position || '').toLowerCase();
+  const heightBase = pos.includes('qb') || pos.includes('wr') || pos.includes('te') ? 64 : 62;
+  const inches = heightBase + (seed % 6); // 5'2"–5'9"
+  const gpaNum = p.gpa ? parseFloat(p.gpa) : 3.0 + (seed % 10) / 10;
+  return {
+    ...base,
+    height: `${Math.floor(inches / 12)}'${inches % 12}"`,
+    weight: 110 + (seed % 26) + (pos.includes('rb') || pos.includes('center') ? 8 : 0),
+    gpa: Number.isFinite(gpaNum) ? Number(gpaNum.toFixed(1)) : 3.0,
+    breakoutScore: Math.min(99, 60 + tier * 7 + (seed % 8)),
+    stars: tier,
+    archetype: p.archetype || '—',
+    stats: scoutStats(p.position, tier, seed),
+    combineStats: scoutCombine(tier, seed),
+    highlights: seed % 5,
+    offers: Array.isArray(p.collegeOffers) ? p.collegeOffers.length : (tier >= 5 ? 4 : tier >= 4 ? 2 : 0),
   };
 }
 
@@ -262,6 +315,7 @@ router.get('/players/search', async (req, res) => {
     // search cards aren't faceless. Single batched query, not an N+1.
     const playerIds = rows.map((p) => p.id);
     const thumbnailByPlayer = new Map<number, string>();
+    const highlightCountByPlayer = new Map<number, number>();
     if (playerIds.length > 0) {
       const highlights = await db
         .select({
@@ -272,19 +326,24 @@ router.get('/players/search', async (req, res) => {
         .from(schema.playerHighlights)
         .orderBy(desc(schema.playerHighlights.createdAt));
       for (const h of highlights) {
-        if (h.playerId != null && h.thumbnailUrl && !thumbnailByPlayer.has(h.playerId)) {
+        if (h.playerId == null) continue;
+        highlightCountByPlayer.set(h.playerId, (highlightCountByPlayer.get(h.playerId) ?? 0) + 1);
+        if (h.thumbnailUrl && !thumbnailByPlayer.has(h.playerId)) {
           thumbnailByPlayer.set(h.playerId, h.thumbnailUrl);
         }
       }
     }
+    // Demo coach (dev-only) sees fabricated sample stats; real coaches get real-or-null.
+    const demo = await coachIsDemo(req);
     const rowsWithThumbs = rows.map((p) => ({
       ...p,
       latestHighlightThumbnail: thumbnailByPlayer.get(p.id) ?? null,
+      highlightCount: highlightCountByPlayer.get(p.id) ?? 0,
     }));
 
     let results = rowsWithThumbs
       .filter((p) => p.name && p.position) // skip incomplete / test rows
-      .map(mapPlayerToScout);
+      .map((p) => mapPlayerToScout(p, demo));
 
     // Apply filters
     if (q) results = results.filter(p =>
@@ -294,10 +353,12 @@ router.get('/players/search', async (req, res) => {
     if (position) results = results.filter(p => p.position === position);
     if (state) results = results.filter(p => p.state === state);
     if (gradYearNum !== null) results = results.filter(p => p.gradYear === gradYearNum);
-    if (minBreakoutScoreNum !== null) results = results.filter(p => p.breakoutScore >= minBreakoutScoreNum);
-    if (maxBreakoutScoreNum !== null) results = results.filter(p => p.breakoutScore <= maxBreakoutScoreNum);
-    if (minGpaNum !== null) results = results.filter(p => p.gpa >= minGpaNum);
-    if (maxGpaNum !== null) results = results.filter(p => p.gpa <= maxGpaNum);
+    // Range filters skip athletes whose value is null (real coaches with no
+    // measured data for that field simply don't match the range filter).
+    if (minBreakoutScoreNum !== null) results = results.filter(p => p.breakoutScore != null && p.breakoutScore >= minBreakoutScoreNum);
+    if (maxBreakoutScoreNum !== null) results = results.filter(p => p.breakoutScore != null && p.breakoutScore <= maxBreakoutScoreNum);
+    if (minGpaNum !== null) results = results.filter(p => p.gpa != null && p.gpa >= minGpaNum);
+    if (maxGpaNum !== null) results = results.filter(p => p.gpa != null && p.gpa <= maxGpaNum);
     if (archetype) results = results.filter(p => p.archetype === archetype);
     if (verified === 'true') results = results.filter(p => p.verified);
 
@@ -308,17 +369,17 @@ router.get('/players/search', async (req, res) => {
     };
 
     if (minHeightNum !== null) {
-      results = results.filter(p => heightToInches(p.height) >= minHeightNum);
+      results = results.filter(p => p.height != null && heightToInches(p.height) >= minHeightNum);
     }
     if (maxHeightNum !== null) {
-      results = results.filter(p => heightToInches(p.height) <= maxHeightNum);
+      results = results.filter(p => p.height != null && heightToInches(p.height) <= maxHeightNum);
     }
 
-    if (minWeightNum !== null) results = results.filter(p => p.weight >= minWeightNum);
-    if (maxWeightNum !== null) results = results.filter(p => p.weight <= maxWeightNum);
+    if (minWeightNum !== null) results = results.filter(p => p.weight != null && p.weight >= minWeightNum);
+    if (maxWeightNum !== null) results = results.filter(p => p.weight != null && p.weight <= maxWeightNum);
 
-    // Sort by breakout score
-    results.sort((a, b) => b.breakoutScore - a.breakoutScore);
+    // Sort by real rating first (fake breakout is null for real coaches), breakout as tiebreak.
+    results.sort((a, b) => (b.stars ?? 0) - (a.stars ?? 0) || (b.breakoutScore ?? 0) - (a.breakoutScore ?? 0));
 
     const paginated = results.slice(offsetNum, offsetNum + limitNum);
 
@@ -375,6 +436,27 @@ router.get('/players/:id', async (req, res) => {
       .orderBy(desc(schema.combineStats.id))
       .limit(1);
 
+    // Real highlight clips for the profile Highlights tab (was hardcoded []).
+    // playerHighlights has no title/locked columns, so build a title from
+    // category/season and treat every clip as coach-visible (locked: false) —
+    // coaches already see the full unlocked profile.
+    const highlightRows = await db.select({
+      videoUrl: schema.playerHighlights.videoUrl,
+      thumbnailUrl: schema.playerHighlights.thumbnailUrl,
+      category: schema.playerHighlights.category,
+      season: schema.playerHighlights.season,
+    })
+      .from(schema.playerHighlights)
+      .where(eq(schema.playerHighlights.playerId, id))
+      .orderBy(desc(schema.playerHighlights.createdAt));
+
+    const highlights = highlightRows.map((h) => ({
+      title: [h.category, h.season].filter(Boolean).join(' · ') || 'Highlight',
+      url: h.videoUrl ?? '',
+      thumbnailUrl: h.thumbnailUrl ?? null,
+      locked: false,
+    }));
+
     recordCoachEvent(coachUserId(req), 'player_viewed', { playerId: id });
 
     res.json({
@@ -388,7 +470,7 @@ router.get('/players/:id', async (req, res) => {
         shuttle: combine[0].shuttle,
         verified: false,
       } : null,
-      highlights: [],
+      highlights,
     });
   } catch (error) {
     console.error('Player profile fetch failed:', error);
@@ -698,8 +780,12 @@ router.get('/analytics', async (req, res) => {
     const [
       boardCountRow,
       messagesSentRow,
-      playersContactedRow,
+      contactRequestAthleteRows,
+      messagedAthleteRows,
+      offeredRow,
       topStateRows,
+      positionRows,
+      weeklyActivityRows,
       totalPlayersViewedRow,
       searchQueriesThisWeekRow,
       profileViewsThisWeekRow,
@@ -708,19 +794,60 @@ router.get('/analytics', async (req, res) => {
       db.select({ count: sql<number>`count(*)` })
         .from(schema.coachProspects)
         .where(eq(schema.coachProspects.coachId, coachId)),
+      // "Messages Sent" = messages the coach actually authored, not every row in
+      // the coach's threads (athlete replies live on messages.coachId too).
       db.select({ count: sql<number>`count(*)` })
         .from(schema.messages)
-        .where(eq(schema.messages.coachId, coachId)),
-      db.select({ count: sql<number>`count(*)` })
+        .where(and(
+          eq(schema.messages.coachId, coachId),
+          eq(schema.messages.senderType, 'coach'),
+        )),
+      // "Contacted" = distinct athletes the coach has actually reached out to. Two sources,
+      // unioned in JS below: contact requests the coach sent (messageRequests.receiverId holds
+      // the coach on the coach's own outgoing request) + athletes the coach has a message thread
+      // with. Counting only contact requests read 0 for coaches who messaged but never filed a
+      // formal request, which made Conversion Rate misleadingly 0%.
+      db.selectDistinct({ athleteId: schema.messageRequests.athleteId })
         .from(schema.messageRequests)
         .where(eq(schema.messageRequests.receiverId, coachId)),
+      db.selectDistinct({ athleteId: schema.messages.athleteId })
+        .from(schema.messages)
+        .where(eq(schema.messages.coachId, coachId)),
+      // Real "Offered" pipeline stage: prospects tiered 'offered' (tier enum is
+      // target | watching | offered — there is no 'committed' tier, so that stage stays 0).
+      db.select({ count: sql<number>`count(*)` })
+        .from(schema.coachProspects)
+        .where(and(
+          eq(schema.coachProspects.coachId, coachId),
+          eq(schema.coachProspects.tier, 'offered'),
+        )),
       db.select({ state: schema.players.state, count: sql<number>`count(*)` })
         .from(schema.coachProspects)
         .innerJoin(schema.players, eq(schema.players.id, schema.coachProspects.athleteId))
         .where(eq(schema.coachProspects.coachId, coachId))
         .groupBy(schema.players.state)
         .orderBy(desc(sql`count(*)`))
-        .limit(4),
+        .limit(5),
+      // Board position mix for the donut: group the coach's board by athlete position.
+      db.select({ position: schema.players.position, count: sql<number>`count(*)` })
+        .from(schema.coachProspects)
+        .innerJoin(schema.players, eq(schema.players.id, schema.coachProspects.athleteId))
+        .where(eq(schema.coachProspects.coachId, coachId))
+        .groupBy(schema.players.position)
+        .orderBy(desc(sql`count(*)`)),
+      // Weekly activity (last 7 days) grouped by weekday: searches + profile views.
+      db.select({
+        dow: sql<number>`extract(dow from ${schema.coachEvents.createdAt})::int`,
+        searches: sql<number>`count(*) filter (where ${schema.coachEvents.eventType} = 'search_run')`,
+        views: sql<number>`count(*) filter (where ${schema.coachEvents.eventType} = 'profile_viewed')`,
+      })
+        .from(schema.coachEvents)
+        .where(and(
+          eq(schema.coachEvents.coachId, coachId),
+          sql`${schema.coachEvents.eventType} in ('search_run', 'profile_viewed')`,
+          sql`${schema.coachEvents.createdAt} >= ${sevenDaysAgo}`,
+        ))
+        .groupBy(sql`extract(dow from ${schema.coachEvents.createdAt})`),
       db.select({ count: sql<number>`count(distinct ${schema.coachEvents.metadata}->>'playerId')` })
         .from(schema.coachEvents)
         .where(and(
@@ -751,7 +878,12 @@ router.get('/analytics', async (req, res) => {
 
     const boardCount = Number(boardCountRow[0]?.count ?? 0);
     const messagesSent = Number(messagesSentRow[0]?.count ?? 0);
-    const playersContacted = Number(playersContactedRow[0]?.count ?? 0);
+    const playersContacted = new Set(
+      [...contactRequestAthleteRows, ...messagedAthleteRows]
+        .map(r => r.athleteId)
+        .filter((id): id is number => id != null),
+    ).size;
+    const offered = Number(offeredRow[0]?.count ?? 0);
     const totalPlayersViewed = Number(totalPlayersViewedRow[0]?.count ?? 0);
     const searchQueriesThisWeek = Number(searchQueriesThisWeekRow[0]?.count ?? 0);
     const profileViewsThisWeek = Number(profileViewsThisWeekRow[0]?.count ?? 0);
@@ -759,14 +891,76 @@ router.get('/analytics', async (req, res) => {
     const avgSessionTime = avgSessionMs == null ? null : Math.round(avgSessionMs / 1000);
 
     const boardConversionRate = boardCount > 0
-      ? Math.round((playersContacted / boardCount) * 100)
+      ? Math.min(100, Math.round((playersContacted / boardCount) * 100))
       : 0;
+
+    const pct = (n: number) => (boardCount > 0 ? Math.round((n / boardCount) * 100) : 0);
+
+    const topStates = topStateRows
+      .filter(r => r.state)
+      .map(r => ({ state: r.state as string, players: Number(r.count), percentage: pct(Number(r.count)) }));
+
+    const positionBreakdown = positionRows
+      .filter(r => r.position)
+      .map(r => ({ position: r.position as string, count: Number(r.count), percentage: pct(Number(r.count)) }));
+
+    // Zero-fill all 7 weekdays (Mon..Sun) so the chart axis is stable even on quiet days.
+    // Postgres extract(dow): 0=Sun..6=Sat.
+    const weekOrder: { dow: number; day: string }[] = [
+      { dow: 1, day: 'Mon' }, { dow: 2, day: 'Tue' }, { dow: 3, day: 'Wed' },
+      { dow: 4, day: 'Thu' }, { dow: 5, day: 'Fri' }, { dow: 6, day: 'Sat' }, { dow: 0, day: 'Sun' },
+    ];
+    const activityByDow = new Map<number, { searches: number; views: number }>();
+    for (const row of weeklyActivityRows) {
+      activityByDow.set(Number(row.dow), { searches: Number(row.searches), views: Number(row.views) });
+    }
+    const weeklyActivity = weekOrder.map(({ dow, day }) => ({
+      day,
+      searches: activityByDow.get(dow)?.searches ?? 0,
+      views: activityByDow.get(dow)?.views ?? 0,
+      saves: 0,
+    }));
+
+    // Dashboard reads these two directly. profileViews = how many athlete
+    // profiles this coach has opened (all-time 'player_viewed' events);
+    // recentlyViewed = the most-recent distinct athletes, newest first, for the
+    // Recent Activity list. Both come from the coachEvents the portal already
+    // records, so no new data source is needed.
+    const [profileViewsRow, recentlyViewedRows] = await Promise.all([
+      db.select({ count: sql<number>`count(*)` })
+        .from(schema.coachEvents)
+        .where(and(
+          eq(schema.coachEvents.coachId, coachId),
+          eq(schema.coachEvents.eventType, 'player_viewed'),
+        )),
+      db.select({
+        playerId: sql<number>`(${schema.coachEvents.metadata}->>'playerId')::int`,
+        name: schema.players.name,
+        lastViewed: sql<string>`max(${schema.coachEvents.createdAt})`,
+      })
+        .from(schema.coachEvents)
+        .innerJoin(schema.players, sql`${schema.players.id} = (${schema.coachEvents.metadata}->>'playerId')::int`)
+        .where(and(
+          eq(schema.coachEvents.coachId, coachId),
+          eq(schema.coachEvents.eventType, 'player_viewed'),
+          sql`${schema.coachEvents.metadata}->>'playerId' is not null`,
+        ))
+        .groupBy(sql`(${schema.coachEvents.metadata}->>'playerId')::int`, schema.players.name)
+        .orderBy(desc(sql`max(${schema.coachEvents.createdAt})`))
+        .limit(10),
+    ]);
+    const profileViews = Number(profileViewsRow[0]?.count ?? 0);
+    const recentlyViewed = recentlyViewedRows
+      .map((r) => ({ id: Number(r.playerId), name: r.name ?? 'Athlete' }))
+      .filter((r) => Number.isFinite(r.id));
 
     res.json({
       boardCount,
       messagesSent,
       playersContacted,
-      topStates: topStateRows.map(r => r.state).filter(Boolean),
+      profileViews,
+      recentlyViewed,
+      topStates,
       totalPlayersViewed,
       searchQueriesThisWeek,
       profileViewsThisWeek,
@@ -775,11 +969,11 @@ router.get('/analytics', async (req, res) => {
       recruitingPipeline: {
         prospects: boardCount,
         contacted: playersContacted,
-        offered: 0,
+        offered,
         committed: 0,
       },
-      weeklyActivity: [] as { day: string; searches: number; views: number; saves: number }[],
-      positionBreakdown: [] as { position: string; count: number; percentage: number }[],
+      weeklyActivity,
+      positionBreakdown,
     });
   } catch (error) {
     console.error('Failed to fetch analytics:', error);
@@ -821,9 +1015,11 @@ router.get('/player-clips', async (req, res) => {
       }
     }
 
+    // Demo coach (dev-only) sees fabricated sample stats; real coaches get real-or-null.
+    const demo = await coachIsDemo(req);
     const clips = rows
-      .map((p) => mapPlayerToScout({ ...p, latestHighlightThumbnail: thumbnailByPlayer.get(p.id) ?? null }))
-      .sort((a, b) => b.stars - a.stars || b.breakoutScore - a.breakoutScore)
+      .map((p) => mapPlayerToScout({ ...p, latestHighlightThumbnail: thumbnailByPlayer.get(p.id) ?? null }, demo))
+      .sort((a, b) => (b.stars ?? 0) - (a.stars ?? 0) || (b.breakoutScore ?? 0) - (a.breakoutScore ?? 0))
       .slice(0, 12)
       .map((s) => ({
         id: s.id,

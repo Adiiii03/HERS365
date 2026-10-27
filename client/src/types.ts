@@ -243,10 +243,10 @@ export interface AcademicProfile {
 
 export interface ScoutingBoardItem {
   id: number;
-  playerId: number;
+  athleteId: number;
   tier: 'top-target' | 'watching' | 'offered';
   notes?: string;
-  savedAt: string;
+  createdAt: string;
   player?: PlayerSearchResult;
 }
 
@@ -264,8 +264,8 @@ export interface CoachAnalytics {
   boardCount: number;
   messagesSent: number;
   profileViews: number;
-  topStates: string[];
-  recentlyViewed: number[];
+  topStates: { state: string; players: number; percentage: number }[];
+  recentlyViewed: { id: number; name: string }[];
   searchQueries: number;
   playersContacted: number;
   offersExtended: number;
