@@ -22,6 +22,9 @@ interface MobileNavProps {
   items: NavItem[];
   accent?: AccentTheme;
   title?: string;
+  // Optional pre-normalized active path (e.g. ParentLayout maps `/parent` to
+  // `/parent/dashboard`). Falls back to the raw location when not provided.
+  activePath?: string;
 }
 
 const defaultAccent: AccentTheme = {
@@ -36,8 +39,10 @@ export const MobileNav: React.FC<MobileNavProps> = ({
   items,
   accent = defaultAccent,
   title = 'HERS 365',
+  activePath,
 }) => {
   const location = useLocation();
+  const current = activePath ?? location.pathname;
 
   useEffect(() => {
     document.body.style.overflow = isOpen ? 'hidden' : '';
@@ -125,7 +130,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({
               gap: 2,
             }}>
               {items.map(({ icon: Icon, label, path, badge }) => {
-                const active = location.pathname === path;
+                const active = current === path;
                 return (
                   <Link
                     key={path}
