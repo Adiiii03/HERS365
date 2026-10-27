@@ -18,7 +18,7 @@ const parentAuth = (p: { id: number; email: string; name: string | null }) =>
 
 describe('GET /api/coach/player-clips serves the real roster', () => {
   it('returns real athletes, hides coachDiscoverable=false ones, and drops the old hardcoded sample', async () => {
-    const visible = await makeAthlete({ name: 'Clip Carla', position: 'WR' });
+    const visible = await makeAthlete({ name: 'Clip Carla', position: 'WR', g5Rating: 4 });
 
     const parent = await makeParent();
     const hidden = await makeAthlete({ name: 'Clip Hidden', position: 'QB' });
@@ -32,7 +32,7 @@ describe('GET /api/coach/player-clips serves the real roster', () => {
     const res = await request(app).get('/api/coach/player-clips').set(coachAuth(coach));
     expect(res.status).toBe(200);
 
-    const clips = res.body.clips as Array<{ playerId: number; name: string; position: string; school: string; stars: number; breakoutScore: number }>;
+    const clips = res.body.clips as Array<{ playerId: number; name: string; position: string; school: string; stars: number | null; breakoutScore: number | null }>;
     expect(Array.isArray(clips)).toBe(true);
 
     const ids = clips.map((c) => c.playerId);
@@ -46,8 +46,11 @@ describe('GET /api/coach/player-clips serves the real roster', () => {
     const carla = clips.find((c) => c.playerId === visible.id)!;
     expect(carla.name).toBe('Clip Carla');
     expect(carla.position).toBe('WR');
-    expect(typeof carla.stars).toBe('number');
-    expect(typeof carla.breakoutScore).toBe('number');
+    // makeCoach() is a REAL coach (not the demo allowlist), so stats are real-or-null:
+    // stars is the athlete's real g5Rating, and breakoutScore is null (no real source,
+    // never fabricated for a real coach).
+    expect(carla.stars).toBe(4);
+    expect(carla.breakoutScore).toBeNull();
   });
 
   it('requires a coach (athlete token is rejected)', async () => {

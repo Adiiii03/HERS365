@@ -7,6 +7,25 @@ export default {
   theme: {
     extend: {
       colors: {
+        accent: {
+          50:  '#F5EEFF',
+          100: '#E6D6FF',
+          200: '#D5BCFF',
+          300: '#C4A3FF',
+          400: '#A66BFF',
+          500: '#8B3BFF',
+          600: '#7526E8',
+          700: '#5E1BC2',
+          800: '#471399',
+          900: '#320D70',
+        },
+        pink: {
+          300: '#FF6FB3',
+          500: '#FF2E93',
+        },
+        neon: {
+          500: '#39FF14',
+        },
         coral: {
           50:  '#fff2ee',
           100: '#ffd9cc',

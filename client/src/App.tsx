@@ -86,9 +86,11 @@ const CoachPlayerProfile = lazyNamed(() => import('./pages/coach/CoachPlayerProf
 const CoachAnalytics = lazyNamed(() => import('./pages/coach/CoachAnalytics'), 'CoachAnalytics');
 const CoachSignup = lazyNamed(() => import('./pages/coach/CoachSignup'), 'CoachSignup');
 const CoachSettings = lazyNamed(() => import('./pages/coach/CoachSettings'), 'CoachSettings');
+const CoachProfile = lazyNamed(() => import('./pages/coach/CoachProfile'), 'CoachProfile');
+const CoachGrid = lazyNamed(() => import('./pages/coach/CoachGrid'), 'CoachGrid');
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { NotificationProvider } from './context/NotificationContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Capacitor } from '@capacitor/core';
@@ -316,14 +318,16 @@ function App() {
             <Route path="/coach/login" element={<CoachLogin />} />
             <Route path="/coach/signup" element={<CoachSignup />} />
             <Route element={<CoachRouteGuard><CoachLayout /></CoachRouteGuard>}>
-              <Route path="/coach" element={<CoachDashboard />} />
+              <Route path="/coach" element={<Navigate to="/coach/dashboard" replace />} />
               <Route path="/coach/dashboard" element={<CoachDashboard />} />
+              <Route path="/coach/grid" element={<CoachGrid />} />
               <Route path="/coach/search" element={<CoachPlayerSearch />} />
               <Route path="/coach/board" element={<CoachScoutingBoard />} />
               <Route path="/coach/analytics" element={<CoachAnalytics />} />
               <Route path="/coach/messages" element={<CoachMessages />} />
               <Route path="/coach/roster" element={<CoachRoster />} />
               <Route path="/coach/player/:id" element={<CoachPlayerProfile />} />
+              <Route path="/coach/profile" element={<CoachProfile />} />
               <Route path="/coach/settings" element={<CoachSettings />} />
             </Route>
 
