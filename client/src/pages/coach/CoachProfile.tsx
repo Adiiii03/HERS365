@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { User, Mail, School, Award, Shield, Save, ArrowLeft } from 'lucide-react';
+import { User, Mail, School, Award, Shield, Save, ArrowLeft, BadgeCheck } from 'lucide-react';
 import { useNotifications } from '../../context/NotificationContext';
 import { Button } from '../../components/ui';
 
@@ -14,6 +14,15 @@ interface CoachProfile {
   recruitingPositions?: string[];
   recruitingStates?: string[];
   verifiedStatus?: boolean;
+}
+
+// Real recruiter counts for the hero stat strip, pulled from GET /api/coach/analytics.
+// These are genuine per-coach DB counts (board size, pipeline, messaging), not fabricated.
+interface CoachStats {
+  onBoard: number;
+  contacted: number;
+  offersOut: number;
+  messagesSent: number;
 }
 
 export function CoachProfile() {
@@ -31,10 +40,37 @@ export function CoachProfile() {
   });
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
+  const [stats, setStats] = useState<CoachStats | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
 
   useEffect(() => {
     fetchProfile();
+    fetchStats();
   }, []);
+
+  // Read-only: hydrate the stat strip from real analytics. Failure here must not
+  // block the profile form, so we just hide the strip if it errors.
+  const fetchStats = async () => {
+    setStatsLoading(true);
+    try {
+      const token = localStorage.getItem('coachToken');
+      const res = await fetch('/api/coach/analytics', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error('stats unavailable');
+      const data = await res.json();
+      setStats({
+        onBoard: Number(data?.boardCount ?? 0),
+        contacted: Number(data?.playersContacted ?? 0),
+        offersOut: Number(data?.recruitingPipeline?.offered ?? 0),
+        messagesSent: Number(data?.messagesSent ?? 0),
+      });
+    } catch {
+      setStats(null);
+    } finally {
+      setStatsLoading(false);
+    }
+  };
 
   const fetchProfile = async () => {
     setLoading(true);
@@ -125,29 +161,83 @@ export function CoachProfile() {
     );
   }
 
+  const initials = (profile?.name || 'Coach')
+    .split(' ').map((w) => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
+  const titleLine = [profile?.university, profile?.division].filter(Boolean).join(' • ');
+
+  const statTiles = [
+    { label: 'On Board', value: stats?.onBoard },
+    { label: 'Contacted', value: stats?.contacted },
+    { label: 'Offers Out', value: stats?.offersOut },
+    { label: 'Messages Sent', value: stats?.messagesSent },
+  ];
+
   return (
-    <div className="max-w-2xl mx-auto space-y-8">
-      <div className="flex items-center gap-4">
-        <button
-          onClick={() => navigate('/coach')}
-          className="inline-flex items-center justify-center min-w-[44px] min-h-[44px] rounded-xl border border-white/10 text-ink-muted hover:text-white hover:bg-white/5 transition-colors"
-        >
-          <ArrowLeft size={20} />
-        </button>
-        <div>
-          <h1 className="text-3xl font-black text-white uppercase tracking-tight">My Profile</h1>
-          <p className="text-ink-muted text-sm mt-1">View and update your coach profile information.</p>
+    <div className="max-w-3xl mx-auto space-y-6">
+      <button
+        onClick={() => navigate('/coach')}
+        className="inline-flex items-center gap-2 text-sm font-semibold text-ink-muted hover:text-white transition-colors"
+      >
+        <ArrowLeft size={18} /> Back to dashboard
+      </button>
+
+      {/* Hero band */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative overflow-hidden bg-[#141418] border border-accent-500/30 rounded-2xl p-6"
+      >
+        <div className="absolute inset-0 bg-gradient-to-br from-accent-500/10 via-transparent to-transparent pointer-events-none" />
+        <div className="relative flex items-center gap-5">
+          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-accent-500/40 to-accent-700/50 border border-accent-500/40 flex items-center justify-center shrink-0">
+            <span className="font-display text-2xl font-black text-accent-200 tracking-wide">{initials}</span>
+          </div>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="font-display text-3xl font-black text-white uppercase tracking-tight truncate">
+                {profile?.name || 'Coach'}
+              </h1>
+              {profile?.verifiedStatus && (
+                <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-accent-200 bg-accent-500/15 border border-accent-500/40 rounded-full px-2 py-0.5">
+                  <BadgeCheck size={12} /> Verified
+                </span>
+              )}
+            </div>
+            <p className="text-sm text-ink-muted mt-1 truncate">
+              {titleLine || 'Add your program below'}
+            </p>
+          </div>
         </div>
-      </div>
+
+        {/* Stat strip — real recruiter counts from /coach/analytics */}
+        {(statsLoading || stats) && (
+          <div className="relative grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6">
+            {statTiles.map((tile) => (
+              <div
+                key={tile.label}
+                className="bg-white/[0.04] border border-accent-500/30 rounded-xl px-4 py-3"
+              >
+                {statsLoading ? (
+                  <div className="h-8 w-10 bg-white/10 rounded animate-pulse" />
+                ) : (
+                  <p className="font-display text-3xl font-black text-accent-400 leading-none">{tile.value ?? 0}</p>
+                )}
+                <p className="text-[10px] font-bold uppercase tracking-wider text-ink-muted mt-2">{tile.label}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </motion.div>
 
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-surface-card border border-white/5 rounded-2xl overflow-hidden"
+        className="bg-surface-card border border-accent-500/30 rounded-2xl overflow-hidden"
       >
         <div className="px-6 py-5 border-b border-white/5">
-          <h2 className="font-display text-base font-black uppercase tracking-widest text-white">Account Information</h2>
-          <p className="text-xs text-ink-muted mt-1">Your coach profile details.</p>
+          <h2 className="font-display text-xl font-black uppercase tracking-wide text-white">Account Information</h2>
+          <div className="h-0.5 w-[72px] bg-accent-500 rounded mt-2" />
+          <p className="text-xs text-ink-muted mt-2">Your coach profile details.</p>
         </div>
         <div className="p-6 space-y-5">
           <div>

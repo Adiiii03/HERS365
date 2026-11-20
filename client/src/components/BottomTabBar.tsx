@@ -5,7 +5,9 @@ import { motion } from 'framer-motion';
 
 const FLAME = '#8B3BFF';
 
-const tabs = [
+type BottomTab = { icon: React.ElementType; label: string; path: string; isMiddle?: boolean };
+
+const defaultTabs: BottomTab[] = [
   { icon: LayoutGrid, label: 'Grid',    path: '/feed' },
   { icon: Trophy,     label: 'Ranking', path: '/rankings' },
   { icon: User,       label: 'Profile', path: '/profile', isMiddle: true },
@@ -15,9 +17,10 @@ const tabs = [
 
 interface BottomTabBarProps {
   unreadMessages?: number;
+  tabs?: BottomTab[];
 }
 
-export const BottomTabBar: React.FC<BottomTabBarProps> = () => {
+export const BottomTabBar: React.FC<BottomTabBarProps> = ({ tabs = defaultTabs }) => {
   const location = useLocation();
 
   return (

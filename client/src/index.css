@@ -853,3 +853,18 @@ html { scroll-behavior: smooth; }
   }
   .hers-glow { display: none; }
 }
+
+/* ─── Coach portal theme scope ───
+   The coach portal keeps the dark purple theme; the rest of the app uses coral.
+   main's coral rebrand lightened the shared `surface` token (#111111/#161616), so
+   re-map the surface utilities to the dark (launch-update) values, scoped to the
+   coach shell via .coach-theme on CoachLayout. Descendant selectors (0,2,0) beat
+   Tailwind's (0,1,0) utilities, so no !important is needed. */
+.coach-theme.bg-surface,
+.coach-theme .bg-surface            { background-color: var(--surface-0); }
+.coach-theme .bg-surface\/50        { background-color: rgba(10,10,12,.5); }
+.coach-theme .bg-surface\/30        { background-color: rgba(10,10,12,.3); }
+.coach-theme .bg-surface-card       { background-color: var(--surface-1); }
+.coach-theme .bg-surface-card\/95   { background-color: rgba(18,18,22,.95); }
+.coach-theme .bg-surface-hover      { background-color: var(--surface-2); }
+.coach-theme .border-surface-border { border-color: var(--border); }
